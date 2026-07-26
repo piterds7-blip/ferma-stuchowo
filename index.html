@@ -9,859 +9,1079 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Ferma Stuchowo</title>
-
-<!-- Firebase SDK (compat - single file PWA) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
 <style>
-/* ============================================================
-   CSS VARIABLES & RESET
-   ============================================================ */
-:root {
-  --c-primary: #2F6B3A;
-  --c-primary-dark: #1E4A27;
-  --c-primary-light: #E8F0E9;
-  --c-bg: #F6F7F2;
-  --c-surface: #FFFFFF;
-  --c-gold: #C9A227;
-  --c-gold-light: #FFF8E1;
-  --c-red: #B3392C;
-  --c-red-light: #FDECEA;
-  --c-text: #1A2E1D;
-  --c-text-muted: #5A6B5C;
-  --c-border: #D4DDD5;
-  --c-nav-bg: #243E29;
-  --radius: 10px;
-  --shadow: 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
-  --nav-h: 64px;
-  --header-h: 56px;
-  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+:root{--c-pri:#2F6B3A;--c-pri-d:#1E4A27;--c-pri-l:#E8F0E9;--c-bg:#F6F7F2;--c-card:#fff;--c-gold:#C9A227;--c-gold-bg:#FFF8E1;--c-red:#B3392C;--c-red-bg:#FDECEA;--c-txt:#1A2E1D;--c-txt2:#5A6B5C;--c-brd:#D4DDD5;--c-nav:#243E29;--radius:8px;--shadow:0 2px 8px rgba(0,0,0,.08);--shadow-lg:0 4px 20px rgba(0,0,0,.12);--font:'Segoe UI',system-ui,-apple-system,sans-serif;--mono:'Cascadia Code','SF Mono',Consolas,monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:var(--font);background:var(--c-bg);color:var(--c-txt);height:100%;overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer;border:none}input,select,textarea{font-family:inherit}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;z-index:9999;background:var(--c-pri);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s}
+#splash.hide{opacity:0;pointer-events:none}
+#splash img{width:120px;height:120px;border-radius:24px;margin-bottom:16px}
+#splash h1{color:#fff;font-size:22px;font-weight:600;letter-spacing:1px}
+#splash p{color:rgba(255,255,255,.7);font-size:13px;margin-top:6px}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;z-index:100;background:linear-gradient(135deg,#2F6B3A,#3D8B4A,#2F6B3A);display:flex;align-items:center;justify-content:center}
+#login-screen.hidden{display:none}
+.login-card{background:rgba(255,255,255,.12);backdrop-filter:blur(10px);border-radius:16px;padding:36px 28px;width:90%;max-width:340px;text-align:center;border:1px solid rgba(255,255,255,.2)}
+.login-card img{width:88px;height:88px;border-radius:20px;margin-bottom:12px}
+.login-card h1{font-size:20px;color:#fff;margin-bottom:4px}
+.login-card .subtitle{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:24px}
+.login-card input{width:100%;padding:13px;border:1px solid rgba(255,255,255,.3);border-radius:8px;background:rgba(255,255,255,.15);color:#fff;font-size:16px;font-weight:500;text-align:center;margin-bottom:12px;outline:none}
+.login-card input::placeholder{color:rgba(255,255,255,.5)}
+.login-card input:focus{border-color:#fff;background:rgba(255,255,255,.25)}
+.login-btn{width:100%;padding:13px;background:#fff;color:var(--c-pri);font-size:15px;font-weight:700;border-radius:8px}
+.login-btn:active{opacity:.9}
+.login-error{color:#FFCDD2;font-size:13px;margin-top:8px;min-height:18px}
+.login-info-btn{position:absolute;bottom:20px;right:20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);width:36px;height:36px;border-radius:50%;font-size:16px;display:flex;align-items:center;justify-content:center}
+.login-info-btn:hover{background:rgba(255,255,255,.25);color:#fff}
+
+/* APP LAYOUT */
+#app{display:none;height:100%;flex-direction:column}
+#app.active{display:flex}
+.app-header{height:52px;background:var(--c-pri);display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0;z-index:50}
+.app-header .farm-name{color:#fff;font-size:15px;font-weight:600;flex:1;letter-spacing:.3px}
+.app-header .hdr-btn{background:none;color:rgba(255,255,255,.7);font-size:13px;padding:6px 8px;border-radius:6px}
+.app-header .hdr-btn:hover{color:#fff;background:rgba(255,255,255,.1)}
+.sync-badge{font-size:11px;background:rgba(255,255,255,.2);color:rgba(255,255,255,.9);padding:3px 8px;border-radius:10px;white-space:nowrap}
+
+/* NAVIGATION */
+.app-nav{background:var(--c-nav);display:flex;align-items:center;padding:0 4px;gap:1px;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.app-nav::-webkit-scrollbar{display:none}
+.nav-tab{display:flex;align-items:center;gap:6px;padding:11px 14px;color:rgba(255,255,255,.5);font-size:12px;font-weight:500;white-space:nowrap;background:none;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;letter-spacing:.3px}
+.nav-tab svg{width:16px;height:16px;flex-shrink:0}
+.nav-tab:hover{color:rgba(255,255,255,.8)}
+.nav-tab.active{color:#fff;border-bottom-color:#fff}
+.nav-tab.hidden{display:none}
+
+/* TAB CONTENT */
+.tab-content-area{flex:1;overflow-y:auto;padding:12px}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* MOBILE NAV */
+@media(max-width:768px){
+  .app-nav{position:fixed;bottom:0;left:0;right:0;justify-content:space-around;padding:4px 0 env(safe-area-inset-bottom,0);z-index:50;box-shadow:0 -2px 12px rgba(0,0,0,.15)}
+  .nav-tab{flex-direction:column;gap:2px;padding:7px 4px 5px;font-size:9px;border-bottom:none;border-top:3px solid transparent;flex:1;min-width:0;text-align:center}
+  .nav-tab.active{border-top-color:#fff;border-bottom-color:transparent}
+  .tab-content-area{padding-bottom:72px}
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* SHARED UI */
+.page-title{font-size:18px;font-weight:700;color:var(--c-pri-d);margin-bottom:4px;letter-spacing:-.3px}
+.page-sub{font-size:12px;color:var(--c-txt2);margin-bottom:14px}
+.card{background:var(--c-card);border-radius:var(--radius);border:1px solid var(--c-brd);box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden}
+.ch{padding:8px 12px;font:700 13px var(--font);color:var(--c-pri);border-bottom:1px solid var(--c-brd);background:var(--c-pri-l);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:7px 12px;border-radius:6px;font:600 12px var(--font);cursor:pointer;white-space:nowrap}
+.bp{background:var(--c-pri);color:#fff}.bo{background:transparent;color:var(--c-pri);border:1px solid var(--c-pri)}.bd{background:var(--c-red);color:#fff}
+.bs{padding:4px 8px;font-size:11px}
+.fr{display:flex;gap:8px;padding:8px 12px;align-items:flex-end;flex-wrap:wrap}
+.fg{display:flex;flex-direction:column;gap:2px;flex:1;min-width:80px}
+.fg label{font-size:10px;font-weight:600;color:var(--c-txt2);text-transform:uppercase;letter-spacing:.04em}
+select,input[type=number],input[type=text],input[type=date],input[type=password],textarea{font:400 14px var(--font);padding:7px 8px;border:1px solid var(--c-brd);border-radius:6px;background:#fff;color:var(--c-txt);width:100%}
+input:focus,select:focus{outline:none;border-color:var(--c-pri);box-shadow:0 0 0 2px rgba(47,107,58,.15)}
+input[type=number]{font-family:var(--mono);font-size:13px;text-align:right}
 
-html, body {
-  font-family: var(--font);
-  background: var(--c-bg);
-  color: var(--c-text);
-  height: 100%;
-  overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-}
+/* TABLE */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.dt{width:100%;border-collapse:collapse;font-size:12px}
+table.dt th{background:var(--c-pri);color:#fff;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.03em;padding:7px 5px;text-align:right;white-space:nowrap}
+table.dt th:first-child{text-align:left}
+table.dt td{padding:5px;border-bottom:1px solid var(--c-brd);text-align:right;font-family:var(--mono);font-size:12px}
+table.dt td:first-child{text-align:left;font-family:var(--font);font-weight:500}
+table.dt tr:nth-child(even){background:#F8FAF8}
+table.dt td input{width:70px;padding:3px 5px;font-size:12px;border-radius:4px;font-family:var(--mono);text-align:right;border:1px solid var(--c-brd)}
+table.dt td input:focus{border-color:var(--c-pri)}
+table.dt td select{width:90px;padding:2px;font-size:11px}
+table.dt tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gold);border-top:2px solid var(--c-gold)}
+.sur-warn{color:var(--c-red);font-weight:700}.sur-ok{color:var(--c-pri)}
 
-button { font-family: inherit; cursor: pointer; border: none; }
-input, select { font-family: inherit; }
+/* FE dawki table */
+table.fe{width:100%;border-collapse:collapse;font-size:11px}
+table.fe th{background:var(--c-pri);color:#fff;font-weight:600;font-size:9px;text-transform:uppercase;padding:5px 3px;text-align:center;white-space:nowrap;border:1px solid #1E4A27}
+table.fe th.gh{background:#1E4A27;font-size:10px}
+table.fe th:first-child{text-align:left}
+table.fe td{padding:3px;border:1px solid var(--c-brd);text-align:right;font-family:var(--mono);font-size:11px}
+table.fe td:first-child{text-align:left;font-family:var(--font);font-weight:500;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+table.fe td input{width:52px;padding:2px 3px;font-size:11px;border-radius:3px;font-family:var(--mono);text-align:right;border:1px solid var(--c-brd)}
+table.fe td input:focus{border-color:var(--c-pri)}
+table.fe tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gold);border-top:2px solid var(--c-gold);font-size:12px}
 
-/* ============================================================
-   SPLASH / LOADING
-   ============================================================ */
-#splash {
-  position: fixed; inset: 0; z-index: 9999;
-  background: var(--c-primary);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  transition: opacity 0.4s;
-}
-#splash.hide { opacity: 0; pointer-events: none; }
-#splash img { width: 120px; height: 120px; border-radius: 24px; margin-bottom: 16px; }
-#splash h1 { color: #fff; font-size: 22px; font-weight: 600; letter-spacing: 1px; }
-#splash p { color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 6px; }
+/* PASZOWÓZ CARDS */
+.woz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:14px}
+.woz-card{background:var(--c-card);border-radius:12px;border:2px solid var(--c-brd);padding:16px;text-align:center;cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .1s}
+.woz-card:active{transform:scale(.97)}
+.woz-card:hover{border-color:var(--c-pri);box-shadow:var(--shadow)}
+.woz-card.done{border-color:#4CAF50;background:#E8F5E9}
+.woz-card.done-nied{border-color:var(--c-gold);background:var(--c-gold-bg)}
+.woz-card .wc-icon{font-size:32px;margin-bottom:6px}
+.woz-card .wc-name{font-size:15px;font-weight:700;color:var(--c-pri-d);margin-bottom:4px}
+.woz-card .wc-info{font-size:12px;color:var(--c-txt2)}
+.woz-card .wc-badge{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px}
+.woz-card .wc-badge.pending{background:var(--c-pri-l);color:var(--c-pri)}
+.woz-card .wc-badge.complete{background:#C8E6C9;color:#2E7D32}
+.woz-card .wc-badge.nied{background:#FFE082;color:#F57F17}
+.woz-detail{padding:14px}
+.woz-detail table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+.woz-detail th{background:var(--c-pri);color:#fff;padding:8px;text-align:left;font-size:11px;text-transform:uppercase}
+.woz-detail td{padding:7px 8px;border-bottom:1px solid var(--c-brd)}
+.woz-detail td:last-child{text-align:right;font-family:var(--mono);font-weight:600}
+.woz-nied-box{background:var(--c-gold-bg);border:1px solid #e0c060;border-radius:8px;padding:12px;margin-bottom:12px}
+.woz-nied-box label{font-size:12px;font-weight:600;color:var(--c-gold);text-transform:uppercase}
+.woz-nied-box input{font-size:18px;padding:10px;margin-top:4px;text-align:center;font-weight:700;border:2px solid var(--c-gold);border-radius:8px}
+.woz-confirm-btn{width:100%;padding:16px;font-size:16px;font-weight:700;border-radius:10px;letter-spacing:.5px}
+.woz-log{padding:12px}
+.woz-log-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--c-brd);font-size:13px}
+.woz-log-item .time{font-weight:600;color:var(--c-pri);min-width:50px}
 
-/* ============================================================
-   LOGIN SCREEN
-   ============================================================ */
-#login-screen {
-  position: fixed; inset: 0; z-index: 100;
-  background: var(--c-bg);
-  display: flex; align-items: center; justify-content: center;
-}
-#login-screen.hidden { display: none; }
+/* SUCHY TMR */
+.stmr-recipe{padding:14px}
+.stmr-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--c-brd)}
+.stmr-row .sr-name{flex:1;font-weight:500;font-size:14px}
+.stmr-row .sr-pct{font-family:var(--mono);font-weight:700;font-size:14px;color:var(--c-pri);min-width:50px;text-align:right}
+.stmr-prod{background:var(--c-gold-bg);border:2px solid var(--c-gold);border-radius:10px;padding:16px;margin:14px}
+.stmr-prod label{font-size:13px;font-weight:700;color:var(--c-gold);text-transform:uppercase}
+.stmr-prod input{font-size:22px;padding:12px;margin-top:6px;text-align:center;font-weight:700;border:2px solid var(--c-gold);border-radius:8px}
+.stmr-result{padding:14px}
+.stmr-hist{padding:12px;font-size:13px}
 
-.login-card {
-  background: var(--c-surface);
-  border-radius: 16px;
-  box-shadow: var(--shadow-lg);
-  padding: 40px 32px;
-  width: 90%; max-width: 360px;
-  text-align: center;
-}
-.login-card img { width: 88px; height: 88px; border-radius: 20px; margin-bottom: 12px; }
-.login-card h1 { font-size: 20px; color: var(--c-primary-dark); margin-bottom: 4px; }
-.login-card .subtitle { font-size: 13px; color: var(--c-text-muted); margin-bottom: 28px; }
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:50px 20px;color:var(--c-txt2)}
+.empty-state svg{width:40px;height:40px;margin-bottom:10px;opacity:.4}
+.empty-state h3{font-size:15px;margin-bottom:4px;color:var(--c-txt)}
+.empty-state p{font-size:12px}
 
-.login-field { margin-bottom: 16px; text-align: left; }
-.login-field label {
-  display: block; font-size: 12px; font-weight: 600;
-  color: var(--c-text-muted); margin-bottom: 6px;
-  text-transform: uppercase; letter-spacing: 0.8px;
-}
-.login-field select,
-.login-field input {
-  width: 100%; padding: 12px 14px;
-  border: 2px solid var(--c-border); border-radius: 8px;
-  font-size: 15px; color: var(--c-text);
-  background: var(--c-bg); outline: none;
-  transition: border-color 0.2s;
-}
-.login-field select:focus,
-.login-field input:focus { border-color: var(--c-primary); }
+/* MODAL */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:12px}
+.mo.open{display:flex}
+.mob{background:var(--c-card);border-radius:var(--radius);width:100%;max-width:500px;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto}
+.moh{padding:12px 14px;font:700 15px var(--font);border-bottom:1px solid var(--c-brd);display:flex;justify-content:space-between;align-items:center}
+.mobd{padding:14px}
+.mof{padding:10px 14px;border-top:1px solid var(--c-brd);display:flex;justify-content:flex-end;gap:6px}
+.mox{background:none;border:none;font-size:20px;cursor:pointer;color:var(--c-txt2)}
 
-.login-btn {
-  width: 100%; padding: 14px;
-  background: var(--c-primary); color: #fff;
-  font-size: 15px; font-weight: 600;
-  border-radius: 8px; margin-top: 8px;
-  transition: background 0.2s;
-  letter-spacing: 0.5px;
-}
-.login-btn:active { background: var(--c-primary-dark); }
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--c-txt);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:500;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
 
-.login-error {
-  color: var(--c-red); font-size: 13px;
-  margin-top: 10px; min-height: 18px;
-}
+/* STATUS */
+.status-bar{position:fixed;top:0;left:0;right:0;padding:4px 12px;font-size:11px;font-weight:600;text-align:center;z-index:200;transform:translateY(-100%);transition:transform .3s}
+.status-bar.show{transform:translateY(0)}
+.status-bar.offline{background:var(--c-red);color:#fff}
+.status-bar.online{background:var(--c-pri);color:#fff}
 
-/* ============================================================
-   APP LAYOUT
-   ============================================================ */
-#app { display: none; height: 100%; flex-direction: column; }
-#app.active { display: flex; }
-
-/* Header */
-.app-header {
-  height: var(--header-h);
-  background: var(--c-primary);
-  display: flex; align-items: center;
-  padding: 0 16px; gap: 12px;
-  flex-shrink: 0;
-  z-index: 50;
-}
-.app-header .farm-name {
-  color: #fff; font-size: 16px; font-weight: 600;
-  flex: 1; letter-spacing: 0.3px;
-}
-.app-header .role-badge {
-  background: rgba(255,255,255,0.18);
-  color: rgba(255,255,255,0.9);
-  font-size: 11px; font-weight: 600;
-  padding: 4px 10px; border-radius: 12px;
-  text-transform: uppercase; letter-spacing: 0.8px;
-}
-.app-header .btn-logout {
-  background: none; color: rgba(255,255,255,0.7);
-  font-size: 13px; padding: 6px 10px;
-}
-.app-header .btn-logout:hover { color: #fff; }
-
-/* Navigation - Desktop: top bar below header */
-.app-nav {
-  background: var(--c-nav-bg);
-  display: flex; align-items: center;
-  padding: 0 8px; gap: 2px;
-  flex-shrink: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.app-nav::-webkit-scrollbar { display: none; }
-
-.nav-tab {
-  display: flex; align-items: center; gap: 7px;
-  padding: 12px 16px;
-  color: rgba(255,255,255,0.55);
-  font-size: 13px; font-weight: 500;
-  white-space: nowrap;
-  background: none;
-  border-bottom: 3px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-  letter-spacing: 0.3px;
-}
-.nav-tab svg { width: 18px; height: 18px; flex-shrink: 0; }
-.nav-tab:hover { color: rgba(255,255,255,0.85); }
-.nav-tab.active {
-  color: #fff;
-  border-bottom-color: #fff;
-}
-.nav-tab.hidden { display: none; }
-
-/* Tab Content Area */
-.tab-content-area {
-  flex: 1; overflow-y: auto;
-  padding: 20px 16px;
-}
-
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-
-/* ============================================================
-   MOBILE: bottom navigation
-   ============================================================ */
-@media (max-width: 768px) {
-  .app-nav {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--c-nav-bg);
-    justify-content: space-around;
-    padding: 4px 0 env(safe-area-inset-bottom, 0);
-    z-index: 50;
-    box-shadow: 0 -2px 12px rgba(0,0,0,0.15);
-  }
-  .nav-tab {
-    flex-direction: column; gap: 3px;
-    padding: 8px 6px 6px;
-    font-size: 10px;
-    border-bottom: none;
-    border-top: 3px solid transparent;
-    min-width: 0;
-    flex: 1;
-  }
-  .nav-tab.active { border-top-color: #fff; border-bottom-color: transparent; }
-  .tab-content-area { padding-bottom: 80px; }
-}
-
-/* ============================================================
-   SHARED UI COMPONENTS
-   ============================================================ */
-
-/* Page title */
-.page-title {
-  font-size: 20px; font-weight: 700;
-  color: var(--c-primary-dark);
-  margin-bottom: 16px;
-  letter-spacing: -0.3px;
-}
-.page-subtitle {
-  font-size: 13px; color: var(--c-text-muted);
-  margin-top: -12px; margin-bottom: 20px;
-}
-
-/* Cards */
-.card {
-  background: var(--c-surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px;
-  margin-bottom: 16px;
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 14px; font-weight: 600;
-  transition: background 0.2s, transform 0.1s;
-}
-.btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--c-primary); color: #fff; }
-.btn-primary:hover { background: var(--c-primary-dark); }
-.btn-secondary { background: var(--c-primary-light); color: var(--c-primary-dark); }
-.btn-danger { background: var(--c-red); color: #fff; }
-.btn-gold { background: var(--c-gold); color: #fff; }
-
-/* Placeholder empty state */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--c-text-muted);
-}
-.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
-.empty-state h3 { font-size: 16px; margin-bottom: 6px; color: var(--c-text); }
-.empty-state p { font-size: 13px; }
-
-/* Status bar (connection) */
-.status-bar {
-  position: fixed; top: 0; left: 0; right: 0;
-  padding: 4px 12px;
-  font-size: 11px; font-weight: 600;
-  text-align: center;
-  z-index: 200;
-  transform: translateY(-100%);
-  transition: transform 0.3s;
-}
-.status-bar.show { transform: translateY(0); }
-.status-bar.offline { background: var(--c-red); color: #fff; }
-.status-bar.online { background: var(--c-primary); color: #fff; }
-
-/* Toast notification */
-.toast {
-  position: fixed; bottom: 100px; left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: var(--c-nav-bg); color: #fff;
-  padding: 12px 24px; border-radius: 8px;
-  font-size: 14px; font-weight: 500;
-  box-shadow: var(--shadow-lg);
-  opacity: 0;
-  transition: opacity 0.3s, transform 0.3s;
-  z-index: 300;
-  pointer-events: none;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* Confirm dialog */
-.dialog-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 500;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.2s;
-}
-.dialog-overlay.show { opacity: 1; pointer-events: auto; }
-.dialog-box {
-  background: var(--c-surface); border-radius: 14px;
-  padding: 28px 24px; width: 90%; max-width: 340px;
-  text-align: center; box-shadow: var(--shadow-lg);
-}
-.dialog-box h3 { font-size: 17px; margin-bottom: 8px; }
-.dialog-box p { font-size: 14px; color: var(--c-text-muted); margin-bottom: 20px; }
-.dialog-actions { display: flex; gap: 10px; justify-content: center; }
-.dialog-actions .btn { flex: 1; justify-content: center; }
-
-/* Settings section (Twórca only — password management) */
-.settings-section { margin-top: 32px; }
-.settings-section h3 {
-  font-size: 14px; text-transform: uppercase;
-  letter-spacing: 0.8px; color: var(--c-text-muted);
-  margin-bottom: 12px;
-}
-
-/* Table base style */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-.data-table th {
-  background: var(--c-primary-light);
-  color: var(--c-primary-dark);
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  padding: 10px 12px;
-  text-align: left;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-.data-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--c-border);
-}
-.data-table tr:hover td { background: var(--c-primary-light); }
-
-/* Scrollable table wrapper */
-.table-wrap {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  background: var(--c-surface);
-}
+/* PRINT */
+#pa{display:none}
+@media print{body>*{display:none!important}#pa{display:block!important;position:absolute;left:0;top:0;width:100%;padding:12mm;font-size:11pt;color:#000}
+#pa table{border-collapse:collapse;width:100%}#pa table th,#pa table td{border:1px solid #555;padding:5px 7px;font-size:11pt;font-weight:600}
+#pa table th{background:#ddd!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;color:#000}
+#pa table tfoot td{background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#pa h2{font-size:14pt;margin-bottom:4px}#pa .pm{font-size:9pt;color:#555;margin-bottom:8px}
+@page{size:A4;margin:10mm}}
+@media(max-width:480px){.fr{flex-direction:column;gap:6px}.fg{min-width:0}}
 </style>
 </head>
 <body>
 
-<!-- ============================================================
-     SPLASH SCREEN
-     ============================================================ -->
-<div id="splash">
-  <img src="icon-192.png" alt="Ferma Stuchowo">
-  <h1>Ferma Stuchowo</h1>
-  <p>Ładowanie aplikacji…</p>
-</div>
+<div id="splash"><img src="icon-192.png" alt=""><h1>Ferma Stuchowo</h1><p>Ładowanie aplikacji…</p></div>
 
-<!-- ============================================================
-     LOGIN SCREEN
-     ============================================================ -->
 <div id="login-screen" class="hidden">
   <div class="login-card">
     <img src="icon-192.png" alt="Ferma Stuchowo">
     <h1>Ferma Stuchowo</h1>
-    <p class="subtitle">Zaloguj się, aby kontynuować</p>
-
-    <div class="login-field">
-      <label>Rola</label>
-      <select id="login-role">
-        <option value="tworca">Twórca</option>
-        <option value="zootechnik">Zootechnik</option>
-        <option value="zywieniowiec">Żywieniowiec</option>
-        <option value="paszowoz">Paszowóz</option>
-      </select>
-    </div>
-
-    <div class="login-field">
-      <label>Hasło</label>
-      <input type="password" id="login-pass" placeholder="Wpisz hasło" autocomplete="off">
-    </div>
-
+    <p class="subtitle">Wpisz hasło, aby kontynuować</p>
+    <input type="password" id="lp" placeholder="Hasło" autocomplete="off">
     <button class="login-btn" onclick="doLogin()">Zaloguj się</button>
-    <div class="login-error" id="login-error"></div>
+    <div class="login-error" id="le"></div>
   </div>
+  <button class="login-info-btn" onclick="showContact()" title="Kontakt z doradcą">ℹ</button>
 </div>
 
-<!-- ============================================================
-     MAIN APP
-     ============================================================ -->
 <div id="app">
-  <!-- Header -->
   <header class="app-header">
     <span class="farm-name">Ferma Stuchowo</span>
-    <span class="role-badge" id="role-badge"></span>
-    <button class="btn-logout" onclick="doLogout()">Wyloguj</button>
+    <span class="sync-badge" id="syncb">⏳</span>
+    <span id="hdr-extra"></span>
+    <button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button>
+    <button class="hdr-btn" onclick="doLogout()">Wyloguj</button>
   </header>
-
-  <!-- Navigation -->
-  <nav class="app-nav" id="app-nav">
-    <button class="nav-tab" data-tab="surowce" data-roles="tworca,zootechnik" onclick="switchTab('surowce')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M2 20h20M5 20V8l7-5 7 5v12M9 20v-6h6v6"/>
-      </svg>
-      Surowce
-    </button>
-    <button class="nav-tab" data-tab="dawki" data-roles="tworca,zootechnik,zywieniowiec" onclick="switchTab('dawki')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 3v18M3 12l4-4 4 4M13 8l4-4 4 4M3 16l4 4 4-4M13 20l4-4 4 4"/>
-      </svg>
-      Dawki
-    </button>
-    <button class="nav-tab" data-tab="koszty" data-roles="tworca,zootechnik" onclick="switchTab('koszty')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.7 0-3 1-3 2.5s1.3 2.5 3 2.5c1.7 0 3 1 3 2.5s-1.3 2.5-3 2.5c-1 0-2-.5-2.5-1.5M12 6v1.5M12 16.5V18"/>
-      </svg>
-      Koszty
-    </button>
-    <button class="nav-tab" data-tab="paszowoz" data-roles="tworca,zootechnik,paszowoz" onclick="switchTab('paszowoz')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="1" y="6" width="15" height="10" rx="2"/><path d="M16 10h4l3 4v2h-7V10z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-      </svg>
-      Paszowóz
-    </button>
-    <button class="nav-tab" data-tab="raporty" data-roles="tworca,zootechnik" onclick="switchTab('raporty')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
-      </svg>
-      Raporty
-    </button>
-    <button class="nav-tab" data-tab="suchy-tmr" data-roles="tworca,zootechnik" onclick="switchTab('suchy-tmr')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6 3h12l2 6H4l2-6zM4 9v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9M9 13h6"/>
-      </svg>
-      Suchy TMR
-    </button>
-  </nav>
-
-  <!-- Tab Panels -->
+  <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
 
     <!-- SUROWCE -->
-    <div class="tab-panel" id="panel-surowce">
-      <h2 class="page-title">Surowce</h2>
-      <p class="page-subtitle">Stany magazynowe surowców paszowych</p>
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 20h20M5 20V8l7-5 7 5v12M9 20v-6h6v6"/></svg>
-        <h3>Moduł w budowie</h3>
-        <p>Zarządzanie surowcami — wkrótce</p>
+    <div class="tab-panel" id="tab-surowce">
+      <div class="card">
+        <div class="ch"><span>Surowce — stany magazynowe</span>
+          <div style="display:flex;gap:4px">
+            <button class="btn bs bo" onclick="addSur()">+ Dodaj</button>
+            <button class="btn bs" style="background:var(--c-pri);color:#fff;opacity:.7" onclick="pT('surowce')">📄 PDF</button>
+          </div>
+        </div>
+        <div class="tw" id="sur-w"></div>
       </div>
     </div>
 
     <!-- DAWKI -->
-    <div class="tab-panel" id="panel-dawki">
-      <h2 class="page-title">Dawki TMR</h2>
-      <p class="page-subtitle">Matryca dawek żywieniowych</p>
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v18M3 12l4-4 4 4M13 8l4-4 4 4"/></svg>
-        <h3>Moduł w budowie</h3>
-        <p>Kalkulator dawek TMR — wkrótce</p>
+    <div class="tab-panel" id="tab-dawki">
+      <div class="card">
+        <div class="ch"><span>Dawki TMR — kg świeżej masy / szt. / dobę</span>
+          <div style="display:flex;gap:4px">
+            <button class="btn bs bo" onclick="addDkS()">+ Surowiec</button>
+            <button class="btn bs" style="background:var(--c-pri);color:#fff;opacity:.7" onclick="pT('dawki')">📄 PDF</button>
+          </div>
+        </div>
+        <div class="tw" id="dk-w"></div>
       </div>
+      <div class="card"><div class="ch">Grupy — podział sztuk</div><div class="tw" id="dk-s"></div></div>
     </div>
 
     <!-- KOSZTY -->
-    <div class="tab-panel" id="panel-koszty">
-      <h2 class="page-title">Koszty żywienia</h2>
-      <p class="page-subtitle">Analiza kosztów w rozbiciu na grupy i surowce</p>
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.7 0-3 1-3 2.5s1.3 2.5 3 2.5"/></svg>
-        <h3>Moduł w budowie</h3>
-        <p>Analiza kosztów żywienia — wkrótce</p>
-      </div>
+    <div class="tab-panel" id="tab-koszty">
+      <div class="card"><div class="ch"><span>Sekcja 1 — Dawki i koszt na sztukę/dzień</span><button class="btn bs" style="background:var(--c-pri);color:#fff;opacity:.7" onclick="pKoszty()">📄 PDF</button></div><div class="tw" id="kos-s1"></div></div>
+      <div class="card"><div class="ch">Sekcja 2 — Zużycie surowców wg kategorii</div><div class="tw" id="kos-s2"></div></div>
+      <div class="card"><div class="ch">Sekcja 3 — Koszt wg grup żywieniowych</div><div class="tw" id="kos-s3"></div></div>
     </div>
 
     <!-- PASZOWÓZ -->
-    <div class="tab-panel" id="panel-paszowoz">
-      <h2 class="page-title">Panel Paszowóz</h2>
-      <p class="page-subtitle">Realizacja wwozu i rejestracja niedojadów</p>
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="6" width="15" height="10" rx="2"/><path d="M16 10h4l3 4v2h-7V10z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-        <h3>Moduł w budowie</h3>
-        <p>Panel operatora paszowóz — wkrótce</p>
+    <div class="tab-panel" id="tab-paszowoz">
+      <div style="padding:12px 14px 4px;display:flex;justify-content:space-between;align-items:center">
+        <div><span style="font-size:17px;font-weight:700;color:var(--c-pri-d)">Dawki do realizacji</span><br><span style="font-size:12px;color:var(--c-txt2)" id="woz-date"></span></div>
       </div>
+      <div id="woz-panel"></div>
+      <div class="card" style="margin:0 0 12px"><div class="ch"><span>Dzisiejszy dziennik</span></div><div id="woz-log-panel"></div></div>
     </div>
 
     <!-- RAPORTY -->
-    <div class="tab-panel" id="panel-raporty">
-      <h2 class="page-title">Raporty z wwozu</h2>
-      <p class="page-subtitle">Podsumowanie realizacji żywienia</p>
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"/><path d="M14 2v6h6"/></svg>
-        <h3>Moduł w budowie</h3>
-        <p>Raporty z realizacji żywienia — wkrótce</p>
-      </div>
+    <div class="tab-panel" id="tab-raporty">
+      <div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"/><path d="M14 2v6h6"/></svg><h3>Raporty z wwozu</h3><p>Moduł w budowie — wkrótce</p></div>
     </div>
 
     <!-- SUCHY TMR -->
-    <div class="tab-panel" id="panel-suchy-tmr">
-      <h2 class="page-title">Suchy TMR</h2>
-      <p class="page-subtitle">Kalkulator receptury i produkcja premiksu</p>
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h12l2 6H4l2-6zM4 9v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9"/></svg>
-        <h3>Moduł w budowie</h3>
-        <p>Produkcja suchego TMR — wkrótce</p>
+    <div class="tab-panel" id="tab-suchy-tmr">
+      <div class="card"><div class="ch" style="background:var(--c-gold-bg);color:var(--c-gold)"><span>Receptura Suchego TMR (na 1 tonę)</span>
+        <div style="display:flex;gap:4px" id="stmr-edit-btns"></div>
+      </div><div id="stmr-recipe-panel"></div>
+      <div style="padding:8px 14px;font-size:11px;color:var(--c-txt2);font-style:italic">💡 Kolejność mieszania: najpierw słoma, potem melasa (żeby lepiej się cięło i klejło), potem reszta składników.</div>
       </div>
+      <div class="card"><div class="ch" style="background:var(--c-gold-bg);color:var(--c-gold)">Produkcja</div>
+        <div class="stmr-prod">
+          <label>Ile kg Suchego TMR wyprodukować?</label>
+          <input type="number" id="stmr-amount" step="100" value="1000" min="0">
+          <div id="stmr-calc-result" style="margin-top:12px"></div>
+          <button class="btn bp woz-confirm-btn" style="margin-top:12px;background:var(--c-gold)" onclick="doStmrProduction()">Wyprodukuj i rozlicz</button>
+        </div>
+      </div>
+      <div class="card"><div class="ch" style="background:var(--c-gold-bg);color:var(--c-gold)">Historia produkcji</div><div id="stmr-history" class="stmr-hist"></div></div>
     </div>
 
-    <!-- USTAWIENIA (only for Twórca — embedded at bottom of active panel or separate) -->
-    <div class="tab-panel" id="panel-ustawienia">
+    <!-- USTAWIENIA (Twórca) -->
+    <div class="tab-panel" id="tab-ustawienia">
       <h2 class="page-title">Ustawienia</h2>
-      <p class="page-subtitle">Zarządzanie hasłami i konfiguracją</p>
-      <div class="card">
-        <h3 style="font-size:15px; margin-bottom:16px;">Zmiana haseł</h3>
-        <div id="password-fields"></div>
-        <button class="btn btn-primary" onclick="savePasswords()" style="margin-top:12px;">Zapisz hasła</button>
+      <p class="page-sub">Zarządzanie hasłami, kontaktem i konfiguracją</p>
+      <div class="card"><div class="ch">Zmiana haseł</div><div class="mobd" id="pw-fields"></div>
+        <div class="mof"><button class="btn bp" onclick="savePasswords()">Zapisz hasła</button></div>
       </div>
+      <div class="card"><div class="ch">Dane kontaktowe doradcy (widoczne pod ℹ)</div><div class="mobd" id="contact-fields"></div>
+        <div class="mof"><button class="btn bp" onclick="saveContact()">Zapisz kontakt</button></div>
+      </div>
+      <div class="card"><div class="ch">Kopia zapasowa</div><div class="mobd">
+        <div style="display:flex;gap:8px"><button class="btn bo" onclick="exportBackup()">⬇ Pobierz kopię</button><button class="btn bo" onclick="importBackup()">⬆ Wgraj kopię</button></div>
+      </div></div>
     </div>
 
   </div>
 </div>
 
-<!-- Status bar (offline/online) -->
-<div class="status-bar" id="status-bar"></div>
-
-<!-- Toast -->
+<div id="pa"></div>
+<div class="mo" id="modal"><div class="mob"><div class="moh"><span id="mt"></span><button class="mox" onclick="clM()">&times;</button></div><div class="mobd" id="mb"></div><div class="mof" id="mf"></div></div></div>
 <div class="toast" id="toast"></div>
-
-<!-- Confirm dialog -->
-<div class="dialog-overlay" id="dialog-overlay">
-  <div class="dialog-box">
-    <h3 id="dialog-title">Potwierdzenie</h3>
-    <p id="dialog-msg"></p>
-    <div class="dialog-actions">
-      <button class="btn btn-secondary" onclick="closeDialog()">Anuluj</button>
-      <button class="btn btn-primary" id="dialog-confirm">OK</button>
-    </div>
-  </div>
-</div>
+<div class="status-bar" id="status-bar"></div>
 
 <script>
 /* ============================================================
-   FIREBASE INIT
+   UTILITIES
    ============================================================ */
-const firebaseConfig = {
-  apiKey: "AIzaSyD4hrY8bU6JFNN1nIBvMC3TFY-nLjwjUJA",
-  authDomain: "ferma-stuchowo-po-app.firebaseapp.com",
-  projectId: "ferma-stuchowo-po-app",
-  storageBucket: "ferma-stuchowo-po-app.firebasestorage.app",
-  messagingSenderId: "907039344032",
-  appId: "1:907039344032:web:70e7c00ea4462815c550c5"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const r2=(v,d=1)=>{const f=10**d;return Math.round(v*f)/f};
+function LD(k,fb){try{const v=localStorage.getItem('stu_'+k);return v?JSON.parse(v):fb}catch{return fb}}
+function SV(k,v){localStorage.setItem('stu_'+k,JSON.stringify(v))}
+let _tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2e3)}
+function opM(t,b,f){$('#mt').textContent=t;$('#mb').innerHTML=b;$('#mf').innerHTML=f||'';$('#modal').classList.add('open')}
+function clM(){$('#modal').classList.remove('open')}
+document.addEventListener('click',e=>{if(e.target.id==='modal')clM()});
+function fmtDate(d){return d.getDate().toString().padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()}
+function isoDate(d){return d.toISOString().slice(0,10)}
+function prn(t,h){$('#pa').innerHTML='<h2>'+t+'</h2><div class="pm">Ferma Stuchowo · '+new Date().toLocaleDateString('pl')+'</div>'+h;setTimeout(()=>window.print(),200)}
 
 /* ============================================================
-   GLOBAL STATE
+   AUTH — password-only login (role determined by password)
    ============================================================ */
-let currentRole = null;
-let currentTab = null;
-let configData = {};
-let unsubConfig = null;
+const DEF_PASSES={tworca:'admin',zootechnik:'zoo',zywieniowiec:'dawki',paszowoz:'wwoz'};
+let passes=LD('passes',null),cR=null;
 
-const ROLE_LABELS = {
-  tworca: 'Twórca',
-  zootechnik: 'Zootechnik',
-  zywieniowiec: 'Żywieniowiec',
-  paszowoz: 'Paszowóz'
+const RT={
+  tworca:['surowce','dawki','koszty','paszowoz','raporty','suchy-tmr'],
+  zootechnik:['surowce','dawki','koszty','paszowoz','raporty','suchy-tmr'],
+  zywieniowiec:['dawki'],
+  paszowoz:['paszowoz']
+};
+const TL={surowce:'Surowce',dawki:'Dawki',koszty:'Koszty',paszowoz:'Paszowóz',raporty:'Raporty','suchy-tmr':'Suchy TMR'};
+const TI={
+  surowce:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 20h20M5 20V8l7-5 7 5v12M9 20v-6h6v6"/></svg>',
+  dawki:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M3 12l4-4 4 4M13 8l4-4 4 4"/></svg>',
+  koszty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.7 0-3 1-3 2.5s1.3 2.5 3 2.5c1.7 0 3 1 3 2.5s-1.3 2.5-3 2.5c-1 0-2-.5-2.5-1.5M12 6v1.5M12 16.5V18"/></svg>',
+  paszowoz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="6" width="15" height="10" rx="2"/><path d="M16 10h4l3 4v2h-7V10z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+  raporty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>',
+  'suchy-tmr':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3h12l2 6H4l2-6zM4 9v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9M9 13h6"/></svg>'
 };
 
-const DEFAULT_PASSWORDS = {
-  tworca: 'admin',
-  zootechnik: 'zoo',
-  zywieniowiec: 'dawki',
-  paszowoz: 'wwoz'
-};
+function canPass(){return cR==='tworca'}
+function canEdit(){return cR==='tworca'||cR==='zootechnik'}
 
-// Tab that each role sees first on login
-const ROLE_DEFAULT_TAB = {
-  tworca: 'surowce',
-  zootechnik: 'surowce',
-  zywieniowiec: 'dawki',
-  paszowoz: 'paszowoz'
-};
+function doLogin(){
+  const p=$('#lp').value.trim();if(!p){$('#le').textContent='Wpisz hasło';return}
+  const pw=Object.assign({},DEF_PASSES,passes||{});
+  let role=null;
+  for(const[r,v]of Object.entries(pw))if(v===p){role=r;break}
+  if(!role){$('#le').textContent='Nieprawidłowe hasło';return}
+  cR=role;SV('sess',role);showApp();
+}
+function doLogout(){
+  cR=null;localStorage.removeItem('stu_sess');
+  $('#app').classList.remove('active');$('#login-screen').classList.remove('hidden');
+  $('#lp').value='';$('#le').textContent='';
+}
+function showApp(){
+  $('#login-screen').classList.add('hidden');$('#app').classList.add('active');
+  // Header extras for Twórca
+  let ex='';
+  if(canPass())ex+='<button class="hdr-btn" onclick="switchTab(\'ustawienia\')" title="Ustawienia">⚙</button>';
+  if(canEdit())ex+='<button class="hdr-btn" onclick="exportBackup()" title="Kopia zapasowa">⬇</button>';
+  $('#hdr-extra').innerHTML=ex;
+  bTabs();startFbSync();
+}
+
+function bTabs(){
+  const ts=RT[cR]||[];
+  const nav=$('#app-nav');
+  nav.innerHTML=ts.map((t,i)=>'<button class="nav-tab'+(i===0?' active':'')+'" data-tab="'+t+'">'+TI[t]+' '+TL[t]+'</button>').join('');
+  $$('.tab-panel').forEach(p=>p.classList.remove('active'));
+  if(ts[0])$('#tab-'+ts[0]).classList.add('active');
+  nav.querySelectorAll('.nav-tab').forEach(bt=>bt.addEventListener('click',()=>{
+    nav.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+    $$('.tab-panel').forEach(p=>p.classList.remove('active'));
+    bt.classList.add('active');$('#tab-'+bt.dataset.tab).classList.add('active');
+    oT(bt.dataset.tab);
+  }));
+  if(ts[0])oT(ts[0]);
+}
+function switchTab(tabId){
+  const nav=$('#app-nav');
+  nav.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  $$('.tab-panel').forEach(p=>p.classList.remove('active'));
+  const btn=nav.querySelector('[data-tab="'+tabId+'"]');
+  if(btn)btn.classList.add('active');
+  $('#tab-'+tabId).classList.add('active');
+  oT(tabId);
+}
+function oT(t){
+  const m={surowce:rSur,dawki:rDk,koszty:rKoszty,paszowoz:rWoz,'suchy-tmr':rStmr,ustawienia:()=>{renderPwFields();renderContactFields()}};
+  if(m[t])m[t]();
+}
+function pT(t){
+  const ti={surowce:()=>'Stany magazynowe surowców',dawki:()=>'Dawki TMR — wszystkie grupy'};
+  const wr={surowce:'sur-w',dawki:'dk-w'};
+  prn(ti[t](),$('#'+wr[t]).innerHTML);
+}
 
 /* ============================================================
-   SPLASH → LOGIN
+   CONTACT INFO (visible under ℹ)
    ============================================================ */
-window.addEventListener('load', () => {
-  // Register service worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
+let contactData=LD('contact',{name:'Doradca żywieniowy',phone:'',email:'',note:''});
 
-  // Hide splash after short delay
-  setTimeout(() => {
-    document.getElementById('splash').classList.add('hide');
-    setTimeout(() => {
-      document.getElementById('splash').style.display = 'none';
-      // Check for saved session
-      const saved = localStorage.getItem('stuchowo_role');
-      if (saved) {
-        currentRole = saved;
-        enterApp();
-      } else {
-        document.getElementById('login-screen').classList.remove('hidden');
+function showContact(){
+  opM('Kontakt z doradcą',
+    '<div style="text-align:center;padding:10px">'
+    +'<div style="font-size:18px;margin-bottom:6px">📞</div>'
+    +'<div style="font-size:16px;font-weight:700;margin-bottom:4px">'+contactData.name+'</div>'
+    +(contactData.phone?'<div style="margin-bottom:4px"><a href="tel:'+contactData.phone+'" style="color:var(--c-pri);font-size:15px;font-weight:600">'+contactData.phone+'</a></div>':'')
+    +(contactData.email?'<div style="margin-bottom:4px"><a href="mailto:'+contactData.email+'" style="color:var(--c-pri);font-size:14px">'+contactData.email+'</a></div>':'')
+    +(contactData.note?'<div style="font-size:13px;color:var(--c-txt2);margin-top:8px">'+contactData.note+'</div>':'')
+    +((!contactData.phone&&!contactData.email)?'<div style="font-size:13px;color:var(--c-txt2)">Dane kontaktowe nie zostały jeszcze uzupełnione</div>':'')
+    +'</div>',
+    '<button class="btn bo" onclick="clM()">Zamknij</button>');
+}
+
+function renderContactFields(){
+  $('#contact-fields').innerHTML=
+    '<div class="fg" style="margin-bottom:8px"><label>Imię i nazwisko</label><input type="text" id="ct-name" value="'+(contactData.name||'')+'"></div>'
+    +'<div class="fg" style="margin-bottom:8px"><label>Telefon</label><input type="text" id="ct-phone" value="'+(contactData.phone||'')+'"></div>'
+    +'<div class="fg" style="margin-bottom:8px"><label>Email</label><input type="text" id="ct-email" value="'+(contactData.email||'')+'"></div>'
+    +'<div class="fg"><label>Notatka</label><input type="text" id="ct-note" value="'+(contactData.note||'')+'"></div>';
+}
+function saveContact(){
+  contactData={name:$('#ct-name').value.trim(),phone:$('#ct-phone').value.trim(),email:$('#ct-email').value.trim(),note:$('#ct-note').value.trim()};
+  SV('contact',contactData);sa(true);toast('Dane kontaktowe zapisane');
+}
+
+/* ============================================================
+   DEFAULT DATA — SUROWCE
+   ============================================================ */
+const KAT_LABELS={obj:'Objętościowa',tres:'Treściwa',dod:'Dodatek'};
+const DS=[
+  {id:'s1',nazwa:'Kukurydza Stuchowo',proc_sm:29,cena_t:0,stan_t:0,kat:'obj'},
+  {id:'s2',nazwa:'Stuchowo Gorzowska duża 21,2S',proc_sm:24,cena_t:0,stan_t:0,kat:'obj'},
+  {id:'s3',nazwa:'Kiszonka Lucerna BO 21%',proc_sm:36,cena_t:0,stan_t:0,kat:'obj'},
+  {id:'s4',nazwa:'Słoma Jęczmienna',proc_sm:84,cena_t:0,stan_t:0,kat:'obj'},
+  {id:'s5',nazwa:'Młóto browarniane',proc_sm:22,cena_t:0,stan_t:0,kat:'obj'},
+  {id:'s6',nazwa:'Kisz. ziarno kukurydzy - drobny',proc_sm:62,cena_t:0,stan_t:0,kat:'tres'},
+  {id:'s7',nazwa:'Wysłodki buraczane mokre',proc_sm:24,cena_t:0,stan_t:0,kat:'obj'},
+  {id:'s8',nazwa:'Śruta Rzepakowa',proc_sm:88,cena_t:0,stan_t:0,kat:'tres'},
+  {id:'s9',nazwa:'Śruta Sojowa 46%',proc_sm:88,cena_t:0,stan_t:0,kat:'tres'},
+  {id:'s10',nazwa:'Pszenica',proc_sm:86,cena_t:0,stan_t:0,kat:'tres'},
+  {id:'s11',nazwa:'Melasa Buraczana',proc_sm:75,cena_t:0,stan_t:0,kat:'tres'},
+  {id:'s12',nazwa:'Tłuszcz Chroniony Blattin',proc_sm:96,cena_t:0,stan_t:0,kat:'dod'},
+  {id:'s13',nazwa:'Witaminer Milki Forte',proc_sm:95,cena_t:0,stan_t:0,kat:'dod'},
+  {id:'s14',nazwa:'Actirumen buff',proc_sm:97,cena_t:0,stan_t:0,kat:'dod'},
+  {id:'s15',nazwa:'Kreda',proc_sm:99,cena_t:0,stan_t:0,kat:'dod'},
+  {id:'s16',nazwa:'BiaMyco Farm',proc_sm:95,cena_t:0,stan_t:0,kat:'dod'},
+  {id:'s17',nazwa:'Sól',proc_sm:99,cena_t:0,stan_t:0,kat:'dod'},
+  {id:'s18',nazwa:'Witaminer KZ',proc_sm:95,cena_t:0,stan_t:0,kat:'dod'},
+  {id:'s19',nazwa:'Suchy TMR',proc_sm:88,cena_t:0,stan_t:0,kat:'tres'}
+];
+
+/* ============================================================
+   DEFAULT DATA — GRUPY (dawki) — z FeedExpert Stuchowo
+   Bez HF prop — 6 grup
+   ============================================================ */
+const DG=[
+  {id:'g1',nazwa:'GR HF',z:2,se:[{n:'GR HF',sz:0}],sk:[
+    {s:'s1',kg:25},{s:'s2',kg:8},{s:'s3',kg:6},{s:'s4',kg:1.3},{s:'s5',kg:5},{s:'s6',kg:5},
+    {s:'s7',kg:4},{s:'s8',kg:3},{s:'s9',kg:2},{s:'s10',kg:1},{s:'s11',kg:0.5},{s:'s12',kg:0.5},
+    {s:'s13',kg:0.2},{s:'s14',kg:0.15},{s:'s15',kg:0.1},{s:'s16',kg:0.1},{s:'s17',kg:0.04},{s:'s18',kg:0}]},
+  {id:'g2',nazwa:'GR MO',z:2,se:[{n:'GR MO',sz:0}],sk:[
+    {s:'s1',kg:27},{s:'s2',kg:8},{s:'s3',kg:0},{s:'s4',kg:1.1},{s:'s5',kg:5},{s:'s6',kg:4.3},
+    {s:'s7',kg:5},{s:'s8',kg:2.5},{s:'s9',kg:1.8},{s:'s10',kg:1.5},{s:'s11',kg:0.5},{s:'s12',kg:0},
+    {s:'s13',kg:0.2},{s:'s14',kg:0.1},{s:'s15',kg:0.1},{s:'s16',kg:0.1},{s:'s17',kg:0.04},{s:'s18',kg:0}]},
+  {id:'g3',nazwa:'OPAS',z:2,se:[{n:'OPAS',sz:0}],sk:[
+    {s:'s1',kg:12},{s:'s2',kg:4},{s:'s3',kg:3.9},{s:'s4',kg:0},{s:'s5',kg:0},{s:'s6',kg:1},
+    {s:'s7',kg:0},{s:'s8',kg:3.1},{s:'s9',kg:0.5},{s:'s10',kg:1.7},{s:'s11',kg:0.3},{s:'s12',kg:0.5},
+    {s:'s13',kg:0.1},{s:'s14',kg:0},{s:'s15',kg:0.075},{s:'s16',kg:0},{s:'s17',kg:0},{s:'s18',kg:0}]},
+  {id:'g4',nazwa:'Far Off',z:1,se:[{n:'Far Off',sz:0}],sk:[
+    {s:'s1',kg:6},{s:'s2',kg:18},{s:'s3',kg:0},{s:'s4',kg:2.5},{s:'s5',kg:0},{s:'s6',kg:0},
+    {s:'s7',kg:4},{s:'s8',kg:0.4},{s:'s9',kg:0},{s:'s10',kg:0},{s:'s11',kg:0},{s:'s12',kg:0},
+    {s:'s13',kg:0.1},{s:'s14',kg:0},{s:'s15',kg:0},{s:'s16',kg:0},{s:'s17',kg:0},{s:'s18',kg:0.2}]},
+  {id:'g5',nazwa:'Close Up',z:1,se:[{n:'Close Up',sz:0}],sk:[
+    {s:'s1',kg:19},{s:'s2',kg:5},{s:'s3',kg:0},{s:'s4',kg:1},{s:'s5',kg:4},{s:'s6',kg:0},
+    {s:'s7',kg:0},{s:'s8',kg:1},{s:'s9',kg:0.5},{s:'s10',kg:1.5},{s:'s11',kg:0},{s:'s12',kg:0},
+    {s:'s13',kg:0},{s:'s14',kg:0},{s:'s15',kg:0},{s:'s16',kg:0},{s:'s17',kg:0},{s:'s18',kg:0.2}]},
+  {id:'g6',nazwa:'PARK',z:1,se:[{n:'PARK',sz:0}],sk:[
+    {s:'s1',kg:3},{s:'s2',kg:10},{s:'s3',kg:0},{s:'s4',kg:0.8},{s:'s5',kg:0.9},{s:'s6',kg:0},
+    {s:'s7',kg:3},{s:'s8',kg:0},{s:'s9',kg:0},{s:'s10',kg:0},{s:'s11',kg:0},{s:'s12',kg:0},
+    {s:'s13',kg:0.2},{s:'s14',kg:0},{s:'s15',kg:0},{s:'s16',kg:0},{s:'s17',kg:0},{s:'s18',kg:0}]}
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let sur=LD('sur',DS),gr=LD('gr',DG);
+
+/* Suchy TMR recipe — default from Excel */
+const DEF_STMR_RECIPE=[
+  {name:'Słoma',sid:'s4',pct:13},
+  {name:'Melasa',sid:'s11',pct:15},
+  {name:'Śruta zbożowa (pszenica)',sid:'s10',pct:39},
+  {name:'Śruta Rzepakowa',sid:'s8',pct:10},
+  {name:'Premiks',sid:'',pct:3},
+  {name:'Śruta Sojowa',sid:'s9',pct:20}
+];
+let stmrRecipe=LD('stmrRecipe',DEF_STMR_RECIPE);
+let stmrHistory=LD('stmrHistory',[]);
+let wozLog=LD('wozLog',{});  // {date_string: [{gid,time,niedojady,niedSrc}]}
+
+/* ============================================================
+   FIREBASE
+   ============================================================ */
+const firebaseConfig={apiKey:"AIzaSyD4hrY8bU6JFNN1nIBvMC3TFY-nLjwjUJA",authDomain:"ferma-stuchowo-po-app.firebaseapp.com",projectId:"ferma-stuchowo-po-app",storageBucket:"ferma-stuchowo-po-app.firebasestorage.app",messagingSenderId:"907039344032",appId:"1:907039344032:web:70e7c00ea4462815c550c5"};
+let fbDb=null,fbReady=false,fbApplyingRemote=false,fbSaveTimer=null,fbLastPushed='',fbLocalChangeAt=0;
+try{firebase.initializeApp(firebaseConfig);fbDb=firebase.firestore()}catch(e){console.warn('Firebase init failed',e)}
+
+function setSyncBadge(state){
+  const b=$('#syncb');if(!b)return;
+  if(state==='ok'){b.textContent='☁️';b.style.background='rgba(255,255,255,.2)';b.title='Zsynchronizowano'}
+  else if(state==='saving'){b.textContent='💾';b.style.background='rgba(255,193,7,.3)';b.title='Zapisywanie...'}
+  else if(state==='offline'){b.textContent='📴';b.style.background='rgba(198,40,40,.35)';b.title='Offline'}
+  else{b.textContent='⏳';b.style.background='rgba(255,193,7,.3)';b.title='Łączenie...'}
+}
+
+function collectState(){return{sur,gr,contactData,stmrRecipe,stmrHistory,wozLog,_ts:Date.now()}}
+function applyState(d){
+  if(!d)return;
+  if(Date.now()-fbLocalChangeAt<3000)return;
+  fbApplyingRemote=true;
+  if(d.sur)sur=d.sur;if(d.gr)gr=d.gr;
+  if(d.contactData)contactData=d.contactData;
+  if(d.stmrRecipe)stmrRecipe=d.stmrRecipe;if(d.stmrHistory)stmrHistory=d.stmrHistory;
+  if(d.wozLog)wozLog=d.wozLog;
+  SV('sur',sur);SV('gr',gr);SV('contact',contactData);SV('stmrRecipe',stmrRecipe);SV('stmrHistory',stmrHistory);SV('wozLog',wozLog);
+  fbApplyingRemote=false;
+  const active=document.querySelector('.nav-tab.active');
+  if(active)oT(active.dataset.tab);
+}
+
+function startFbSync(){
+  if(!fbDb){setSyncBadge('offline');return}
+  // Load passwords from config
+  fbDb.collection('farm_data').doc('config').get().then(doc=>{
+    if(doc.exists&&doc.data().passes){passes=doc.data().passes;SV('passes',passes)}
+  }).catch(()=>{});
+  // Sync state
+  fbDb.collection('farm_data').doc('state').onSnapshot(doc=>{
+    if(doc.exists){
+      const d=doc.data();
+      const ts=JSON.stringify(d._ts);
+      if(ts!==fbLastPushed)applyState(d);
+      fbReady=true;setSyncBadge('ok');
+    }else{fbReady=true;pushToFb(true)}
+  },err=>{console.warn('Firestore error',err);setSyncBadge('offline')});
+}
+
+function pushToFb(immediate){
+  if(!fbDb)return;clearTimeout(fbSaveTimer);
+  const doPush=()=>{
+    const st=collectState();fbLastPushed=JSON.stringify(st._ts);setSyncBadge('saving');
+    fbDb.collection('farm_data').doc('state').set(st).then(()=>setSyncBadge('ok')).catch(()=>setSyncBadge('offline'));
+  };
+  if(immediate)doPush();else fbSaveTimer=setTimeout(doPush,2000);
+}
+
+function sa(immediate){
+  SV('sur',sur);SV('gr',gr);SV('contact',contactData);SV('stmrRecipe',stmrRecipe);SV('stmrHistory',stmrHistory);SV('wozLog',wozLog);
+  if(!fbApplyingRemote){fbLocalChangeAt=Date.now();pushToFb(immediate||false)}
+}
+function gS(id){return sur.find(s=>s.id===id)}
+
+/* ============================================================
+   PASSWORD MANAGEMENT (Twórca)
+   ============================================================ */
+function renderPwFields(){
+  const pw=Object.assign({},DEF_PASSES,passes||{});
+  const labels={tworca:'Hasło administratora',zootechnik:'Hasło zootechnika',zywieniowiec:'Hasło żywieniowca',paszowoz:'Hasło paszowóz'};
+  $('#pw-fields').innerHTML=Object.entries(labels).map(([k,l])=>
+    '<div class="fg" style="margin-bottom:8px"><label>'+l+'</label><input type="text" id="pw-'+k+'" value="'+(pw[k]||'')+'"></div>').join('');
+}
+function savePasswords(){
+  passes={tworca:$('#pw-tworca').value.trim()||DEF_PASSES.tworca,zootechnik:$('#pw-zootechnik').value.trim()||DEF_PASSES.zootechnik,zywieniowiec:$('#pw-zywieniowiec').value.trim()||DEF_PASSES.zywieniowiec,paszowoz:$('#pw-paszowoz').value.trim()||DEF_PASSES.paszowoz};
+  SV('passes',passes);
+  if(fbDb)fbDb.collection('farm_data').doc('config').set({passes}).catch(e=>console.warn(e));
+  toast('Hasła zapisane');
+}
+
+/* ============================================================
+   BACKUP
+   ============================================================ */
+function exportBackup(){
+  const data=JSON.stringify(collectState(),null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='stuchowo_backup_'+isoDate(new Date())+'.json';a.click();toast('Kopia pobrana');
+}
+function importBackup(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{
+    if(!confirm('Wgrać kopię zapasową? To nadpisze WSZYSTKIE obecne dane!'))return;
+    try{const d=JSON.parse(ev.target.result);applyState(d);pushToFb(true);toast('Kopia przywrócona')}catch(e){toast('Błąd pliku: '+e.message)}};r.readAsText(f)};inp.click();
+}
+
+/* ============================================================
+   SUROWCE
+   ============================================================ */
+function dailyUse(sid){
+  let total=0;
+  gr.forEach(g=>{
+    const item=g.sk.find(x=>x.s===sid);
+    if(item&&item.kg>0){const tsz=g.se.reduce((a,s)=>a+s.sz,0);total+=item.kg*tsz*(g.z||1)}
+  });
+  return total;
+}
+
+function rSur(){
+  let h='<table class="dt"><thead><tr><th>Surowiec</th><th>SM%</th><th>Kat.</th><th>Cena PLN/t</th><th>Stan (t)</th><th>Zużycie dz.</th><th>Wystarczy do</th><th></th></tr></thead><tbody>';
+  sur.forEach((s,i)=>{
+    const du=dailyUse(s.id);const stanKg=s.stan_t*1000;let wyst='—';
+    if(du>0){const days=Math.floor(stanKg/du);const dt=new Date();dt.setDate(dt.getDate()+days);wyst='<span class="'+(days<14?'sur-warn':'sur-ok')+'">'+fmtDate(dt)+' ('+days+'d)</span>'}
+    h+='<tr><td>';
+    // Move arrows
+    h+='<span style="display:inline-flex;flex-direction:column;margin-right:3px;line-height:1;vertical-align:middle">';
+    h+=(i>0?'<button onclick="mvSur('+i+',-1)" style="border:none;background:none;cursor:pointer;font-size:9px;padding:0">▲</button>':'<span style="font-size:9px;opacity:.2">▲</span>');
+    h+=(i<sur.length-1?'<button onclick="mvSur('+i+',1)" style="border:none;background:none;cursor:pointer;font-size:9px;padding:0">▼</button>':'<span style="font-size:9px;opacity:.2">▼</span>');
+    h+='</span>';
+    h+=s.nazwa+' <button class="btn bs" style="padding:1px 4px;font-size:9px;background:none;color:var(--c-pri);border:1px solid var(--c-brd)" onclick="eSurN('+i+')">✎</button></td>';
+    h+='<td>'+s.proc_sm+'%</td>';
+    h+='<td><select style="width:85px;font-size:10px;padding:2px" onchange="sur['+i+'].kat=this.value;sa()">';
+    ['obj','tres','dod'].forEach(k=>{h+='<option value="'+k+'"'+((s.kat||'obj')===k?' selected':'')+'>'+KAT_LABELS[k]+'</option>'});
+    h+='</select></td>';
+    h+='<td><input step="1" value="'+r2(s.cena_t,0)+'" onchange="sur['+i+'].cena_t=+this.value;sa()"></td>';
+    h+='<td><input step="0.01" value="'+r2(s.stan_t,2)+'" onchange="sur['+i+'].stan_t=+this.value;sa();rSur()"></td>';
+    h+='<td>'+r2(du,1)+' kg</td>';
+    h+='<td style="text-align:left;font-family:var(--font);font-size:11px">'+wyst+'</td>';
+    h+='<td><button class="btn bs bd" onclick="if(confirm(\'Usunąć '+s.nazwa.replace(/'/g,"\\'")+' z listy surowców?\')){sur.splice('+i+',1);sa();rSur()}">✕</button></td></tr>';
+  });
+  h+='</tbody></table>';
+  $('#sur-w').innerHTML=h;
+}
+
+function mvSur(i,dir){const j=i+dir;if(j<0||j>=sur.length)return;[sur[i],sur[j]]=[sur[j],sur[i]];sa(true);rSur();rDk()}
+function eSurN(i){opM('Edytuj surowiec',
+  '<div class="fg" style="margin-bottom:8px"><label>Nazwa</label><input type="text" id="esn" value="'+sur[i].nazwa+'"></div>'
+  +'<div class="fg"><label>SM %</label><input type="number" id="esm" value="'+sur[i].proc_sm+'"></div>',
+  '<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="sur['+i+'].nazwa=$(\'#esn\').value.trim();sur['+i+'].proc_sm=+$(\'#esm\').value||0;sa();clM();rSur();rDk();toast(\'Zapisano\')">Zapisz</button>')}
+
+function addSur(){opM('Dodaj surowiec',
+  '<div class="fg" style="margin-bottom:8px"><label>Nazwa</label><input type="text" id="as-n"></div>'
+  +'<div style="display:flex;gap:8px;margin-bottom:8px"><div class="fg"><label>Kategoria</label><select id="as-kat"><option value="obj">Objętościowa</option><option value="tres">Treściwa</option><option value="dod">Dodatek</option></select></div><div class="fg"><label>SM %</label><input type="number" id="as-sm" value="88"></div></div>'
+  +'<div style="display:flex;gap:8px"><div class="fg"><label>Cena PLN/t</label><input type="number" id="as-c" value="0"></div><div class="fg"><label>Stan (t)</label><input type="number" id="as-s" step="0.01" value="0"></div></div>',
+  '<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="okAS()">Dodaj</button>')}
+
+function okAS(){
+  const n=$('#as-n').value.trim();if(!n){toast('Podaj nazwę');return}
+  sur.push({id:uid(),nazwa:n,proc_sm:+$('#as-sm').value||88,cena_t:+$('#as-c').value||0,stan_t:+$('#as-s').value||0,kat:$('#as-kat').value||'obj'});
+  sa();clM();rSur();toast('Dodano');
+}
+
+/* ============================================================
+   DAWKI — FeedExpert matrix
+   ============================================================ */
+function rDk(){
+  const used=new Set();
+  gr.forEach(g=>g.sk.forEach(sk=>used.add(sk.s)));
+  const allS=sur.filter(s=>used.has(s.id)).map(s=>s.id);
+
+  let h='<table class="fe"><thead><tr><th rowspan="2" style="text-align:left;min-width:180px">Nazwa</th>';
+  gr.forEach((g,gi)=>{
+    const tsz=g.se.reduce((a,s)=>a+s.sz,0);
+    h+='<th class="gh">'+g.nazwa+'<br><span style="font-weight:400;font-size:8px">'+tsz+' szt · '+(g.z||1)+'×/d</span></th>';
+  });
+  h+='</tr></thead><tbody>';
+
+  allS.forEach(sid=>{
+    const s=gS(sid);if(!s)return;
+    const si=sur.indexOf(s);
+    h+='<tr><td title="'+s.nazwa+'">'+s.nazwa+'</td>';
+    gr.forEach((g,gi)=>{
+      const item=g.sk.find(x=>x.s===sid);const kg=item?item.kg:0;
+      if(canEdit()){
+        h+='<td><input value="'+kg+'" onchange="uDk('+gi+',\''+sid+'\',this)"></td>';
+      }else{
+        h+='<td>'+(kg>0?r2(kg,2):'')+'</td>';
       }
-    }, 400);
-  }, 800);
-});
-
-/* ============================================================
-   LOGIN / LOGOUT
-   ============================================================ */
-async function doLogin() {
-  const role = document.getElementById('login-role').value;
-  const pass = document.getElementById('login-pass').value;
-  const errorEl = document.getElementById('login-error');
-  errorEl.textContent = '';
-
-  if (!pass) {
-    errorEl.textContent = 'Wpisz hasło';
-    return;
-  }
-
-  // Get passwords from Firestore (or defaults)
-  let passwords = { ...DEFAULT_PASSWORDS };
-  try {
-    const doc = await db.collection('farm_data').doc('config').get();
-    if (doc.exists && doc.data().passwords) {
-      passwords = { ...passwords, ...doc.data().passwords };
-    }
-  } catch (e) {
-    // Offline — try localStorage
-    const cached = localStorage.getItem('stuchowo_config');
-    if (cached) {
-      try {
-        const c = JSON.parse(cached);
-        if (c.passwords) passwords = { ...passwords, ...c.passwords };
-      } catch (_) {}
-    }
-  }
-
-  if (pass !== passwords[role]) {
-    errorEl.textContent = 'Nieprawidłowe hasło';
-    return;
-  }
-
-  currentRole = role;
-  localStorage.setItem('stuchowo_role', role);
-
-  // Init default config in Firestore if first login ever
-  try {
-    const doc = await db.collection('farm_data').doc('config').get();
-    if (!doc.exists) {
-      await db.collection('farm_data').doc('config').set({
-        passwords: DEFAULT_PASSWORDS,
-        created: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-  } catch (_) {}
-
-  enterApp();
-}
-
-function doLogout() {
-  currentRole = null;
-  localStorage.removeItem('stuchowo_role');
-  if (unsubConfig) { unsubConfig(); unsubConfig = null; }
-  document.getElementById('app').classList.remove('active');
-  document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('login-pass').value = '';
-  document.getElementById('login-error').textContent = '';
-}
-
-function enterApp() {
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('app').classList.add('active');
-  document.getElementById('role-badge').textContent = ROLE_LABELS[currentRole];
-
-  // Show/hide nav tabs based on role
-  document.querySelectorAll('.nav-tab').forEach(tab => {
-    const roles = tab.dataset.roles.split(',');
-    tab.classList.toggle('hidden', !roles.includes(currentRole));
+    });
+    h+='</tr>';
   });
 
-  // Show settings gear for Twórca
-  // (settings tab is accessed via a gear icon in header — we add it dynamically)
-  const existingGear = document.getElementById('btn-settings');
-  if (existingGear) existingGear.remove();
+  // Totals
+  h+='</tbody><tfoot><tr><td style="text-align:left"><b>Całość kg</b></td>';
+  gr.forEach(g=>{
+    const tot=g.sk.reduce((a,x)=>a+x.kg,0);
+    h+='<td><b>'+r2(tot,1)+'</b></td>';
+  });
+  h+='</tr></tfoot></table>';
 
-  if (currentRole === 'tworca') {
-    const gear = document.createElement('button');
-    gear.id = 'btn-settings';
-    gear.className = 'btn-logout';
-    gear.innerHTML = '⚙';
-    gear.style.fontSize = '18px';
-    gear.onclick = () => switchTab('ustawienia');
-    document.querySelector('.app-header').insertBefore(gear, document.querySelector('.btn-logout'));
-  }
+  $('#dk-w').innerHTML=h;
 
-  // Switch to default tab for role
-  switchTab(ROLE_DEFAULT_TAB[currentRole]);
+  // Groups/sectors panel
+  let gs='<table class="dt"><thead><tr><th>Grupa</th><th>Sektor</th><th>Sztuk</th><th>×/dzień</th><th>Dawka total</th></tr></thead><tbody>';
+  gr.forEach((g,gi)=>{
+    g.se.forEach((s,si)=>{
+      const tot=g.sk.reduce((a,x)=>a+x.kg,0);
+      gs+='<tr><td>'+g.nazwa+'</td><td>'+s.n+'</td>';
+      gs+='<td>'+(canEdit()?'<input value="'+s.sz+'" style="width:50px" onchange="gr['+gi+'].se['+si+'].sz=+this.value;sa();rDk();rSur()">':s.sz)+'</td>';
+      gs+='<td>'+(canEdit()?'<button class="btn bs bo" onclick="toggleZ('+gi+')">'+(g.z||1)+'×</button>':g.z||1)+'</td>';
+      gs+='<td>'+r2(tot*s.sz*(g.z||1),0)+' kg</td></tr>';
+    });
+  });
+  gs+='</tbody></table>';
+  $('#dk-s').innerHTML=gs;
+}
 
-  // Listen for config changes (for password management)
-  listenConfig();
+function uDk(gi,sid,el){
+  const v=+el.value||0;
+  let item=gr[gi].sk.find(x=>x.s===sid);
+  if(!item){gr[gi].sk.push({s:sid,kg:v});} else{item.kg=v}
+  sa();rDk();rSur();
+}
 
-  // Online/offline status
-  setupConnectivity();
+function toggleZ(gi){
+  gr[gi].z=gr[gi].z===2?1:2;sa(true);rDk();rSur();toast(gr[gi].nazwa+': '+(gr[gi].z)+'× dziennie');
+}
+
+function addDkS(){
+  const existing=new Set();gr.forEach(g=>g.sk.forEach(x=>existing.add(x.s)));
+  const avail=sur.filter(s=>!existing.has(s.id));
+  let opts='<option value="">— wybierz —</option>'+avail.map(s=>'<option value="'+s.id+'">'+s.nazwa+'</option>').join('');
+  opM('Dodaj surowiec do dawek',
+    '<div class="fg" style="margin-bottom:8px"><label>Surowiec z bazy</label><select id="ad-s">'+opts+'</select></div>'
+    +'<p style="font-size:12px;color:var(--c-txt2);margin:8px 0">— lub dodaj nowy —</p>'
+    +'<div class="fg" style="margin-bottom:8px"><label>Nowa nazwa</label><input type="text" id="ad-nn"></div>'
+    +'<div style="display:flex;gap:8px"><div class="fg"><label>SM %</label><input type="number" id="ad-sm" value="88"></div><div class="fg"><label>Cena PLN/t</label><input type="number" id="ad-ct" value="0"></div></div>',
+    '<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="okAddDkS()">Dodaj</button>');
+}
+function okAddDkS(){
+  let sid=$('#ad-s').value;const nn=$('#ad-nn').value.trim();
+  if(!sid&&!nn){toast('Wybierz lub wpisz nazwę');return}
+  if(nn){sid=uid();sur.push({id:sid,nazwa:nn,proc_sm:+$('#ad-sm').value||88,cena_t:+$('#ad-ct').value||0,stan_t:0,kat:'obj'})}
+  gr.forEach(g=>{if(!g.sk.find(x=>x.s===sid))g.sk.push({s:sid,kg:0})});
+  sa();clM();rDk();rSur();toast('Dodano');
 }
 
 /* ============================================================
-   TAB SWITCHING
+   KOSZTY (basic — wyliczane z dawek + cen)
    ============================================================ */
-function switchTab(tabId) {
-  currentTab = tabId;
-
-  // Update nav active state
-  document.querySelectorAll('.nav-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.tab === tabId);
+function rKoszty(){
+  // Sekcja 1: koszt na sztukę/dzień per grupa
+  let h='<table class="dt"><thead><tr><th>Surowiec</th><th>PLN/t</th>';
+  gr.forEach(g=>{h+='<th>'+g.nazwa+'<br><span style="font-size:8px;font-weight:400">PLN/szt/d</span></th>'});
+  h+='</tr></thead><tbody>';
+  const usedIds=new Set();gr.forEach(g=>g.sk.forEach(x=>{if(x.kg>0)usedIds.add(x.s)}));
+  usedIds.forEach(sid=>{
+    const s=gS(sid);if(!s)return;
+    h+='<tr><td>'+s.nazwa+'</td><td>'+r2(s.cena_t,0)+'</td>';
+    gr.forEach(g=>{
+      const item=g.sk.find(x=>x.s===sid);const kg=item?item.kg:0;
+      const cost=kg*s.cena_t/1000;
+      h+='<td>'+(cost>0?r2(cost,2):'—')+'</td>';
+    });
+    h+='</tr>';
   });
-
-  // Update panels
-  document.querySelectorAll('.tab-panel').forEach(p => {
-    p.classList.toggle('active', p.id === 'panel-' + tabId);
+  // Totals
+  h+='</tbody><tfoot><tr><td><b>RAZEM PLN/szt/d</b></td><td></td>';
+  gr.forEach(g=>{
+    let total=0;
+    g.sk.forEach(x=>{const s=gS(x.s);if(s)total+=x.kg*s.cena_t/1000});
+    h+='<td><b>'+r2(total,2)+'</b></td>';
   });
+  h+='</tr></tfoot></table>';
+  $('#kos-s1').innerHTML=h;
+
+  // Sekcja 2: zużycie dzienne per kategoria
+  let h2='<table class="dt"><thead><tr><th>Kategoria</th><th>Dzienne (kg)</th><th>Miesięczne (t)</th><th>Koszt dz. (PLN)</th><th>Koszt mies. (PLN)</th></tr></thead><tbody>';
+  ['obj','tres','dod'].forEach(kat=>{
+    let dKg=0,dPLN=0;
+    sur.filter(s=>s.kat===kat).forEach(s=>{const du=dailyUse(s.id);dKg+=du;dPLN+=du*s.cena_t/1000});
+    h2+='<tr><td>'+KAT_LABELS[kat]+'</td><td>'+r2(dKg,0)+'</td><td>'+r2(dKg*30/1000,1)+'</td><td>'+r2(dPLN,0)+'</td><td>'+r2(dPLN*30,0)+'</td></tr>';
+  });
+  h2+='</tbody></table>';
+  $('#kos-s2').innerHTML=h2;
+
+  // Sekcja 3: koszt per grupa
+  let h3='<table class="dt"><thead><tr><th>Grupa</th><th>Sztuk</th><th>PLN/szt/d</th><th>PLN/grupa/d</th><th>PLN/grupa/mies.</th></tr></thead><tbody>';
+  let totalGD=0,totalGM=0;
+  gr.forEach(g=>{
+    const tsz=g.se.reduce((a,s)=>a+s.sz,0);
+    let costSzt=0;g.sk.forEach(x=>{const s=gS(x.s);if(s)costSzt+=x.kg*s.cena_t/1000});
+    const costGD=costSzt*tsz*(g.z||1);const costGM=costGD*30;
+    totalGD+=costGD;totalGM+=costGM;
+    h3+='<tr><td>'+g.nazwa+'</td><td>'+tsz+'</td><td>'+r2(costSzt,2)+'</td><td>'+r2(costGD,0)+'</td><td>'+r2(costGM,0)+'</td></tr>';
+  });
+  h3+='</tbody><tfoot><tr><td><b>RAZEM</b></td><td></td><td></td><td><b>'+r2(totalGD,0)+'</b></td><td><b>'+r2(totalGM,0)+'</b></td></tr></tfoot></table>';
+  $('#kos-s3').innerHTML=h3;
 }
+function pKoszty(){prn('Koszty żywienia',$('#kos-s1').innerHTML+'<br>'+$('#kos-s2').innerHTML+'<br>'+$('#kos-s3').innerHTML)}
 
 /* ============================================================
-   FIRESTORE LISTENERS
+   PASZOWÓZ — card-based feed wagon panel
    ============================================================ */
-function listenConfig() {
-  if (unsubConfig) unsubConfig();
-  unsubConfig = db.collection('farm_data').doc('config').onSnapshot(doc => {
-    if (doc.exists) {
-      configData = doc.data();
-      localStorage.setItem('stuchowo_config', JSON.stringify(configData));
-      if (currentRole === 'tworca') renderPasswordFields();
-    }
-  }, err => {
-    console.warn('Config listener error:', err);
-    const cached = localStorage.getItem('stuchowo_config');
-    if (cached) configData = JSON.parse(cached);
+function todayKey(){return isoDate(new Date())}
+function getTodayLog(){return wozLog[todayKey()]||[]}
+function isGroupDoneToday(gid){return getTodayLog().some(e=>e.gid===gid)}
+function getGroupLogToday(gid){return getTodayLog().find(e=>e.gid===gid)}
+
+function rWoz(){
+  const today=new Date();
+  const el=$('#woz-date');
+  if(el)el.textContent=fmtDate(today)+' ('+['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'][today.getDay()]+')';
+
+  // Cards grid
+  let h='<div class="woz-grid">';
+  gr.forEach((g,gi)=>{
+    const tsz=g.se.reduce((a,s)=>a+s.sz,0);
+    const totKg=r2(g.sk.reduce((a,x)=>a+x.kg,0)*tsz*(g.z||1),0);
+    const done=isGroupDoneToday(g.id);
+    const log=getGroupLogToday(g.id);
+    const nied=log?log.niedojady||0:0;
+    let cls='woz-card';
+    if(done&&nied>0)cls+=' done-nied';else if(done)cls+=' done';
+    h+='<div class="'+cls+'" onclick="showWozDetail('+gi+')">';
+    h+='<div class="wc-icon">'+(done?'✅':'🚜')+'</div>';
+    h+='<div class="wc-name">'+g.nazwa+'</div>';
+    h+='<div class="wc-info">'+tsz+' szt · '+(g.z||1)+'× · <b>'+totKg+' kg</b></div>';
+    if(done&&nied>0)h+='<div class="wc-badge nied">Niedojady: '+nied+' kg</div>';
+    else if(done)h+='<div class="wc-badge complete">Zrealizowano</div>';
+    else h+='<div class="wc-badge pending">Do realizacji</div>';
+    h+='</div>';
   });
-}
+  h+='</div>';
+  $('#woz-panel').innerHTML=h;
 
-/* ============================================================
-   PASSWORD MANAGEMENT (Twórca only)
-   ============================================================ */
-function renderPasswordFields() {
-  const container = document.getElementById('password-fields');
-  if (!container) return;
-  const passwords = configData.passwords || DEFAULT_PASSWORDS;
-  container.innerHTML = Object.entries(ROLE_LABELS).map(([key, label]) => `
-    <div class="login-field">
-      <label>${label}</label>
-      <input type="text" id="pw-${key}" value="${passwords[key] || ''}" autocomplete="off">
-    </div>
-  `).join('');
-}
-
-async function savePasswords() {
-  const passwords = {};
-  Object.keys(ROLE_LABELS).forEach(key => {
-    const input = document.getElementById('pw-' + key);
-    if (input) passwords[key] = input.value.trim() || DEFAULT_PASSWORDS[key];
-  });
-
-  try {
-    await db.collection('farm_data').doc('config').set(
-      { passwords },
-      { merge: true }
-    );
-    showToast('Hasła zapisane');
-  } catch (e) {
-    showToast('Błąd zapisu — spróbuj ponownie');
+  // Today's log
+  const log=getTodayLog();
+  let lg='';
+  if(log.length===0){lg='<div style="padding:20px;text-align:center;color:var(--c-txt2);font-size:13px">Brak wpisów na dziś</div>';}
+  else{lg='<div class="woz-log">';
+    log.forEach(e=>{
+      const g=gr.find(x=>x.id===e.gid);
+      lg+='<div class="woz-log-item"><span class="time">'+e.time+'</span><span style="flex:1"><b>'+(g?g.nazwa:e.gid)+'</b></span>';
+      if(e.niedojady>0)lg+='<span style="color:var(--c-gold);font-weight:700">niedojady: '+e.niedojady+' kg</span>';
+      else lg+='<span style="color:#4CAF50;font-weight:600">✓ OK</span>';
+      lg+='<button class="btn bs bd" style="margin-left:8px" onclick="undoWoz(\''+e.gid+'\')">✕</button>';
+      lg+='</div>';
+    });
+    lg+='</div>';
   }
+  $('#woz-log-panel').innerHTML=lg;
+}
+
+function showWozDetail(gi){
+  const g=gr[gi];
+  const tsz=g.se.reduce((a,s)=>a+s.sz,0);
+  const done=isGroupDoneToday(g.id);
+  const log=getGroupLogToday(g.id);
+  const surOrder=sur.map(s=>s.id);
+  const sorted=g.sk.filter(x=>x.kg>0).sort((a,b)=>surOrder.indexOf(a.s)-surOrder.indexOf(b.s));
+
+  let h='<div class="woz-detail">';
+  // Ingredients table with running total
+  h+='<table><thead><tr><th>Składnik</th><th style="text-align:right">kg/szt</th><th style="text-align:right">Na wóz</th><th style="text-align:right">W wozie</th></tr></thead><tbody>';
+  let run=0;
+  sorted.forEach(sk=>{
+    const s=gS(sk.s);if(!s)return;
+    const nw=r2(sk.kg*tsz*(g.z||1),0);run+=nw;
+    h+='<tr><td>'+s.nazwa+'</td><td style="text-align:right">'+r2(sk.kg,2)+'</td><td style="text-align:right;font-weight:600">'+nw+'</td><td style="text-align:right;color:var(--c-pri);font-weight:700">'+run+'</td></tr>';
+  });
+  const totalKg=run;
+  h+='</tbody></table>';
+
+  // Sector split
+  if(g.se.length>1||g.se[0].sz>0){
+    h+='<div style="margin-bottom:12px;font-size:13px"><b>Podział na sektory:</b><br>';
+    g.se.forEach(s=>{const kgSek=r2(g.sk.reduce((a,x)=>a+x.kg,0)*s.sz*(g.z||1),0);h+=s.n+': '+s.sz+' szt → <b>'+kgSek+' kg</b><br>'});
+    h+='</div>';
+  }
+
+  if(done){
+    h+='<div style="text-align:center;padding:16px;color:#4CAF50;font-size:16px;font-weight:700">✅ Zrealizowano'+(log&&log.niedojady>0?' (niedojady: '+log.niedojady+' kg)':'')+'</div>';
+  }else{
+    // Niedojady input
+    h+='<div class="woz-nied-box"><label>Niedojady (kg TMR pozostawionego na stole)</label>';
+    h+='<input type="number" id="woz-nied-kg" min="0" step="10" value="0" placeholder="0">';
+    h+='</div>';
+    // Confirm button
+    h+='<button class="woz-confirm-btn bp" onclick="confirmWoz(\''+g.id+'\','+totalKg+')">✓ Zrealizowano — potwierdź wwóz</button>';
+  }
+  h+='</div>';
+
+  opM(g.nazwa+' — '+tsz+' szt · '+(g.z||1)+'×/d',h,'<button class="btn bo" onclick="clM()">Zamknij</button>');
+}
+
+function confirmWoz(gid,totalKg){
+  const niedEl=$('#woz-nied-kg');
+  const nied=niedEl?+niedEl.value||0:0;
+  const g=gr.find(x=>x.id===gid);if(!g)return;
+  const tsz=g.se.reduce((a,s)=>a+s.sz,0);
+  const totalFresh=g.sk.reduce((a,x)=>a+x.kg,0)*tsz*(g.z||1);
+
+  // Deduct from stocks (proportionally reduced by niedojady)
+  const coeff=totalFresh>0&&nied>0?Math.max(0,(totalFresh-nied)/totalFresh):1;
+  g.sk.forEach(sk=>{
+    if(sk.kg<=0)return;
+    const s=gS(sk.s);if(!s)return;
+    const usedKg=sk.kg*tsz*(g.z||1)*coeff;
+    s.stan_t=Math.max(0,r2(s.stan_t-usedKg/1000,4));
+  });
+
+  // Log entry
+  const key=todayKey();
+  if(!wozLog[key])wozLog[key]=[];
+  wozLog[key].push({gid,time:new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}),niedojady:nied});
+
+  sa(true);clM();rWoz();
+  toast(g.nazwa+' — wwóz zarejestrowany'+(nied>0?' (niedojady: '+nied+' kg)':''));
+}
+
+function undoWoz(gid){
+  if(!confirm('Cofnąć realizację tej dawki? Stany surowców NIE zostaną przywrócone automatycznie.'))return;
+  const key=todayKey();
+  if(wozLog[key])wozLog[key]=wozLog[key].filter(e=>e.gid!==gid);
+  sa(true);rWoz();toast('Wpis usunięty');
+}
+
+/* ============================================================
+   SUCHY TMR — recipe calculator + production
+   ============================================================ */
+function rStmr(){
+  // Recipe display
+  let h='<div class="stmr-recipe">';
+  let totalPct=0;
+  stmrRecipe.forEach((r,i)=>{
+    totalPct+=r.pct;
+    const s=r.sid?gS(r.sid):null;
+    const linked=s?'<span style="font-size:10px;color:var(--c-txt2)"> → '+s.nazwa+'</span>':'<span style="font-size:10px;color:var(--c-red)"> (brak powiązania)</span>';
+    h+='<div class="stmr-row"><span class="sr-name">'+r.name+linked+'</span><span class="sr-pct">'+r.pct+'%</span></div>';
+  });
+  h+='<div class="stmr-row" style="border:none;font-weight:700"><span class="sr-name">SUMA</span><span class="sr-pct" style="color:'+(totalPct===100?'#4CAF50':'var(--c-red)')+'">'+totalPct+'%</span></div>';
+  h+='</div>';
+  $('#stmr-recipe-panel').innerHTML=h;
+
+  // Edit buttons (only for Twórca/Zootechnik)
+  const eb=$('#stmr-edit-btns');
+  if(eb)eb.innerHTML=canEdit()?'<button class="btn bs bo" onclick="editStmrRecipe()">✎ Edytuj</button>':'';
+
+  // Calculate preview
+  calcStmrPreview();
+
+  // History
+  let hh='';
+  if(stmrHistory.length===0){hh='<div style="padding:16px;text-align:center;color:var(--c-txt2)">Brak historii produkcji</div>';}
+  else{
+    hh='<table class="dt"><thead><tr><th>Data</th><th>Ilość (kg)</th><th>Składniki</th><th></th></tr></thead><tbody>';
+    stmrHistory.slice().reverse().forEach((p,i)=>{
+      const ri=stmrHistory.length-1-i;
+      hh+='<tr><td>'+p.date+'</td><td>'+r2(p.amountKg,0)+'</td><td style="font-size:11px">'+p.ingredients.map(x=>x.name+': '+r2(x.kg,0)+' kg').join(', ')+'</td>';
+      hh+='<td><button class="btn bs bd" onclick="if(confirm(\'Usunąć ten wpis?\')){stmrHistory.splice('+ri+',1);sa();rStmr()}">✕</button></td></tr>';
+    });
+    hh+='</tbody></table>';
+  }
+  $('#stmr-history').innerHTML=hh;
+}
+
+function calcStmrPreview(){
+  const amount=+($('#stmr-amount')?$('#stmr-amount').value:1000)||0;
+  if(amount<=0){$('#stmr-calc-result').innerHTML='';return}
+  let h='<table class="dt" style="margin-top:8px"><thead><tr><th>Składnik</th><th>Potrzeba (kg)</th><th>Stan (t)</th><th>Status</th></tr></thead><tbody>';
+  stmrRecipe.forEach(r=>{
+    const need=r2(amount*r.pct/100,1);
+    const s=r.sid?gS(r.sid):null;
+    const stan=s?s.stan_t:0;
+    const ok=s&&stan*1000>=need;
+    h+='<tr><td>'+r.name+'</td><td style="font-weight:700">'+need+'</td><td>'+(s?r2(stan,2):'—')+'</td>';
+    h+='<td>'+(s?(ok?'<span style="color:#4CAF50">✓ OK</span>':'<span class="sur-warn">⚠ Brak!</span>'):'<span style="color:var(--c-txt2)">—</span>')+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  $('#stmr-calc-result').innerHTML=h;
+}
+// Re-calc on amount change
+document.addEventListener('input',e=>{if(e.target.id==='stmr-amount')calcStmrPreview()});
+
+function doStmrProduction(){
+  const amount=+($('#stmr-amount')?$('#stmr-amount').value:0)||0;
+  if(amount<=0){toast('Wpisz ilość > 0');return}
+
+  // Check stock availability
+  let canProduce=true;const ingredients=[];
+  stmrRecipe.forEach(r=>{
+    const need=r2(amount*r.pct/100,1);
+    const s=r.sid?gS(r.sid):null;
+    ingredients.push({name:r.name,sid:r.sid,kg:need});
+    if(s&&s.stan_t*1000<need)canProduce=false;
+    if(r.sid&&!s)canProduce=false;
+  });
+
+  const msg='Wyprodukować '+amount+' kg Suchego TMR?\n\nSkładniki zostaną odjęte ze stanów, a '+amount+' kg Suchego TMR trafi na stan magazynowy.';
+  if(!confirm(msg))return;
+
+  if(!canProduce&&!confirm('Uwaga: niektórych składników może brakować! Kontynuować mimo to?'))return;
+
+  // Deduct ingredients
+  ingredients.forEach(ing=>{
+    if(!ing.sid)return;
+    const s=gS(ing.sid);if(!s)return;
+    s.stan_t=Math.max(0,r2(s.stan_t-ing.kg/1000,4));
+  });
+
+  // Add Suchy TMR to stock
+  const stmrSur=gS('s19');
+  if(stmrSur){stmrSur.stan_t=r2(stmrSur.stan_t+amount/1000,4)}
+
+  // Log production
+  stmrHistory.push({date:fmtDate(new Date()),amountKg:amount,ingredients});
+
+  sa(true);rStmr();
+  toast('Wyprodukowano '+amount+' kg Suchego TMR');
+}
+
+function editStmrRecipe(){
+  let h='<div style="margin-bottom:10px;font-size:12px;color:var(--c-txt2)">Edytuj składniki receptury. Przypisz każdy do surowca z bazy (do odejmowania ze stanów).</div>';
+  stmrRecipe.forEach((r,i)=>{
+    h+='<div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-end">';
+    h+='<div class="fg" style="flex:2"><label>Nazwa</label><input type="text" id="sr-n-'+i+'" value="'+r.name+'"></div>';
+    h+='<div class="fg" style="flex:1"><label>%</label><input type="number" id="sr-p-'+i+'" value="'+r.pct+'" step="0.5"></div>';
+    h+='<div class="fg" style="flex:2"><label>Surowiec z bazy</label><select id="sr-s-'+i+'"><option value="">— brak —</option>'+sur.map(s=>'<option value="'+s.id+'"'+(r.sid===s.id?' selected':'')+'>'+s.nazwa+'</option>').join('')+'</select></div>';
+    h+='<button class="btn bs bd" onclick="document.getElementById(\'sr-row-'+i+'\').remove()" style="margin-bottom:1px">✕</button>';
+    h+='</div>';
+  });
+  h+='<button class="btn bs bo" onclick="addStmrRow()" style="margin-top:4px">+ Dodaj składnik</button>';
+
+  opM('Edytuj recepturę Suchego TMR',h,
+    '<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="saveStmrRecipe()">Zapisz</button>');
+}
+
+function addStmrRow(){
+  const idx=stmrRecipe.length+$('#mb').querySelectorAll('[id^="sr-n-"]').length;
+  const row=document.createElement('div');
+  row.id='sr-row-'+idx;row.style='display:flex;gap:6px;margin-bottom:6px;align-items:flex-end';
+  row.innerHTML='<div class="fg" style="flex:2"><label>Nazwa</label><input type="text" id="sr-n-'+idx+'" value=""></div>'
+    +'<div class="fg" style="flex:1"><label>%</label><input type="number" id="sr-p-'+idx+'" value="0" step="0.5"></div>'
+    +'<div class="fg" style="flex:2"><label>Surowiec</label><select id="sr-s-'+idx+'"><option value="">— brak —</option>'+sur.map(s=>'<option value="'+s.id+'">'+s.nazwa+'</option>').join('')+'</select></div>'
+    +'<button class="btn bs bd" onclick="this.parentElement.remove()" style="margin-bottom:1px">✕</button>';
+  const addBtn=$('#mb').querySelector('[onclick="addStmrRow()"]');
+  addBtn.parentElement.insertBefore(row,addBtn);
+}
+
+function saveStmrRecipe(){
+  const newRecipe=[];
+  let i=0;
+  while(true){
+    const nEl=$('#sr-n-'+i);if(!nEl)break;
+    const name=nEl.value.trim();
+    const pct=+(($('#sr-p-'+i)||{}).value)||0;
+    const sid=(($('#sr-s-'+i)||{}).value)||'';
+    if(name&&pct>0)newRecipe.push({name,sid,pct});
+    i++;
+  }
+  if(newRecipe.length===0){toast('Dodaj przynajmniej jeden składnik');return}
+  stmrRecipe=newRecipe;
+  sa(true);clM();rStmr();toast('Receptura zapisana');
 }
 
 /* ============================================================
    CONNECTIVITY
    ============================================================ */
-function setupConnectivity() {
-  const bar = document.getElementById('status-bar');
-  const show = (msg, cls) => {
-    bar.textContent = msg;
-    bar.className = 'status-bar show ' + cls;
-    setTimeout(() => bar.classList.remove('show'), 3000);
-  };
-  window.addEventListener('online', () => show('Połączenie przywrócone', 'online'));
-  window.addEventListener('offline', () => show('Brak połączenia — tryb offline', 'offline'));
-}
+window.addEventListener('online',()=>{const b=$('#status-bar');b.textContent='Połączenie przywrócone';b.className='status-bar show online';setTimeout(()=>b.classList.remove('show'),3000)});
+window.addEventListener('offline',()=>{const b=$('#status-bar');b.textContent='Brak połączenia — tryb offline';b.className='status-bar show offline';setTimeout(()=>b.classList.remove('show'),3000)});
 
 /* ============================================================
-   TOAST
+   INIT
    ============================================================ */
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-/* ============================================================
-   CONFIRM DIALOG
-   ============================================================ */
-let dialogResolve = null;
-
-function showDialog(title, msg) {
-  return new Promise(resolve => {
-    dialogResolve = resolve;
-    document.getElementById('dialog-title').textContent = title;
-    document.getElementById('dialog-msg').textContent = msg;
-    document.getElementById('dialog-overlay').classList.add('show');
-    document.getElementById('dialog-confirm').onclick = () => {
-      closeDialog();
-      resolve(true);
-    };
+(function(){
+  const s=LD('sess',null);
+  if(s){cR=s;showApp()}
+  $('#lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+  // Hide splash
+  setTimeout(()=>{$('#splash').classList.add('hide');setTimeout(()=>{$('#splash').style.display='none';if(!cR)$('#login-screen').classList.remove('hidden')},400)},600);
+  // PWA install prompt
+  let dp=null;
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;
+    const ib=document.createElement('div');ib.id='pwa-install';
+    ib.innerHTML='<div style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--c-pri);color:#fff;padding:12px 20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;z-index:250;font:500 14px var(--font);max-width:340px"><span>📲 Zainstaluj aplikację</span><button onclick="installPWA()" style="background:#fff;color:var(--c-pri);border:none;padding:6px 14px;border-radius:6px;font:700 13px var(--font);cursor:pointer;white-space:nowrap">Instaluj</button><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer">&times;</button></div>';
+    document.body.appendChild(ib);
   });
-}
-
-function closeDialog() {
-  document.getElementById('dialog-overlay').classList.remove('show');
-  if (dialogResolve) { dialogResolve(false); dialogResolve = null; }
-}
-
-/* ============================================================
-   UTILITY
-   ============================================================ */
-function formatDate(d) {
-  if (!d) return '—';
-  const dt = d.toDate ? d.toDate() : new Date(d);
-  return dt.toLocaleDateString('pl-PL') + ' ' + dt.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-}
-
-function formatNum(n, dec = 1) {
-  if (n == null || isNaN(n)) return '—';
-  return Number(n).toLocaleString('pl-PL', { minimumFractionDigits: dec, maximumFractionDigits: dec });
-}
-
-/* ============================================================
-   ENTER on password field
-   ============================================================ */
-document.getElementById('login-pass').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
-});
+  window.installPWA=async function(){const ib=$('#pwa-install');if(ib)ib.remove();if(dp){dp.prompt();await dp.userChoice;dp=null}};
+})();
 </script>
-
 </body>
 </html>

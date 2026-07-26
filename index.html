@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2F6B3A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Ferma Stuchowo</title>
+
+<!-- Firebase SDK (compat - single file PWA) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+/* ============================================================
+   CSS VARIABLES & RESET
+   ============================================================ */
+:root {
+  --c-primary: #2F6B3A;
+  --c-primary-dark: #1E4A27;
+  --c-primary-light: #E8F0E9;
+  --c-bg: #F6F7F2;
+  --c-surface: #FFFFFF;
+  --c-gold: #C9A227;
+  --c-gold-light: #FFF8E1;
+  --c-red: #B3392C;
+  --c-red-light: #FDECEA;
+  --c-text: #1A2E1D;
+  --c-text-muted: #5A6B5C;
+  --c-border: #D4DDD5;
+  --c-nav-bg: #243E29;
+  --radius: 10px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
+  --nav-h: 64px;
+  --header-h: 56px;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  font-family: var(--font);
+  background: var(--c-bg);
+  color: var(--c-text);
+  height: 100%;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; }
+input, select { font-family: inherit; }
+
+/* ============================================================
+   SPLASH / LOADING
+   ============================================================ */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--c-primary);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity 0.4s;
+}
+#splash.hide { opacity: 0; pointer-events: none; }
+#splash img { width: 120px; height: 120px; border-radius: 24px; margin-bottom: 16px; }
+#splash h1 { color: #fff; font-size: 22px; font-weight: 600; letter-spacing: 1px; }
+#splash p { color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 6px; }
+
+/* ============================================================
+   LOGIN SCREEN
+   ============================================================ */
+#login-screen {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--c-bg);
+  display: flex; align-items: center; justify-content: center;
+}
+#login-screen.hidden { display: none; }
+
+.login-card {
+  background: var(--c-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  padding: 40px 32px;
+  width: 90%; max-width: 360px;
+  text-align: center;
+}
+.login-card img { width: 88px; height: 88px; border-radius: 20px; margin-bottom: 12px; }
+.login-card h1 { font-size: 20px; color: var(--c-primary-dark); margin-bottom: 4px; }
+.login-card .subtitle { font-size: 13px; color: var(--c-text-muted); margin-bottom: 28px; }
+
+.login-field { margin-bottom: 16px; text-align: left; }
+.login-field label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--c-text-muted); margin-bottom: 6px;
+  text-transform: uppercase; letter-spacing: 0.8px;
+}
+.login-field select,
+.login-field input {
+  width: 100%; padding: 12px 14px;
+  border: 2px solid var(--c-border); border-radius: 8px;
+  font-size: 15px; color: var(--c-text);
+  background: var(--c-bg); outline: none;
+  transition: border-color 0.2s;
+}
+.login-field select:focus,
+.login-field input:focus { border-color: var(--c-primary); }
+
+.login-btn {
+  width: 100%; padding: 14px;
+  background: var(--c-primary); color: #fff;
+  font-size: 15px; font-weight: 600;
+  border-radius: 8px; margin-top: 8px;
+  transition: background 0.2s;
+  letter-spacing: 0.5px;
+}
+.login-btn:active { background: var(--c-primary-dark); }
+
+.login-error {
+  color: var(--c-red); font-size: 13px;
+  margin-top: 10px; min-height: 18px;
+}
+
+/* ============================================================
+   APP LAYOUT
+   ============================================================ */
+#app { display: none; height: 100%; flex-direction: column; }
+#app.active { display: flex; }
+
+/* Header */
+.app-header {
+  height: var(--header-h);
+  background: var(--c-primary);
+  display: flex; align-items: center;
+  padding: 0 16px; gap: 12px;
+  flex-shrink: 0;
+  z-index: 50;
+}
+.app-header .farm-name {
+  color: #fff; font-size: 16px; font-weight: 600;
+  flex: 1; letter-spacing: 0.3px;
+}
+.app-header .role-badge {
+  background: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.9);
+  font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 12px;
+  text-transform: uppercase; letter-spacing: 0.8px;
+}
+.app-header .btn-logout {
+  background: none; color: rgba(255,255,255,0.7);
+  font-size: 13px; padding: 6px 10px;
+}
+.app-header .btn-logout:hover { color: #fff; }
+
+/* Navigation - Desktop: top bar below header */
+.app-nav {
+  background: var(--c-nav-bg);
+  display: flex; align-items: center;
+  padding: 0 8px; gap: 2px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.app-nav::-webkit-scrollbar { display: none; }
+
+.nav-tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 12px 16px;
+  color: rgba(255,255,255,0.55);
+  font-size: 13px; font-weight: 500;
+  white-space: nowrap;
+  background: none;
+  border-bottom: 3px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  letter-spacing: 0.3px;
+}
+.nav-tab svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-tab:hover { color: rgba(255,255,255,0.85); }
+.nav-tab.active {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+.nav-tab.hidden { display: none; }
+
+/* Tab Content Area */
+.tab-content-area {
+  flex: 1; overflow-y: auto;
+  padding: 20px 16px;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ============================================================
+   MOBILE: bottom navigation
+   ============================================================ */
+@media (max-width: 768px) {
+  .app-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--c-nav-bg);
+    justify-content: space-around;
+    padding: 4px 0 env(safe-area-inset-bottom, 0);
+    z-index: 50;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.15);
+  }
+  .nav-tab {
+    flex-direction: column; gap: 3px;
+    padding: 8px 6px 6px;
+    font-size: 10px;
+    border-bottom: none;
+    border-top: 3px solid transparent;
+    min-width: 0;
+    flex: 1;
+  }
+  .nav-tab.active { border-top-color: #fff; border-bottom-color: transparent; }
+  .tab-content-area { padding-bottom: 80px; }
+}
+
+/* ============================================================
+   SHARED UI COMPONENTS
+   ============================================================ */
+
+/* Page title */
+.page-title {
+  font-size: 20px; font-weight: 700;
+  color: var(--c-primary-dark);
+  margin-bottom: 16px;
+  letter-spacing: -0.3px;
+}
+.page-subtitle {
+  font-size: 13px; color: var(--c-text-muted);
+  margin-top: -12px; margin-bottom: 20px;
+}
+
+/* Cards */
+.card {
+  background: var(--c-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px; font-weight: 600;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--c-primary); color: #fff; }
+.btn-primary:hover { background: var(--c-primary-dark); }
+.btn-secondary { background: var(--c-primary-light); color: var(--c-primary-dark); }
+.btn-danger { background: var(--c-red); color: #fff; }
+.btn-gold { background: var(--c-gold); color: #fff; }
+
+/* Placeholder empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--c-text-muted);
+}
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+.empty-state h3 { font-size: 16px; margin-bottom: 6px; color: var(--c-text); }
+.empty-state p { font-size: 13px; }
+
+/* Status bar (connection) */
+.status-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: 4px 12px;
+  font-size: 11px; font-weight: 600;
+  text-align: center;
+  z-index: 200;
+  transform: translateY(-100%);
+  transition: transform 0.3s;
+}
+.status-bar.show { transform: translateY(0); }
+.status-bar.offline { background: var(--c-red); color: #fff; }
+.status-bar.online { background: var(--c-primary); color: #fff; }
+
+/* Toast notification */
+.toast {
+  position: fixed; bottom: 100px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--c-nav-bg); color: #fff;
+  padding: 12px 24px; border-radius: 8px;
+  font-size: 14px; font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 300;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Confirm dialog */
+.dialog-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.dialog-overlay.show { opacity: 1; pointer-events: auto; }
+.dialog-box {
+  background: var(--c-surface); border-radius: 14px;
+  padding: 28px 24px; width: 90%; max-width: 340px;
+  text-align: center; box-shadow: var(--shadow-lg);
+}
+.dialog-box h3 { font-size: 17px; margin-bottom: 8px; }
+.dialog-box p { font-size: 14px; color: var(--c-text-muted); margin-bottom: 20px; }
+.dialog-actions { display: flex; gap: 10px; justify-content: center; }
+.dialog-actions .btn { flex: 1; justify-content: center; }
+
+/* Settings section (Twórca only — password management) */
+.settings-section { margin-top: 32px; }
+.settings-section h3 {
+  font-size: 14px; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--c-text-muted);
+  margin-bottom: 12px;
+}
+
+/* Table base style */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.data-table th {
+  background: var(--c-primary-light);
+  color: var(--c-primary-dark);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 10px 12px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--c-border);
+}
+.data-table tr:hover td { background: var(--c-primary-light); }
+
+/* Scrollable table wrapper */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: var(--c-surface);
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SPLASH SCREEN
+     ============================================================ -->
+<div id="splash">
+  <img src="icon-192.png" alt="Ferma Stuchowo">
+  <h1>Ferma Stuchowo</h1>
+  <p>Ładowanie aplikacji…</p>
+</div>
+
+<!-- ============================================================
+     LOGIN SCREEN
+     ============================================================ -->
+<div id="login-screen" class="hidden">
+  <div class="login-card">
+    <img src="icon-192.png" alt="Ferma Stuchowo">
+    <h1>Ferma Stuchowo</h1>
+    <p class="subtitle">Zaloguj się, aby kontynuować</p>
+
+    <div class="login-field">
+      <label>Rola</label>
+      <select id="login-role">
+        <option value="tworca">Twórca</option>
+        <option value="zootechnik">Zootechnik</option>
+        <option value="zywieniowiec">Żywieniowiec</option>
+        <option value="paszowoz">Paszowóz</option>
+      </select>
+    </div>
+
+    <div class="login-field">
+      <label>Hasło</label>
+      <input type="password" id="login-pass" placeholder="Wpisz hasło" autocomplete="off">
+    </div>
+
+    <button class="login-btn" onclick="doLogin()">Zaloguj się</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP
+     ============================================================ -->
+<div id="app">
+  <!-- Header -->
+  <header class="app-header">
+    <span class="farm-name">Ferma Stuchowo</span>
+    <span class="role-badge" id="role-badge"></span>
+    <button class="btn-logout" onclick="doLogout()">Wyloguj</button>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="app-nav" id="app-nav">
+    <button class="nav-tab" data-tab="surowce" data-roles="tworca,zootechnik" onclick="switchTab('surowce')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 20h20M5 20V8l7-5 7 5v12M9 20v-6h6v6"/>
+      </svg>
+      Surowce
+    </button>
+    <button class="nav-tab" data-tab="dawki" data-roles="tworca,zootechnik,zywieniowiec" onclick="switchTab('dawki')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v18M3 12l4-4 4 4M13 8l4-4 4 4M3 16l4 4 4-4M13 20l4-4 4 4"/>
+      </svg>
+      Dawki
+    </button>
+    <button class="nav-tab" data-tab="koszty" data-roles="tworca,zootechnik" onclick="switchTab('koszty')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.7 0-3 1-3 2.5s1.3 2.5 3 2.5c1.7 0 3 1 3 2.5s-1.3 2.5-3 2.5c-1 0-2-.5-2.5-1.5M12 6v1.5M12 16.5V18"/>
+      </svg>
+      Koszty
+    </button>
+    <button class="nav-tab" data-tab="paszowoz" data-roles="tworca,zootechnik,paszowoz" onclick="switchTab('paszowoz')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="6" width="15" height="10" rx="2"/><path d="M16 10h4l3 4v2h-7V10z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+      Paszowóz
+    </button>
+    <button class="nav-tab" data-tab="raporty" data-roles="tworca,zootechnik" onclick="switchTab('raporty')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+      </svg>
+      Raporty
+    </button>
+    <button class="nav-tab" data-tab="suchy-tmr" data-roles="tworca,zootechnik" onclick="switchTab('suchy-tmr')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 3h12l2 6H4l2-6zM4 9v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9M9 13h6"/>
+      </svg>
+      Suchy TMR
+    </button>
+  </nav>
+
+  <!-- Tab Panels -->
+  <div class="tab-content-area">
+
+    <!-- SUROWCE -->
+    <div class="tab-panel" id="panel-surowce">
+      <h2 class="page-title">Surowce</h2>
+      <p class="page-subtitle">Stany magazynowe surowców paszowych</p>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 20h20M5 20V8l7-5 7 5v12M9 20v-6h6v6"/></svg>
+        <h3>Moduł w budowie</h3>
+        <p>Zarządzanie surowcami — wkrótce</p>
+      </div>
+    </div>
+
+    <!-- DAWKI -->
+    <div class="tab-panel" id="panel-dawki">
+      <h2 class="page-title">Dawki TMR</h2>
+      <p class="page-subtitle">Matryca dawek żywieniowych</p>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v18M3 12l4-4 4 4M13 8l4-4 4 4"/></svg>
+        <h3>Moduł w budowie</h3>
+        <p>Kalkulator dawek TMR — wkrótce</p>
+      </div>
+    </div>
+
+    <!-- KOSZTY -->
+    <div class="tab-panel" id="panel-koszty">
+      <h2 class="page-title">Koszty żywienia</h2>
+      <p class="page-subtitle">Analiza kosztów w rozbiciu na grupy i surowce</p>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.7 0-3 1-3 2.5s1.3 2.5 3 2.5"/></svg>
+        <h3>Moduł w budowie</h3>
+        <p>Analiza kosztów żywienia — wkrótce</p>
+      </div>
+    </div>
+
+    <!-- PASZOWÓZ -->
+    <div class="tab-panel" id="panel-paszowoz">
+      <h2 class="page-title">Panel Paszowóz</h2>
+      <p class="page-subtitle">Realizacja wwozu i rejestracja niedojadów</p>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="6" width="15" height="10" rx="2"/><path d="M16 10h4l3 4v2h-7V10z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <h3>Moduł w budowie</h3>
+        <p>Panel operatora paszowóz — wkrótce</p>
+      </div>
+    </div>
+
+    <!-- RAPORTY -->
+    <div class="tab-panel" id="panel-raporty">
+      <h2 class="page-title">Raporty z wwozu</h2>
+      <p class="page-subtitle">Podsumowanie realizacji żywienia</p>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"/><path d="M14 2v6h6"/></svg>
+        <h3>Moduł w budowie</h3>
+        <p>Raporty z realizacji żywienia — wkrótce</p>
+      </div>
+    </div>
+
+    <!-- SUCHY TMR -->
+    <div class="tab-panel" id="panel-suchy-tmr">
+      <h2 class="page-title">Suchy TMR</h2>
+      <p class="page-subtitle">Kalkulator receptury i produkcja premiksu</p>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h12l2 6H4l2-6zM4 9v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9"/></svg>
+        <h3>Moduł w budowie</h3>
+        <p>Produkcja suchego TMR — wkrótce</p>
+      </div>
+    </div>
+
+    <!-- USTAWIENIA (only for Twórca — embedded at bottom of active panel or separate) -->
+    <div class="tab-panel" id="panel-ustawienia">
+      <h2 class="page-title">Ustawienia</h2>
+      <p class="page-subtitle">Zarządzanie hasłami i konfiguracją</p>
+      <div class="card">
+        <h3 style="font-size:15px; margin-bottom:16px;">Zmiana haseł</h3>
+        <div id="password-fields"></div>
+        <button class="btn btn-primary" onclick="savePasswords()" style="margin-top:12px;">Zapisz hasła</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Status bar (offline/online) -->
+<div class="status-bar" id="status-bar"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Confirm dialog -->
+<div class="dialog-overlay" id="dialog-overlay">
+  <div class="dialog-box">
+    <h3 id="dialog-title">Potwierdzenie</h3>
+    <p id="dialog-msg"></p>
+    <div class="dialog-actions">
+      <button class="btn btn-secondary" onclick="closeDialog()">Anuluj</button>
+      <button class="btn btn-primary" id="dialog-confirm">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   FIREBASE INIT
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyD4hrY8bU6JFNN1nIBvMC3TFY-nLjwjUJA",
+  authDomain: "ferma-stuchowo-po-app.firebaseapp.com",
+  projectId: "ferma-stuchowo-po-app",
+  storageBucket: "ferma-stuchowo-po-app.firebasestorage.app",
+  messagingSenderId: "907039344032",
+  appId: "1:907039344032:web:70e7c00ea4462815c550c5"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* ============================================================
+   GLOBAL STATE
+   ============================================================ */
+let currentRole = null;
+let currentTab = null;
+let configData = {};
+let unsubConfig = null;
+
+const ROLE_LABELS = {
+  tworca: 'Twórca',
+  zootechnik: 'Zootechnik',
+  zywieniowiec: 'Żywieniowiec',
+  paszowoz: 'Paszowóz'
+};
+
+const DEFAULT_PASSWORDS = {
+  tworca: 'admin',
+  zootechnik: 'zoo',
+  zywieniowiec: 'dawki',
+  paszowoz: 'wwoz'
+};
+
+// Tab that each role sees first on login
+const ROLE_DEFAULT_TAB = {
+  tworca: 'surowce',
+  zootechnik: 'surowce',
+  zywieniowiec: 'dawki',
+  paszowoz: 'paszowoz'
+};
+
+/* ============================================================
+   SPLASH → LOGIN
+   ============================================================ */
+window.addEventListener('load', () => {
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // Hide splash after short delay
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => {
+      document.getElementById('splash').style.display = 'none';
+      // Check for saved session
+      const saved = localStorage.getItem('stuchowo_role');
+      if (saved) {
+        currentRole = saved;
+        enterApp();
+      } else {
+        document.getElementById('login-screen').classList.remove('hidden');
+      }
+    }, 400);
+  }, 800);
+});
+
+/* ============================================================
+   LOGIN / LOGOUT
+   ============================================================ */
+async function doLogin() {
+  const role = document.getElementById('login-role').value;
+  const pass = document.getElementById('login-pass').value;
+  const errorEl = document.getElementById('login-error');
+  errorEl.textContent = '';
+
+  if (!pass) {
+    errorEl.textContent = 'Wpisz hasło';
+    return;
+  }
+
+  // Get passwords from Firestore (or defaults)
+  let passwords = { ...DEFAULT_PASSWORDS };
+  try {
+    const doc = await db.collection('farm_data').doc('config').get();
+    if (doc.exists && doc.data().passwords) {
+      passwords = { ...passwords, ...doc.data().passwords };
+    }
+  } catch (e) {
+    // Offline — try localStorage
+    const cached = localStorage.getItem('stuchowo_config');
+    if (cached) {
+      try {
+        const c = JSON.parse(cached);
+        if (c.passwords) passwords = { ...passwords, ...c.passwords };
+      } catch (_) {}
+    }
+  }
+
+  if (pass !== passwords[role]) {
+    errorEl.textContent = 'Nieprawidłowe hasło';
+    return;
+  }
+
+  currentRole = role;
+  localStorage.setItem('stuchowo_role', role);
+
+  // Init default config in Firestore if first login ever
+  try {
+    const doc = await db.collection('farm_data').doc('config').get();
+    if (!doc.exists) {
+      await db.collection('farm_data').doc('config').set({
+        passwords: DEFAULT_PASSWORDS,
+        created: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+  } catch (_) {}
+
+  enterApp();
+}
+
+function doLogout() {
+  currentRole = null;
+  localStorage.removeItem('stuchowo_role');
+  if (unsubConfig) { unsubConfig(); unsubConfig = null; }
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').textContent = '';
+}
+
+function enterApp() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').classList.add('active');
+  document.getElementById('role-badge').textContent = ROLE_LABELS[currentRole];
+
+  // Show/hide nav tabs based on role
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    const roles = tab.dataset.roles.split(',');
+    tab.classList.toggle('hidden', !roles.includes(currentRole));
+  });
+
+  // Show settings gear for Twórca
+  // (settings tab is accessed via a gear icon in header — we add it dynamically)
+  const existingGear = document.getElementById('btn-settings');
+  if (existingGear) existingGear.remove();
+
+  if (currentRole === 'tworca') {
+    const gear = document.createElement('button');
+    gear.id = 'btn-settings';
+    gear.className = 'btn-logout';
+    gear.innerHTML = '⚙';
+    gear.style.fontSize = '18px';
+    gear.onclick = () => switchTab('ustawienia');
+    document.querySelector('.app-header').insertBefore(gear, document.querySelector('.btn-logout'));
+  }
+
+  // Switch to default tab for role
+  switchTab(ROLE_DEFAULT_TAB[currentRole]);
+
+  // Listen for config changes (for password management)
+  listenConfig();
+
+  // Online/offline status
+  setupConnectivity();
+}
+
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
+function switchTab(tabId) {
+  currentTab = tabId;
+
+  // Update nav active state
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tabId);
+  });
+
+  // Update panels
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'panel-' + tabId);
+  });
+}
+
+/* ============================================================
+   FIRESTORE LISTENERS
+   ============================================================ */
+function listenConfig() {
+  if (unsubConfig) unsubConfig();
+  unsubConfig = db.collection('farm_data').doc('config').onSnapshot(doc => {
+    if (doc.exists) {
+      configData = doc.data();
+      localStorage.setItem('stuchowo_config', JSON.stringify(configData));
+      if (currentRole === 'tworca') renderPasswordFields();
+    }
+  }, err => {
+    console.warn('Config listener error:', err);
+    const cached = localStorage.getItem('stuchowo_config');
+    if (cached) configData = JSON.parse(cached);
+  });
+}
+
+/* ============================================================
+   PASSWORD MANAGEMENT (Twórca only)
+   ============================================================ */
+function renderPasswordFields() {
+  const container = document.getElementById('password-fields');
+  if (!container) return;
+  const passwords = configData.passwords || DEFAULT_PASSWORDS;
+  container.innerHTML = Object.entries(ROLE_LABELS).map(([key, label]) => `
+    <div class="login-field">
+      <label>${label}</label>
+      <input type="text" id="pw-${key}" value="${passwords[key] || ''}" autocomplete="off">
+    </div>
+  `).join('');
+}
+
+async function savePasswords() {
+  const passwords = {};
+  Object.keys(ROLE_LABELS).forEach(key => {
+    const input = document.getElementById('pw-' + key);
+    if (input) passwords[key] = input.value.trim() || DEFAULT_PASSWORDS[key];
+  });
+
+  try {
+    await db.collection('farm_data').doc('config').set(
+      { passwords },
+      { merge: true }
+    );
+    showToast('Hasła zapisane');
+  } catch (e) {
+    showToast('Błąd zapisu — spróbuj ponownie');
+  }
+}
+
+/* ============================================================
+   CONNECTIVITY
+   ============================================================ */
+function setupConnectivity() {
+  const bar = document.getElementById('status-bar');
+  const show = (msg, cls) => {
+    bar.textContent = msg;
+    bar.className = 'status-bar show ' + cls;
+    setTimeout(() => bar.classList.remove('show'), 3000);
+  };
+  window.addEventListener('online', () => show('Połączenie przywrócone', 'online'));
+  window.addEventListener('offline', () => show('Brak połączenia — tryb offline', 'offline'));
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ============================================================
+   CONFIRM DIALOG
+   ============================================================ */
+let dialogResolve = null;
+
+function showDialog(title, msg) {
+  return new Promise(resolve => {
+    dialogResolve = resolve;
+    document.getElementById('dialog-title').textContent = title;
+    document.getElementById('dialog-msg').textContent = msg;
+    document.getElementById('dialog-overlay').classList.add('show');
+    document.getElementById('dialog-confirm').onclick = () => {
+      closeDialog();
+      resolve(true);
+    };
+  });
+}
+
+function closeDialog() {
+  document.getElementById('dialog-overlay').classList.remove('show');
+  if (dialogResolve) { dialogResolve(false); dialogResolve = null; }
+}
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+function formatDate(d) {
+  if (!d) return '—';
+  const dt = d.toDate ? d.toDate() : new Date(d);
+  return dt.toLocaleDateString('pl-PL') + ' ' + dt.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatNum(n, dec = 1) {
+  if (n == null || isNaN(n)) return '—';
+  return Number(n).toLocaleString('pl-PL', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
+/* ============================================================
+   ENTER on password field
+   ============================================================ */
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+
+</body>
+</html>

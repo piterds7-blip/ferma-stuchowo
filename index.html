@@ -108,6 +108,7 @@ table.fe tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gold
     <!-- DAWKI --><div class="tab-panel" id="tab-dawki">
       <div class="card"><div class="ch"><span>Dawki TMR — kg świeżej masy / szt. / dobę (dawka wyliczona)</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addDkS()">+ Surowiec</button><button class="btn bs bp" style="opacity:.7" onclick="pT('dawki')">📄</button></div></div><div class="tw" id="dk-w"></div></div>
       <div class="card"><div class="ch">Dawka realna — korekta do zadawania</div><div class="tw" id="dk-real"></div></div>
+      <div class="card"><div class="ch"><span>Dawki TMR — kg świeżej masy / szt. / dobę (dawka realna)</span></div><div class="tw" id="dk-real-matrix"></div></div>
       <div class="card"><div class="ch">Grupy — podział sztuk</div><div class="tw" id="dk-s"></div></div>
     </div>
     <!-- KOSZTY --><div class="tab-panel" id="tab-koszty"><div class="card"><div class="ch"><span>Koszt na sztukę/dzień</span><button class="btn bs bp" style="opacity:.7" onclick="pKoszty()">📄</button></div><div class="tw" id="kos-s1"></div></div><div class="card"><div class="ch">Zużycie wg kategorii</div><div class="tw" id="kos-s2"></div></div><div class="card"><div class="ch">Koszt wg grup</div><div class="tw" id="kos-s3"></div></div></div>
@@ -296,6 +297,8 @@ function rDk(){
     dr+='<td><span style="color:'+(pct>=90?'#4CAF50':pct>=70?'var(--c-gold)':'var(--c-red)')+'"><b>'+pct+'%</b></span></td></tr>';
   });
   dr+='</tbody></table>';$('#dk-real').innerHTML=dr;
+  // Dawka realna MATRIX (4th table)
+  rDkRealMatrix(allS);
   // Groups/sectors
   let gs='<table class="dt"><thead><tr><th>Grupa</th><th>Sektor</th><th>Sztuk (wirtualne)</th><th>×/dzień</th><th>Dawka total wylicz.</th></tr></thead><tbody>';
   gr.forEach((g,gi)=>{g.se.forEach((s,si)=>{const tot=g.sk.reduce((a,x)=>a+x.kg,0);
@@ -312,6 +315,46 @@ function editTransfery(gi){const g=gr[gi];let h='<div style="margin-bottom:10px;
 function addDkS(){const ex=new Set();gr.forEach(g=>g.sk.forEach(x=>ex.add(x.s)));const av=sur.filter(s=>!ex.has(s.id));
   opM('Dodaj surowiec do dawek','<div class="fg" style="margin-bottom:8px"><label>Z bazy</label><select id="ad-s"><option value="">—</option>'+av.map(s=>'<option value="'+s.id+'">'+s.nazwa+'</option>').join('')+'</select></div><p style="font-size:12px;color:var(--c-txt2);margin:8px 0">— lub nowy —</p><div class="fg" style="margin-bottom:8px"><label>Nazwa</label><input type="text" id="ad-nn"></div><div style="display:flex;gap:8px"><div class="fg"><label>SM%</label><input type="number" id="ad-sm" value="88"></div><div class="fg"><label>PLN/t</label><input type="number" id="ad-ct" value="0"></div></div>','<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="okADS()">Dodaj</button>')}
 function okADS(){let sid=$('#ad-s').value;const nn=$('#ad-nn').value.trim();if(!sid&&!nn){toast('Wybierz lub wpisz');return}if(nn){sid=uid();sur.push({id:sid,nazwa:nn,proc_sm:+$('#ad-sm').value||88,cena_t:+$('#ad-ct').value||0,stan_t:0,kat:'obj'})}gr.forEach(g=>{if(!g.sk.find(x=>x.s===sid))g.sk.push({s:sid,kg:0})});sa();clM();rDk();rSur();toast('Dodano')}
+
+/* transfers OUT: how much TMR leaves each group to other groups' tables */
+function getTransfersOut(gid){let out=0;gr.forEach(g=>{if(g.id===gid)return;(g.transfery||[]).forEach(t=>{if(t.fromGid===gid)out+=t.kg});});return out}
+
+/* Dawka realna matrix — per-head amounts after zadana + transfers corrections */
+function rDkRealMatrix(allS){
+  let h='<table class="fe"><thead><tr><th style="text-align:left;min-width:180px">Nazwa</th>';
+  gr.forEach(g=>{h+='<th class="gh">'+g.nazwa+'<br><span style="font-weight:400;font-size:8px">'+g.realSz+' szt real</span></th>'});
+  h+='</tr></thead><tbody>';
+  allS.forEach(sid=>{const s=gS(sid);if(!s)return;
+    h+='<tr><td>'+s.nazwa+'</td>';
+    gr.forEach(g=>{
+      const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);const item=g.sk.find(x=>x.s===sid);const kgWyl=item?item.kg:0;
+      const tsz=g.se.reduce((a,ss)=>a+ss.sz,0);const trOut=getTransfersOut(g.id);
+      const zadana=g.zadanaKg>0?g.zadanaKg:r2(totRecipe*tsz*(g.z||1),0);
+      const effectiveZadana=zadana-trOut; // what stays on THIS group's table from own wóz
+      // own recipe portion on table
+      const propOwn=totRecipe>0?kgWyl/totRecipe:0;
+      let realKgOnTable=propOwn*effectiveZadana;
+      // add transfers IN from other groups
+      (g.transfery||[]).forEach(tr=>{const src=gr.find(x=>x.id===tr.fromGid);if(!src)return;
+        const srcTot=src.sk.reduce((a,x)=>a+x.kg,0);const srcItem=src.sk.find(x=>x.s===sid);
+        if(srcItem&&srcTot>0)realKgOnTable+=(srcItem.kg/srcTot)*tr.kg});
+      const perCow=g.realSz>0?r2(realKgOnTable/g.realSz,2):0;
+      const diff=kgWyl>0?r2(perCow-kgWyl,2):0;
+      const color=diff<-0.05?'var(--c-red)':diff>0.05?'#4CAF50':'inherit';
+      h+='<td style="color:'+color+'">'+(perCow>0?perCow:'')+'</td>'});
+    h+='</tr>'});
+  // Totals row
+  h+='</tbody><tfoot><tr><td style="text-align:left"><b>Całość kg/szt real</b></td>';
+  gr.forEach(g=>{
+    const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);const tsz=g.se.reduce((a,ss)=>a+ss.sz,0);const trOut=getTransfersOut(g.id);
+    const zadana=g.zadanaKg>0?g.zadanaKg:r2(totRecipe*tsz*(g.z||1),0);
+    const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);
+    const naStole=(zadana-trOut)+trIn;const perCow=g.realSz>0?r2(naStole/g.realSz,1):0;
+    const pct=totRecipe>0&&g.realSz>0?r2(perCow/totRecipe*100,0):0;
+    h+='<td><b>'+perCow+'</b><br><span style="font-size:9px;color:'+(pct>=90?'#4CAF50':pct>=70?'var(--c-gold)':'var(--c-red)')+'">'+pct+'%</span></td>'});
+  h+='</tr></tfoot></table>';
+  $('#dk-real-matrix').innerHTML=h;
+}
 
 /* ===== DAWKI SNAPSHOTS ===== */
 function buildDawkiSnapshot(){return gr.map(g=>({nazwa:g.nazwa,realSz:g.realSz,zadanaKg:g.zadanaKg,sk:g.sk.filter(x=>x.kg>0).map(x=>{const s=gS(x.s);return{nazwa:s?s.nazwa:x.s,kg:x.kg}})}))}
@@ -368,6 +411,12 @@ function showWozDetail(gi){
   const sorted=g.sk.filter(x=>x.kg>0).sort((a,b)=>{const ia=sur.findIndex(s=>s.id===a.s);const ib=sur.findIndex(s=>s.id===b.s);return ia-ib});
 
   let h='<div style="padding:14px">';
+  // Transfer OUT annotation
+  const trOut=getTransfersOut(g.id);
+  if(trOut>0){
+    let trOutDetails=[];gr.forEach(og=>{(og.transfery||[]).forEach(t=>{if(t.fromGid===g.id)trOutDetails.push(og.nazwa+': '+t.kg+' kg')})});
+    h+='<div style="background:#E3F2FD;border:1px solid #90CAF9;border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px;color:#1565C0"><b>⚠ '+trOut+' kg z tego wozu idzie na inne grupy:</b><br>'+trOutDetails.join(', ')+'</div>';
+  }
   if(done){
     h+='<div style="text-align:center;padding:20px;color:#4CAF50;font-size:16px;font-weight:700">✅ Zrealizowano'+(log.niedojady>0?' (niedojady: '+log.niedojady+' kg)':'')+'</div>';
     h+='<div style="text-align:center"><button class="btn bp" onclick="printWozCard('+gi+')">📄 Drukuj / PDF</button></div>';

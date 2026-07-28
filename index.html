@@ -531,14 +531,19 @@ function rRapDawki(){
   let h='<div style="padding:12px">';
   dawkiHistory.slice().reverse().forEach((snap,idx)=>{
     const ri=dawkiHistory.length-1-idx;
+    const prevSnap=ri>0?dawkiHistory[ri-1]:null;
     h+='<div style="border:1px solid var(--c-brd);border-radius:8px;margin-bottom:8px;overflow:hidden"><div style="padding:8px 12px;background:var(--c-pri-l);display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleSnapDetail(\'snap-'+ri+'\')">';
-    h+='<span><b>'+snap.date+' '+snap.time+'</b> — '+snap.role+'</span><span style="font-size:11px;color:var(--c-txt2)">▼ rozwiń</span></div>';
+    h+='<span><b>'+snap.date+' '+snap.time+'</b> — '+snap.role+(prevSnap?' <span style="font-size:11px;font-weight:400;color:var(--c-txt2)">(zmiany na czerwono)</span>':'')+'</span><span style="font-size:11px;color:var(--c-txt2)">▼ rozwiń</span></div>';
     h+='<div id="snap-'+ri+'" style="display:none;padding:10px;overflow-x:auto">';
-    // Build snapshot table
+    // Build snapshot table with diff highlighting
     h+='<table class="fe" style="font-size:10px"><thead><tr><th style="text-align:left">Surowiec</th>';
     snap.snapshot.forEach(g=>{h+='<th>'+g.nazwa+'</th>'});h+='</tr></thead><tbody>';
     const allNames=new Set();snap.snapshot.forEach(g=>g.sk.forEach(x=>allNames.add(x.nazwa)));
-    allNames.forEach(name=>{h+='<tr><td>'+name+'</td>';snap.snapshot.forEach(g=>{const it=g.sk.find(x=>x.nazwa===name);h+='<td>'+(it?r2(it.kg,2):'')+'</td>'});h+='</tr>'});
+    allNames.forEach(name=>{h+='<tr><td>'+name+'</td>';snap.snapshot.forEach(g=>{
+      const it=g.sk.find(x=>x.nazwa===name);const val=it?r2(it.kg,2):null;
+      let changed=false;
+      if(prevSnap){const prevG=prevSnap.snapshot.find(x=>x.nazwa===g.nazwa);const prevIt=prevG?prevG.sk.find(x=>x.nazwa===name):null;const prevVal=prevIt?r2(prevIt.kg,2):null;if(prevVal!==val)changed=true}
+      h+='<td'+(changed?' style="color:var(--c-red);font-weight:700"':'')+'>'+(val!=null?val:'')+'</td>'});h+='</tr>'});
     h+='</tbody></table>';
     h+='<div style="margin-top:6px;display:flex;gap:6px"><button class="btn bs bp" style="opacity:.7" onclick="printSnap('+ri+')">📄 Drukuj</button><button class="btn bs bd" onclick="if(confirm(\'Usunąć ten snapshot?\')){dawkiHistory.splice('+ri+',1);sa();rRapDawki()}">✕</button></div>';
     h+='</div></div>';
@@ -546,12 +551,17 @@ function rRapDawki(){
   h+='</div>';$('#rap-dawki').innerHTML=h;
 }
 function toggleSnapDetail(id){const el=$('#'+id);if(el)el.style.display=el.style.display==='none'?'block':'none'}
-function printSnap(ri){const snap=dawkiHistory[ri];if(!snap)return;
+function printSnap(ri){const snap=dawkiHistory[ri];if(!snap)return;const prevSnap=ri>0?dawkiHistory[ri-1]:null;
   let h='<table border="1" cellpadding="5" style="border-collapse:collapse"><tr><th>Surowiec</th>';
   snap.snapshot.forEach(g=>{h+='<th>'+g.nazwa+'</th>'});h+='</tr>';
   const allN=new Set();snap.snapshot.forEach(g=>g.sk.forEach(x=>allN.add(x.nazwa)));
-  allN.forEach(n=>{h+='<tr><td>'+n+'</td>';snap.snapshot.forEach(g=>{const it=g.sk.find(x=>x.nazwa===n);h+='<td style="text-align:right">'+(it?r2(it.kg,2):'')+'</td>'});h+='</tr>'});
-  h+='</table>';prn('Dawki — snapshot '+snap.date+' '+snap.time,h)}
+  allN.forEach(n=>{h+='<tr><td>'+n+'</td>';snap.snapshot.forEach(g=>{
+    const it=g.sk.find(x=>x.nazwa===n);const val=it?r2(it.kg,2):null;
+    let changed=false;
+    if(prevSnap){const prevG=prevSnap.snapshot.find(x=>x.nazwa===g.nazwa);const prevIt=prevG?prevG.sk.find(x=>x.nazwa===n):null;const prevVal=prevIt?r2(prevIt.kg,2):null;if(prevVal!==val)changed=true}
+    h+='<td style="text-align:right'+(changed?';color:#B3392C;font-weight:700':'')+'">'+(val!=null?val:'')+'</td>'});h+='</tr>'});
+  h+='</table>'+(prevSnap?'<p style="margin-top:10px;font-size:11pt;color:#B3392C"><b>Czerwone pogrubione wartości</b> = zmiana względem poprzedniej wersji ('+prevSnap.date+' '+prevSnap.time+')</p>':'');
+  prn('Dawki — snapshot '+snap.date+' '+snap.time,h)}
 
 function rRapWoz(){
   const od=$('#rap-od')?$('#rap-od').value:'';const ddo=$('#rap-do')?$('#rap-do').value:'';
@@ -611,11 +621,18 @@ function saveStmrRecipe(){const nr=[];let i=0;while(true){const n=$('#sr-n-'+i);
 /* ===== INIT ===== */
 window.addEventListener('online',()=>{const b=$('#status-bar');b.textContent='Połączenie przywrócone';b.className='status-bar show online';setTimeout(()=>b.classList.remove('show'),3000)});
 window.addEventListener('offline',()=>{const b=$('#status-bar');b.textContent='Brak połączenia';b.className='status-bar show offline';setTimeout(()=>b.classList.remove('show'),3000)});
+// Preload passwords from Firestore before login screen
+function preloadPasswords(){
+  if(!fbDb)return Promise.resolve();
+  return fbDb.collection('farm_data').doc('config').get().then(doc=>{
+    if(doc.exists&&doc.data().passes){passes=doc.data().passes;SV('passes',passes)}
+  }).catch(()=>{});
+}
 (function(){
   const s=LD('sess',null);if(s){cR=s;showApp()}
   $('#lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-  setTimeout(()=>{$('#splash').classList.add('hide');setTimeout(()=>{$('#splash').style.display='none';if(!cR)$('#login-screen').classList.remove('hidden')},400)},600);
+  setTimeout(()=>{$('#splash').classList.add('hide');setTimeout(()=>{$('#splash').style.display='none';if(!cR){preloadPasswords().then(()=>{$('#login-screen').classList.remove('hidden')})}},400)},600);
   let dp=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;const ib=document.createElement('div');ib.id='pwa-install';ib.innerHTML='<div style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--c-pri);color:#fff;padding:12px 20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;z-index:250;font:500 14px var(--font);max-width:340px"><span>📲 Zainstaluj</span><button onclick="installPWA()" style="background:#fff;color:var(--c-pri);border:none;padding:6px 14px;border-radius:6px;font:700 13px var(--font);cursor:pointer">Instaluj</button><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer">&times;</button></div>';document.body.appendChild(ib)});
   window.installPWA=async function(){const ib=$('#pwa-install');if(ib)ib.remove();if(dp){dp.prompt();await dp.userChoice;dp=null}};
 })();

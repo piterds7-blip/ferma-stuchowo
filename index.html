@@ -101,7 +101,7 @@ table.fe tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gold
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span class="sync-badge" id="syncb">⏳</span><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
@@ -175,7 +175,7 @@ function pT(t){const ti={surowce:'Stany magazynowe surowców',dawki:'Dawki TMR �
 let contactData=LD('contact',{name:'',phone:'',email:'',note:''});
 function showContact(){opM('Dane kontaktowe','<div style="text-align:center;padding:10px"><div style="font-size:18px;margin-bottom:6px">📞</div>'+(contactData.name?'<div style="font-size:16px;font-weight:700;margin-bottom:4px">'+contactData.name+'</div>':'')+(contactData.phone?'<div style="margin-bottom:4px"><a href="tel:'+contactData.phone+'" style="color:var(--c-pri);font-size:15px;font-weight:600">'+contactData.phone+'</a></div>':'')+(contactData.email?'<div style="margin-bottom:4px"><a href="mailto:'+contactData.email+'" style="color:var(--c-pri)">'+contactData.email+'</a></div>':'')+(contactData.note?'<div style="font-size:13px;color:var(--c-txt2);margin-top:8px">'+contactData.note+'</div>':'')+((!contactData.phone&&!contactData.email&&!contactData.name)?'<div style="color:var(--c-txt2)">Dane nie zostały jeszcze uzupełnione</div>':'')+'</div>','<button class="btn bo" onclick="clM()">Zamknij</button>')}
 function renderContactFields(){$('#contact-fields').innerHTML='<div class="fg" style="margin-bottom:8px"><label>Imię i nazwisko</label><input type="text" id="ct-name" value="'+(contactData.name||'')+'"></div><div class="fg" style="margin-bottom:8px"><label>Telefon</label><input type="text" id="ct-phone" value="'+(contactData.phone||'')+'"></div><div class="fg" style="margin-bottom:8px"><label>Email</label><input type="text" id="ct-email" value="'+(contactData.email||'')+'"></div><div class="fg"><label>Notatka</label><input type="text" id="ct-note" value="'+(contactData.note||'')+'"></div>'}
-function saveContact(){contactData={name:$('#ct-name').value.trim(),phone:$('#ct-phone').value.trim(),email:$('#ct-email').value.trim(),note:$('#ct-note').value.trim()};SV('contact',contactData);sa(true);toast('Zapisano')}
+function saveContact(){contactData={name:$('#ct-name').value.trim(),phone:$('#ct-phone').value.trim(),email:$('#ct-email').value.trim(),note:$('#ct-note').value.trim()};SV('contact',contactData);sa(true,'kontakt');toast('Zapisano')}
 
 /* ===== DEFAULT DATA ===== */
 const KAT_LABELS={obj:'Objętościowa',tres:'Treściwa',dod:'Dodatek'};
@@ -225,18 +225,130 @@ let fbDb=null,fbReady=false,fbApplyingRemote=false,fbSaveTimer=null,fbLastPushed
 try{firebase.initializeApp(firebaseConfig);fbDb=firebase.firestore()}catch(e){console.warn('FB init fail',e)}
 function setSyncBadge(s){const b=$('#syncb');if(!b)return;if(s==='ok'){b.textContent='☁️';b.style.background='rgba(255,255,255,.2)'}else if(s==='saving'){b.textContent='💾';b.style.background='rgba(255,193,7,.3)'}else if(s==='offline'){b.textContent='📴';b.style.background='rgba(198,40,40,.35)'}else{b.textContent='⏳';b.style.background='rgba(255,193,7,.3)'}}
 function collectState(){return{sur,gr,contactData,stmrRecipe,stmrHistory,wozLog,dawkiHistory,_ts:Date.now()}}
-function applyState(d){if(!d||Date.now()-fbLocalChangeAt<3000)return;fbApplyingRemote=true;if(d.sur)sur=d.sur;if(d.gr){gr=d.gr;gr.forEach(g=>{if(g.realSz==null)g.realSz=g.se.reduce((a,s)=>a+s.sz,0);if(g.zadanaKg==null)g.zadanaKg=0;if(!g.transfery)g.transfery=[]})}if(d.contactData)contactData=d.contactData;if(d.stmrRecipe)stmrRecipe=d.stmrRecipe;if(d.stmrHistory)stmrHistory=d.stmrHistory;if(d.wozLog)wozLog=d.wozLog;if(d.dawkiHistory)dawkiHistory=d.dawkiHistory;svAll();fbApplyingRemote=false;const a=document.querySelector('.nav-tab.active');if(a)oT(a.dataset.tab)}
-function startFbSync(){if(!fbDb){setSyncBadge('offline');return}fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists&&doc.data().passes){passes=doc.data().passes;SV('passes',passes)}}).catch(()=>{});fbDb.collection('farm_data').doc('state').onSnapshot(doc=>{if(doc.exists){const d=doc.data();if(JSON.stringify(d._ts)!==fbLastPushed)applyState(d);fbReady=true;setSyncBadge('ok')}else{fbReady=true;pushToFb(true)}},()=>setSyncBadge('offline'))}
-function pushToFb(imm){if(!fbDb)return;clearTimeout(fbSaveTimer);const go=()=>{const st=collectState();fbLastPushed=JSON.stringify(st._ts);setSyncBadge('saving');fbDb.collection('farm_data').doc('state').set(st).then(()=>setSyncBadge('ok')).catch(()=>setSyncBadge('offline'))};if(imm)go();else fbSaveTimer=setTimeout(go,2000)}
+/* Per-module documents — edycja jednego modułu nie nadpisuje pozostałych */
+const FB_DOCS={surowce:'surowce',grupy:'grupy',logi:'logi',historia:'historia',suchytmr:'suchytmr',kontakt:'kontakt'};
+let fbInitialLoaded=false;      // KRYTYCZNE: blokuje wysyłkę przed pobraniem danych z serwera
+let fbPendingModules=new Set(); // moduły czekające na wysłanie
+let fbOwnWrites={};             // znaczniki własnych zapisów (żeby nie reagować na własne echo)
+
+function migrateGroups(){gr.forEach(g=>{if(g.realSz==null)g.realSz=g.se.reduce((a,s)=>a+s.sz,0);if(g.zadanaKg==null)g.zadanaKg=0;if(!g.transfery)g.transfery=[]})}
+
+/* Scalanie dzienników — nigdy nie gubimy wpisów od innych użytkowników */
+function mergeWozLog(remote){
+  if(!remote)return;
+  Object.keys(remote).forEach(date=>{
+    const rEntries=remote[date]||[];
+    if(!wozLog[date]){wozLog[date]=rEntries.slice();return}
+    const seen=new Set(wozLog[date].map(e=>e.gid+'|'+e.time));
+    rEntries.forEach(e=>{const k=e.gid+'|'+e.time;if(!seen.has(k)){wozLog[date].push(e);seen.add(k)}});
+    wozLog[date].sort((a,b)=>a.time.localeCompare(b.time));
+  });
+}
+function mergeHistory(remote){
+  if(!Array.isArray(remote))return;
+  const seen=new Set(dawkiHistory.map(s=>s.date+'|'+s.time));
+  remote.forEach(s=>{const k=s.date+'|'+s.time;if(!seen.has(k)){dawkiHistory.push(s);seen.add(k)}});
+  dawkiHistory.sort((a,b)=>{const pa=a.date.split('.').reverse().join('')+a.time;const pb=b.date.split('.').reverse().join('')+b.time;return pa.localeCompare(pb)});
+  if(dawkiHistory.length>100)dawkiHistory=dawkiHistory.slice(-100);
+}
+function mergeStmrHistory(remote){
+  if(!Array.isArray(remote))return;
+  const seen=new Set(stmrHistory.map(p=>p.date+'|'+p.amountKg));
+  remote.forEach(p=>{const k=p.date+'|'+p.amountKg;if(!seen.has(k)){stmrHistory.push(p);seen.add(k)}});
+}
+
+function applyModule(mod,d){
+  if(!d)return;
+  fbApplyingRemote=true;
+  if(mod==='surowce'&&d.sur)sur=d.sur;
+  else if(mod==='grupy'&&d.gr){gr=d.gr;migrateGroups()}
+  else if(mod==='logi')mergeWozLog(d.wozLog);
+  else if(mod==='historia')mergeHistory(d.dawkiHistory);
+  else if(mod==='suchytmr'){if(d.stmrRecipe)stmrRecipe=d.stmrRecipe;mergeStmrHistory(d.stmrHistory)}
+  else if(mod==='kontakt'&&d.contactData)contactData=d.contactData;
+  svAll();
+  fbApplyingRemote=false;
+  const a=document.querySelector('.nav-tab.active');if(a)oT(a.dataset.tab);
+}
+
+function startFbSync(){
+  if(!fbDb){setSyncBadge('offline');fbInitialLoaded=true;return}
+  fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists&&doc.data().passes){passes=doc.data().passes;SV('passes',passes)}}).catch(()=>{});
+  let loadedCount=0;const totalDocs=Object.keys(FB_DOCS).length;
+  Object.values(FB_DOCS).forEach(mod=>{
+    fbDb.collection('farm_data').doc(mod).onSnapshot(doc=>{
+      if(doc.exists){
+        const d=doc.data();
+        // ignoruj echo własnego zapisu
+        if(d._w&&d._w===fbOwnWrites[mod]){}
+        else applyModule(mod,d);
+      }
+      if(!fbInitialLoaded){loadedCount++;if(loadedCount>=totalDocs){fbInitialLoaded=true;flushPending();}}
+      setSyncBadge('ok');
+    },err=>{
+      console.warn('FB '+mod,err);setSyncBadge('offline');
+      if(!fbInitialLoaded){loadedCount++;if(loadedCount>=totalDocs){fbInitialLoaded=true;flushPending()}}
+    });
+  });
+  // awaryjne odblokowanie po 8s (np. bardzo słaba sieć)
+  setTimeout(()=>{if(!fbInitialLoaded){fbInitialLoaded=true;flushPending()}},8000);
+}
+
+function moduleData(mod){
+  const w=uid();fbOwnWrites[mod]=w;
+  if(mod==='surowce')return{sur,_w:w,_ts:Date.now()};
+  if(mod==='grupy')return{gr,_w:w,_ts:Date.now()};
+  if(mod==='logi')return{wozLog,_w:w,_ts:Date.now()};
+  if(mod==='historia')return{dawkiHistory,_w:w,_ts:Date.now()};
+  if(mod==='suchytmr')return{stmrRecipe,stmrHistory,_w:w,_ts:Date.now()};
+  if(mod==='kontakt')return{contactData,_w:w,_ts:Date.now()};
+  return{_w:w};
+}
+function pushModule(mod){
+  if(!fbDb)return;
+  if(!fbInitialLoaded){fbPendingModules.add(mod);return}  // czekaj, nie nadpisuj serwera
+  setSyncBadge('saving');
+  fbDb.collection('farm_data').doc(mod).set(moduleData(mod)).then(()=>setSyncBadge('ok')).catch(()=>setSyncBadge('offline'));
+}
+function flushPending(){
+  if(!fbPendingModules.size){setSyncBadge('ok');return}
+  const mods=[...fbPendingModules];fbPendingModules.clear();
+  mods.forEach(m=>pushModule(m));
+}
+function pushToFb(imm){ // wysyła wszystkie moduły (zgodność ze starym wywołaniem)
+  clearTimeout(fbSaveTimer);
+  const go=()=>Object.values(FB_DOCS).forEach(m=>pushModule(m));
+  if(imm)go();else fbSaveTimer=setTimeout(go,2000);
+}
 function svAll(){SV('sur',sur);SV('gr',gr);SV('contact',contactData);SV('stmrRecipe',stmrRecipe);SV('stmrHistory',stmrHistory);SV('wozLog',wozLog);SV('dawkiHistory',dawkiHistory)}
-function sa(imm){svAll();if(!fbApplyingRemote){fbLocalChangeAt=Date.now();pushToFb(imm||false)}}
+
+/* sa(imm, mod) — mod ogranicza zapis do jednego modułu */
+function sa(imm,mod){
+  svAll();
+  if(fbApplyingRemote)return;
+  fbLocalChangeAt=Date.now();
+  if(mod){
+    if(imm)pushModule(mod);
+    else{clearTimeout(fbSaveTimer);fbSaveTimer=setTimeout(()=>pushModule(mod),1500)}
+  }else pushToFb(imm||false);
+}
+
+/* Ręczne odświeżenie z serwera */
+function manualRefresh(){
+  if(!fbDb){toast('Brak połączenia z bazą');return}
+  setSyncBadge('saving');
+  const reads=Object.values(FB_DOCS).map(mod=>fbDb.collection('farm_data').doc(mod).get().then(doc=>{
+    if(doc.exists){fbOwnWrites[mod]=null;applyModule(mod,doc.data())}
+  }));
+  Promise.all(reads).then(()=>{setSyncBadge('ok');toast('Dane odświeżone z serwera')}).catch(()=>{setSyncBadge('offline');toast('Błąd odświeżania')});
+}
 function gS(id){return sur.find(s=>s.id===id)}
 
 /* ===== PASSWORDS ===== */
 function renderPwFields(){const pw=Object.assign({},DEF_PASSES,passes||{});const labels={tworca:'Hasło administratora',zootechnik:'Hasło zootechnika',zywieniowiec:'Hasło żywieniowca',paszowoz:'Hasło paszowóz'};$('#pw-fields').innerHTML=Object.entries(labels).map(([k,l])=>'<div class="fg" style="margin-bottom:8px"><label>'+l+'</label><input type="text" id="pw-'+k+'" value="'+(pw[k]||'')+'"></div>').join('')}
 function savePasswords(){passes={tworca:$('#pw-tworca').value.trim()||DEF_PASSES.tworca,zootechnik:$('#pw-zootechnik').value.trim()||DEF_PASSES.zootechnik,zywieniowiec:$('#pw-zywieniowiec').value.trim()||DEF_PASSES.zywieniowiec,paszowoz:$('#pw-paszowoz').value.trim()||DEF_PASSES.paszowoz};SV('passes',passes);if(fbDb)fbDb.collection('farm_data').doc('config').set({passes}).catch(()=>{});toast('Hasła zapisane')}
 function exportBackup(){const d=JSON.stringify(collectState(),null,2);const b=new Blob([d],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='stuchowo_'+isoDate(new Date())+'.json';a.click();toast('Kopia pobrana')}
-function importBackup(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{if(!confirm('Nadpisać WSZYSTKIE dane?'))return;try{const d=JSON.parse(ev.target.result);applyState(d);pushToFb(true);toast('Przywrócono')}catch(e){toast('Błąd: '+e.message)}};r.readAsText(f)};i.click()}
+function importBackup(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{if(!confirm('Nadpisać WSZYSTKIE dane z kopii?'))return;try{const d=JSON.parse(ev.target.result);fbApplyingRemote=true;if(d.sur)sur=d.sur;if(d.gr){gr=d.gr;migrateGroups()}if(d.contactData)contactData=d.contactData;if(d.stmrRecipe)stmrRecipe=d.stmrRecipe;if(d.stmrHistory)stmrHistory=d.stmrHistory;if(d.wozLog)wozLog=d.wozLog;if(d.dawkiHistory)dawkiHistory=d.dawkiHistory;svAll();fbApplyingRemote=false;pushToFb(true);const a=document.querySelector('.nav-tab.active');if(a)oT(a.dataset.tab);toast('Przywrócono z kopii')}catch(e){toast('Błąd: '+e.message)}};r.readAsText(f)};i.click()}
 
 /* ===== SUROWCE ===== */
 function dailyUse(sid){
@@ -259,14 +371,14 @@ function rSur(){
     h+='<td>'+s.proc_sm+'%</td><td><select style="width:85px;font-size:10px;padding:2px" onchange="sur['+i+'].kat=this.value;sa()">';['obj','tres','dod'].forEach(k=>{h+='<option value="'+k+'"'+((s.kat||'obj')===k?' selected':'')+'>'+KAT_LABELS[k]+'</option>'});
     h+='</select></td><td><input step="1" value="'+r2(s.cena_t,0)+'" onchange="sur['+i+'].cena_t=+this.value;sa()"></td><td><input step="0.01" value="'+r2(s.stan_t,2)+'" onchange="sur['+i+'].stan_t=+this.value;sa();rSur()"></td>';
     h+='<td>'+r2(du,1)+' kg</td><td style="text-align:left;font-family:var(--font);font-size:11px">'+wyst+'</td>';
-    h+='<td><button class="btn bs bd" onclick="if(confirm(\'Usunąć?\')){sur.splice('+i+',1);sa();rSur()}">✕</button></td></tr>';
+    h+='<td><button class="btn bs bd" onclick="if(confirm(\'Usunąć?\')){sur.splice('+i+',1);sa(true,\'surowce\');rSur()}">✕</button></td></tr>';
   });
   h+='</tbody></table>';$('#sur-w').innerHTML=h;
 }
-function mvS(i,d){const j=i+d;if(j<0||j>=sur.length)return;[sur[i],sur[j]]=[sur[j],sur[i]];sa(true);rSur();rDk()}
-function eSurN(i){opM('Edytuj surowiec','<div class="fg" style="margin-bottom:8px"><label>Nazwa</label><input type="text" id="esn" value="'+sur[i].nazwa+'"></div><div class="fg"><label>SM %</label><input type="number" id="esm" value="'+sur[i].proc_sm+'"></div>','<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="sur['+i+'].nazwa=$(\'#esn\').value.trim();sur['+i+'].proc_sm=+$(\'#esm\').value||0;sa();clM();rSur();rDk();toast(\'OK\')">Zapisz</button>')}
+function mvS(i,d){const j=i+d;if(j<0||j>=sur.length)return;[sur[i],sur[j]]=[sur[j],sur[i]];sa(true,'surowce');rSur();rDk()}
+function eSurN(i){opM('Edytuj surowiec','<div class="fg" style="margin-bottom:8px"><label>Nazwa</label><input type="text" id="esn" value="'+sur[i].nazwa+'"></div><div class="fg"><label>SM %</label><input type="number" id="esm" value="'+sur[i].proc_sm+'"></div>','<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="sur['+i+'].nazwa=$(\'#esn\').value.trim();sur['+i+'].proc_sm=+$(\'#esm\').value||0;sa(true,\'surowce\');clM();rSur();rDk();toast(\'OK\')">Zapisz</button>')}
 function addSur(){opM('Dodaj surowiec','<div class="fg" style="margin-bottom:8px"><label>Nazwa</label><input type="text" id="as-n"></div><div style="display:flex;gap:8px;margin-bottom:8px"><div class="fg"><label>Kategoria</label><select id="as-kat"><option value="obj">Objętościowa</option><option value="tres">Treściwa</option><option value="dod">Dodatek</option></select></div><div class="fg"><label>SM %</label><input type="number" id="as-sm" value="88"></div></div><div style="display:flex;gap:8px"><div class="fg"><label>Cena PLN/t</label><input type="number" id="as-c" value="0"></div><div class="fg"><label>Stan (t)</label><input type="number" id="as-s" step="0.01" value="0"></div></div>','<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="okAS()">Dodaj</button>')}
-function okAS(){const n=$('#as-n').value.trim();if(!n){toast('Podaj nazwę');return}sur.push({id:uid(),nazwa:n,proc_sm:+$('#as-sm').value||88,cena_t:+$('#as-c').value||0,stan_t:+$('#as-s').value||0,kat:$('#as-kat').value||'obj'});sa();clM();rSur();toast('Dodano')}
+function okAS(){const n=$('#as-n').value.trim();if(!n){toast('Podaj nazwę');return}sur.push({id:uid(),nazwa:n,proc_sm:+$('#as-sm').value||88,cena_t:+$('#as-c').value||0,stan_t:+$('#as-s').value||0,kat:$('#as-kat').value||'obj'});sa(true,'surowce');clM();rSur();toast('Dodano')}
 
 /* ===== DAWKI ===== */
 function rDk(){
@@ -291,9 +403,9 @@ function rDk(){
     const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);const naStole=zadana+trIn;
     const perKrowa=g.realSz>0?r2(naStole/g.realSz,1):0;const pct=dWyl>0&&g.realSz>0?r2(perKrowa/dWyl*100,0):0;
     dr+='<tr><td>'+g.nazwa+'</td>';
-    dr+='<td>'+(canEdit()?'<input value="'+g.realSz+'" style="width:55px" onchange="gr['+gi+'].realSz=+this.value;sa();rDk()">':g.realSz)+'</td>';
+    dr+='<td>'+(canEdit()?'<input value="'+g.realSz+'" style="width:55px" onchange="gr['+gi+'].realSz=+this.value;sa(false,\'grupy\');rDk()">':g.realSz)+'</td>';
     dr+='<td>'+r2(dWyl,1)+'</td>';
-    dr+='<td>'+(canEdit()?'<input value="'+(g.zadanaKg||'')+'" style="width:70px" placeholder="auto" onchange="gr['+gi+'].zadanaKg=+this.value||0;sa();rDk();rSur()">':zadana)+'</td>';
+    dr+='<td>'+(canEdit()?'<input value="'+(g.zadanaKg||'')+'" style="width:70px" placeholder="auto" onchange="gr['+gi+'].zadanaKg=+this.value||0;sa(false,\'grupy\');rDk();rSur()">':zadana)+'</td>';
     // Transfery
     let trStr='';g.transfery.forEach((t,ti)=>{const src=gr.find(x=>x.id===t.fromGid);trStr+=(src?src.nazwa:'?')+': '+t.kg+' kg '});
     dr+='<td style="font-size:11px">'+trStr+(canEdit()?'<button class="btn bs bo" style="padding:1px 4px;font-size:9px" onclick="editTransfery('+gi+')">✎</button>':'')+'</td>';
@@ -306,15 +418,15 @@ function rDk(){
   // Groups/sectors
   let gs='<table class="dt"><thead><tr><th>Grupa</th><th>Sektor</th><th>Sztuk (wirtualne)</th><th>×/dzień</th><th>Dawka total wylicz.</th></tr></thead><tbody>';
   gr.forEach((g,gi)=>{g.se.forEach((s,si)=>{const tot=g.sk.reduce((a,x)=>a+x.kg,0);
-    gs+='<tr><td>'+g.nazwa+'</td><td>'+s.n+'</td><td>'+(canEdit()?'<input value="'+s.sz+'" style="width:50px" onchange="gr['+gi+'].se['+si+'].sz=+this.value;sa();rDk();rSur()">':s.sz)+'</td>';
-    gs+='<td>'+(canEdit()?'<button class="btn bs bo" onclick="gr['+gi+'].z=gr['+gi+'].z===2?1:2;sa(true);rDk();rSur();toast(gr['+gi+'].nazwa+\': \'+gr['+gi+'].z+\'×\')">'+(g.z||1)+'×</button>':g.z||1)+'</td>';
+    gs+='<tr><td>'+g.nazwa+'</td><td>'+s.n+'</td><td>'+(canEdit()?'<input value="'+s.sz+'" style="width:50px" onchange="gr['+gi+'].se['+si+'].sz=+this.value;sa(false,\'grupy\');rDk();rSur()">':s.sz)+'</td>';
+    gs+='<td>'+(canEdit()?'<button class="btn bs bo" onclick="gr['+gi+'].z=gr['+gi+'].z===2?1:2;sa(true,\'grupy\');rDk();rSur();toast(gr['+gi+'].nazwa+\': \'+gr['+gi+'].z+\'×\')">'+(g.z||1)+'×</button>':g.z||1)+'</td>';
     gs+='<td>'+r2(tot*s.sz*(g.z||1),0)+' kg</td></tr>'})});
   gs+='</tbody></table>';$('#dk-s').innerHTML=gs;
 }
-function uDk(gi,sid,el){const v=+el.value||0;let item=gr[gi].sk.find(x=>x.s===sid);if(!item)gr[gi].sk.push({s:sid,kg:v});else item.kg=v;dawkiChanged=true;clearTimeout(dawkiSnapTimer);dawkiSnapTimer=setTimeout(()=>maybeSaveDawkiSnapshot(),3600000);sa();rDk();rSur()}
+function uDk(gi,sid,el){const v=+el.value||0;let item=gr[gi].sk.find(x=>x.s===sid);if(!item)gr[gi].sk.push({s:sid,kg:v});else item.kg=v;dawkiChanged=true;clearTimeout(dawkiSnapTimer);dawkiSnapTimer=setTimeout(()=>maybeSaveDawkiSnapshot(),3600000);sa(false,'grupy');rDk();rSur()}
 function editTransfery(gi){const g=gr[gi];let h='<div style="margin-bottom:10px;font-size:12px;color:var(--c-txt2)">TMR z innych grup trafiający na stół '+g.nazwa+'</div>';
-  g.transfery.forEach((t,ti)=>{const src=gr.find(x=>x.id===t.fromGid);h+='<div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-end"><div class="fg"><label>Z grupy</label><span style="font-weight:600">'+(src?src.nazwa:'?')+'</span></div><div class="fg"><label>kg</label><input type="number" id="tr-kg-'+ti+'" value="'+t.kg+'"></div><button class="btn bs bd" onclick="gr['+gi+'].transfery.splice('+ti+',1);sa();clM();editTransfery('+gi+')">✕</button></div>'});
-  h+='<div style="display:flex;gap:6px;margin-top:8px;align-items:flex-end"><div class="fg"><label>Dodaj z grupy</label><select id="tr-new-g">'+gr.filter(x=>x.id!==g.id).map(x=>'<option value="'+x.id+'">'+x.nazwa+'</option>').join('')+'</select></div><div class="fg"><label>kg</label><input type="number" id="tr-new-kg" value="0"></div><button class="btn bs bp" onclick="gr['+gi+'].transfery.push({fromGid:$(\'#tr-new-g\').value,kg:+$(\'#tr-new-kg\').value||0});sa();clM();editTransfery('+gi+')">+</button></div>';
+  g.transfery.forEach((t,ti)=>{const src=gr.find(x=>x.id===t.fromGid);h+='<div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-end"><div class="fg"><label>Z grupy</label><span style="font-weight:600">'+(src?src.nazwa:'?')+'</span></div><div class="fg"><label>kg</label><input type="number" id="tr-kg-'+ti+'" value="'+t.kg+'"></div><button class="btn bs bd" onclick="gr['+gi+'].transfery.splice('+ti+',1);sa(true,\'grupy\');clM();editTransfery('+gi+')">✕</button></div>'});
+  h+='<div style="display:flex;gap:6px;margin-top:8px;align-items:flex-end"><div class="fg"><label>Dodaj z grupy</label><select id="tr-new-g">'+gr.filter(x=>x.id!==g.id).map(x=>'<option value="'+x.id+'">'+x.nazwa+'</option>').join('')+'</select></div><div class="fg"><label>kg</label><input type="number" id="tr-new-kg" value="0"></div><button class="btn bs bp" onclick="gr['+gi+'].transfery.push({fromGid:$(\'#tr-new-g\').value,kg:+$(\'#tr-new-kg\').value||0});sa(true,\'grupy\');clM();editTransfery('+gi+')">+</button></div>';
   opM('Transfery — '+g.nazwa,h,'<button class="btn bo" onclick="clM();rDk();rSur()">Zamknij</button>')}
 function addDkS(){const ex=new Set();gr.forEach(g=>g.sk.forEach(x=>ex.add(x.s)));const av=sur.filter(s=>!ex.has(s.id));
   opM('Dodaj surowiec do dawek','<div class="fg" style="margin-bottom:8px"><label>Z bazy</label><select id="ad-s"><option value="">—</option>'+av.map(s=>'<option value="'+s.id+'">'+s.nazwa+'</option>').join('')+'</select></div><p style="font-size:12px;color:var(--c-txt2);margin:8px 0">— lub nowy —</p><div class="fg" style="margin-bottom:8px"><label>Nazwa</label><input type="text" id="ad-nn"></div><div style="display:flex;gap:8px"><div class="fg"><label>SM%</label><input type="number" id="ad-sm" value="88"></div><div class="fg"><label>PLN/t</label><input type="number" id="ad-ct" value="0"></div></div>','<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="okADS()">Dodaj</button>')}
@@ -396,7 +508,7 @@ function pDkGr(gi,mode){
 function buildDawkiSnapshot(){return gr.map(g=>({nazwa:g.nazwa,realSz:g.realSz,zadanaKg:g.zadanaKg,sk:g.sk.filter(x=>x.kg>0).map(x=>{const s=gS(x.s);return{nazwa:s?s.nazwa:x.s,kg:x.kg}})}))}
 function maybeSaveDawkiSnapshot(){if(!dawkiChanged)return;if(Date.now()-lastSnapTime<300000)return;dawkiChanged=false;clearTimeout(dawkiSnapTimer);lastSnapTime=Date.now();
   const snap={date:fmtDate(new Date()),time:new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}),role:cR||'?',snapshot:buildDawkiSnapshot()};
-  dawkiHistory.push(snap);if(dawkiHistory.length>100)dawkiHistory=dawkiHistory.slice(-100);sa(true);toast('Snapshot dawek zapisany')}
+  dawkiHistory.push(snap);if(dawkiHistory.length>100)dawkiHistory=dawkiHistory.slice(-100);sa(true,'historia');toast('Snapshot dawek zapisany')}
 
 /* ===== KOSZTY ===== */
 function rKoszty(){
@@ -511,9 +623,9 @@ function confirmWoz(gid,gi){
   if(totRecipe>0&&tsz>0){const theorTotal=totRecipe*tsz*(g.z||1);g.sk.forEach(sk=>{if(sk.kg<=0)return;const s=gS(sk.s);if(!s)return;const proportion=sk.kg/totRecipe;const usedKg=proportion*freshKg;s.stan_t=Math.max(0,r2(s.stan_t-usedKg/1000,4))})}
   const key=todayKey();if(!wozLog[key])wozLog[key]=[];
   wozLog[key].push({gid,time:new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}),zadanaKg,niedojady:nied});
-  sa(true);clM();rWoz();toast(g.nazwa+' — wóz zarejestrowany')}
+  sa(true,'logi');pushModule('surowce');clM();rWoz();toast(g.nazwa+' — wóz zarejestrowany')}
 
-function undoWoz(gid){if(!confirm('Cofnąć ten wpis? Stany surowców NIE zostaną automatycznie przywrócone.'))return;const key=todayKey();if(wozLog[key])wozLog[key]=wozLog[key].filter(e=>e.gid!==gid);sa(true);rWoz();toast('Usunięto')}
+function undoWoz(gid){if(!confirm('Cofnąć ten wpis? Stany surowców NIE zostaną automatycznie przywrócone.'))return;const key=todayKey();if(wozLog[key])wozLog[key]=wozLog[key].filter(e=>e.gid!==gid);sa(true,'logi');rWoz();toast('Usunięto')}
 
 function printWozCard(gi){
   const g=gr[gi];const log=getGLog(g.id);if(!log)return;
@@ -545,7 +657,7 @@ function rRapDawki(){
       if(prevSnap){const prevG=prevSnap.snapshot.find(x=>x.nazwa===g.nazwa);const prevIt=prevG?prevG.sk.find(x=>x.nazwa===name):null;const prevVal=prevIt?r2(prevIt.kg,2):null;if(prevVal!==val)changed=true}
       h+='<td'+(changed?' style="color:var(--c-red);font-weight:700"':'')+'>'+(val!=null?val:'')+'</td>'});h+='</tr>'});
     h+='</tbody></table>';
-    h+='<div style="margin-top:6px;display:flex;gap:6px"><button class="btn bs bp" style="opacity:.7" onclick="printSnap('+ri+')">📄 Drukuj</button><button class="btn bs bd" onclick="if(confirm(\'Usunąć ten snapshot?\')){dawkiHistory.splice('+ri+',1);sa();rRapDawki()}">✕</button></div>';
+    h+='<div style="margin-top:6px;display:flex;gap:6px"><button class="btn bs bp" style="opacity:.7" onclick="printSnap('+ri+')">📄 Drukuj</button><button class="btn bs bd" onclick="if(confirm(\'Usunąć ten snapshot?\')){dawkiHistory.splice('+ri+',1);sa(true,\'historia\');rRapDawki()}">✕</button></div>';
     h+='</div></div>';
   });
   h+='</div>';$('#rap-dawki').innerHTML=h;
@@ -601,7 +713,7 @@ function rStmr(){
   calcStmrPreview();
   let hh='';if(!stmrHistory.length)hh='<div style="text-align:center;color:var(--c-txt2)">Brak historii</div>';
   else{hh='<table class="dt"><thead><tr><th>Data</th><th>Ilość kg</th><th>Składniki</th><th></th></tr></thead><tbody>';
-    stmrHistory.slice().reverse().forEach((p,i)=>{const ri=stmrHistory.length-1-i;hh+='<tr><td>'+p.date+'</td><td>'+r2(p.amountKg,0)+'</td><td style="font-size:11px">'+p.ingredients.map(x=>x.name+': '+r2(x.kg,0)).join(', ')+'</td><td><button class="btn bs bd" onclick="if(confirm(\'Usunąć?\')){stmrHistory.splice('+ri+',1);sa();rStmr()}">✕</button></td></tr>'});hh+='</tbody></table>'}
+    stmrHistory.slice().reverse().forEach((p,i)=>{const ri=stmrHistory.length-1-i;hh+='<tr><td>'+p.date+'</td><td>'+r2(p.amountKg,0)+'</td><td style="font-size:11px">'+p.ingredients.map(x=>x.name+': '+r2(x.kg,0)).join(', ')+'</td><td><button class="btn bs bd" onclick="if(confirm(\'Usunąć?\')){stmrHistory.splice('+ri+',1);sa(true,\'suchytmr\');rStmr()}">✕</button></td></tr>'});hh+='</tbody></table>'}
   $('#stmr-history').innerHTML=hh;
 }
 function calcStmrPreview(){const a=+($('#stmr-amount')?$('#stmr-amount').value:1000)||0;if(a<=0){$('#stmr-calc-result').innerHTML='';return}
@@ -612,11 +724,11 @@ function calcStmrPreview(){const a=+($('#stmr-amount')?$('#stmr-amount').value:1
 document.addEventListener('input',e=>{if(e.target.id==='stmr-amount')calcStmrPreview()});
 function doStmrProd(){const a=+($('#stmr-amount')?$('#stmr-amount').value:0)||0;if(a<=0){toast('Wpisz ilość > 0');return}const ings=[];stmrRecipe.forEach(r=>{ings.push({name:r.name,sid:r.sid,kg:r2(a*r.pct/100,1)})});
   if(!confirm('Wyprodukować '+a+' kg Suchego TMR?'))return;ings.forEach(i=>{if(!i.sid)return;const s=gS(i.sid);if(s)s.stan_t=Math.max(0,r2(s.stan_t-i.kg/1000,4))});
-  const st=gS('s19');if(st)st.stan_t=r2(st.stan_t+a/1000,4);stmrHistory.push({date:fmtDate(new Date()),amountKg:a,ingredients:ings});sa(true);rStmr();toast('Wyprodukowano '+a+' kg')}
+  const st=gS('s19');if(st)st.stan_t=r2(st.stan_t+a/1000,4);stmrHistory.push({date:fmtDate(new Date()),amountKg:a,ingredients:ings});sa(true,'suchytmr');pushModule('surowce');rStmr();toast('Wyprodukowano '+a+' kg')}
 function editStmrRecipe(){let h='<div style="margin-bottom:8px;font-size:12px;color:var(--c-txt2)">Edytuj składniki. Przypisz do surowca z bazy.</div>';
   stmrRecipe.forEach((r,i)=>{h+='<div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-end"><div class="fg" style="flex:2"><label>Nazwa</label><input type="text" id="sr-n-'+i+'" value="'+r.name+'"></div><div class="fg" style="flex:1"><label>%</label><input type="number" id="sr-p-'+i+'" value="'+r.pct+'" step="0.5"></div><div class="fg" style="flex:2"><label>Surowiec</label><select id="sr-s-'+i+'"><option value="">—</option>'+sur.map(s=>'<option value="'+s.id+'"'+(r.sid===s.id?' selected':'')+'>'+s.nazwa+'</option>').join('')+'</select></div><button class="btn bs bd" onclick="this.parentElement.remove()">✕</button></div>'});
   opM('Edytuj recepturę',h,'<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="saveStmrRecipe()">Zapisz</button>')}
-function saveStmrRecipe(){const nr=[];let i=0;while(true){const n=$('#sr-n-'+i);if(!n)break;const name=n.value.trim();const p=+(($('#sr-p-'+i)||{}).value)||0;const sid=(($('#sr-s-'+i)||{}).value)||'';if(name&&p>0)nr.push({name,sid,pct:p});i++}if(!nr.length){toast('Dodaj składnik');return}stmrRecipe=nr;sa(true);clM();rStmr();toast('Zapisano')}
+function saveStmrRecipe(){const nr=[];let i=0;while(true){const n=$('#sr-n-'+i);if(!n)break;const name=n.value.trim();const p=+(($('#sr-p-'+i)||{}).value)||0;const sid=(($('#sr-s-'+i)||{}).value)||'';if(name&&p>0)nr.push({name,sid,pct:p});i++}if(!nr.length){toast('Dodaj składnik');return}stmrRecipe=nr;sa(true,'suchytmr');clM();rStmr();toast('Zapisano')}
 
 /* ===== INIT ===== */
 window.addEventListener('online',()=>{const b=$('#status-bar');b.textContent='Połączenie przywrócone';b.className='status-bar show online';setTimeout(()=>b.classList.remove('show'),3000)});

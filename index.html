@@ -225,7 +225,7 @@ const firebaseConfig={apiKey:"AIzaSyD4hrY8bU6JFNN1nIBvMC3TFY-nLjwjUJA",authDomai
 let fbDb=null,fbReady=false,fbApplyingRemote=false,fbSaveTimer=null,fbLastPushed='',fbLocalChangeAt=0;
 try{firebase.initializeApp(firebaseConfig);fbDb=firebase.firestore()}catch(e){console.warn('FB init fail',e)}
 function setSyncBadge(s){const b=$('#syncb');if(!b)return;if(s==='ok'){b.textContent='☁️';b.style.background='rgba(255,255,255,.2)'}else if(s==='saving'){b.textContent='💾';b.style.background='rgba(255,193,7,.3)'}else if(s==='offline'){b.textContent='📴';b.style.background='rgba(198,40,40,.35)'}else{b.textContent='⏳';b.style.background='rgba(255,193,7,.3)'}}
-function collectState(){return{sur,gr,contactData,stmrRecipe,stmrHistory,wozLog,dawkiHistory,_ts:Date.now()}}
+function collectState(){return{sur,gr,contactData,stmrRecipe,stmrHistory,wozLog,dawkiHistory,dawkiRealne,_ts:Date.now()}}
 /* Per-module documents — edycja jednego modułu nie nadpisuje pozostałych */
 const FB_DOCS={surowce:'surowce',grupy:'grupy',logi:'logi',historia:'historia',suchytmr:'suchytmr',kontakt:'kontakt'};
 let fbInitialLoaded=false;      // KRYTYCZNE: blokuje wysyłkę przed pobraniem danych z serwera
@@ -275,23 +275,36 @@ function applyModule(mod,d){
 function startFbSync(){
   if(!fbDb){setSyncBadge('offline');fbInitialLoaded=true;return}
   fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists&&doc.data().passes){passes=doc.data().passes;SV('passes',passes)}}).catch(()=>{});
+  // Migration: check if old 'state' doc exists and new modules don't
+  fbDb.collection('farm_data').doc('grupy').get().then(doc=>{
+    if(!doc.exists){
+      // Try migrate from old 'state' doc
+      fbDb.collection('farm_data').doc('state').get().then(old=>{
+        if(old.exists){
+          const d=old.data();
+          const migs={surowce:{sur:d.sur},grupy:{gr:d.gr},logi:{wozLog:d.wozLog},historia:{dawkiHistory:d.dawkiHistory,dawkiRealne:d.dawkiRealne||[]},suchytmr:{stmrRecipe:d.stmrRecipe,stmrHistory:d.stmrHistory},kontakt:{contactData:d.contactData}};
+          Object.entries(migs).forEach(([mod,data])=>{if(data&&Object.values(data).some(v=>v))fbDb.collection('farm_data').doc(mod).set(Object.assign(data,{_ts:Date.now()})).catch(()=>{})});
+          console.log('Migrated from old state doc');
+        }
+      }).catch(()=>{});
+    }
+  }).catch(()=>{});
   let loadedCount=0;const totalDocs=Object.keys(FB_DOCS).length;
   Object.values(FB_DOCS).forEach(mod=>{
     fbDb.collection('farm_data').doc(mod).onSnapshot(doc=>{
       if(doc.exists){
         const d=doc.data();
-        // ignoruj echo własnego zapisu
         if(d._w&&d._w===fbOwnWrites[mod]){}
         else applyModule(mod,d);
       }
-      if(!fbInitialLoaded){loadedCount++;if(loadedCount>=totalDocs){fbInitialLoaded=true;flushPending();}}
+      // doc doesn't exist = no remote data for this module, keep local
+      if(!fbInitialLoaded){loadedCount++;if(loadedCount>=totalDocs){fbInitialLoaded=true;flushPending()}}
       setSyncBadge('ok');
     },err=>{
       console.warn('FB '+mod,err);setSyncBadge('offline');
       if(!fbInitialLoaded){loadedCount++;if(loadedCount>=totalDocs){fbInitialLoaded=true;flushPending()}}
     });
   });
-  // awaryjne odblokowanie po 8s (np. bardzo słaba sieć)
   setTimeout(()=>{if(!fbInitialLoaded){fbInitialLoaded=true;flushPending()}},8000);
 }
 
@@ -312,7 +325,15 @@ function pushModule(mod){
   fbDb.collection('farm_data').doc(mod).set(moduleData(mod)).then(()=>setSyncBadge('ok')).catch(()=>setSyncBadge('offline'));
 }
 function flushPending(){
-  if(!fbPendingModules.size){setSyncBadge('ok');return}
+  if(!fbPendingModules.size){
+    // If modules don't exist remotely yet, push all local data
+    Object.values(FB_DOCS).forEach(m=>{
+      fbDb.collection('farm_data').doc(m).get().then(doc=>{
+        if(!doc.exists)pushModule(m);
+      }).catch(()=>{});
+    });
+    setSyncBadge('ok');return;
+  }
   const mods=[...fbPendingModules];fbPendingModules.clear();
   mods.forEach(m=>pushModule(m));
 }

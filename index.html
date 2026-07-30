@@ -109,7 +109,6 @@ table.fe tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gold
       <div class="card"><div class="ch"><span>Dawki TMR — kg świeżej masy / szt. / dobę (dawka wyliczona)</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addDkS()">+ Surowiec</button><button class="btn bs bp" style="opacity:.7" onclick="pT('dawki')">📄</button></div></div><div class="tw" id="dk-w"></div></div>
       <div class="card"><div class="ch">Dawka realna — korekta do zadawania</div><div class="tw" id="dk-real"></div></div>
       <div class="card"><div class="ch"><span>Dawki TMR — kg świeżej masy / szt. / dobę (dawka realna)</span></div><div class="tw" id="dk-real-matrix"></div></div>
-      <div class="card"><div class="ch">Grupy — podział sztuk</div><div class="tw" id="dk-s"></div></div>
     </div>
     <!-- KOSZTY --><div class="tab-panel" id="tab-koszty"><div class="card"><div class="ch"><span>Koszt na sztukę/dzień</span><button class="btn bs bp" style="opacity:.7" onclick="pKoszty()">📄</button></div><div class="tw" id="kos-s1"></div></div><div class="card"><div class="ch">Zużycie wg kategorii</div><div class="tw" id="kos-s2"></div></div><div class="card"><div class="ch">Koszt wg grup</div><div class="tw" id="kos-s3"></div></div></div>
     <!-- PASZOWÓZ --><div class="tab-panel" id="tab-paszowoz">
@@ -118,10 +117,11 @@ table.fe tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gold
       <div class="card" style="margin:0 0 12px"><div class="ch"><span>Dzisiejszy dziennik</span></div><div id="woz-log-panel"></div></div>
     </div>
     <!-- RAPORTY --><div class="tab-panel" id="tab-raporty">
-      <div class="sub-tabs"><button class="sub-tab active" onclick="subTab('rap',0)">📋 Dawki</button><button class="sub-tab" onclick="subTab('rap',1)">🚜 Wóz</button><button class="sub-tab" onclick="subTab('rap',2)">🥣 Niedojady</button></div>
+      <div class="sub-tabs"><button class="sub-tab active" onclick="subTab('rap',0)">📋 Dawki</button><button class="sub-tab" onclick="subTab('rap',1)">🚜 Wóz</button><button class="sub-tab" onclick="subTab('rap',2)">🥣 Niedojady</button><button class="sub-tab" onclick="subTab('rap',3)">📊 Dawki realne</button></div>
       <div class="sub-panel active" id="rap-0"><div class="card"><div class="ch">Historia zmian receptury dawek</div><div id="rap-dawki"></div></div></div>
       <div class="sub-panel" id="rap-1"><div class="fr"><div class="fg"><label>Od</label><input type="date" id="rap-od" onchange="rRapWoz()"></div><div class="fg"><label>Do</label><input type="date" id="rap-do" onchange="rRapWoz()"></div></div><div class="card"><div class="ch">Dziennik wozu paszowego</div><div id="rap-woz"></div></div></div>
       <div class="sub-panel" id="rap-2"><div class="card"><div class="ch">Raport niedojadów</div><div id="rap-nied"></div></div></div>
+      <div class="sub-panel" id="rap-3"><div class="card"><div class="ch">Dzienne snapshoty dawek realnych</div><div id="rap-dr"></div></div></div>
     </div>
     <!-- SUCHY TMR --><div class="tab-panel" id="tab-suchy-tmr">
       <div class="card"><div class="ch" style="background:var(--c-gold-bg);color:var(--c-gold)"><span>Receptura Suchego TMR (na 1 tonę)</span><span id="stmr-edit-btns"></span></div><div id="stmr-recipe-panel"></div>
@@ -165,7 +165,7 @@ function canPass(){return cR==='tworca'}
 function canEdit(){return cR==='tworca'||cR==='zootechnik'||cR==='zywieniowiec'}
 function doLogin(){const p=$('#lp').value.trim();if(!p){$('#le').textContent='Wpisz hasło';return}const pw=Object.assign({},DEF_PASSES,passes||{});let role=null;for(const[r,v]of Object.entries(pw))if(v===p){role=r;break}if(!role){$('#le').textContent='Nieprawidłowe hasło';return}cR=role;SV('sess',role);showApp()}
 function doLogout(){maybeSaveDawkiSnapshot();cR=null;localStorage.removeItem('stu_sess');$('#app').classList.remove('active');$('#login-screen').classList.remove('hidden');$('#lp').value='';$('#le').textContent=''}
-function showApp(){$('#login-screen').classList.add('hidden');$('#app').classList.add('active');let ex='';if(canPass())ex+='<button class="hdr-btn" onclick="switchTab(\'ustawienia\')" title="Ustawienia">⚙</button>';if(canEdit())ex+='<button class="hdr-btn" onclick="exportBackup()" title="Kopia">⬇</button>';$('#hdr-extra').innerHTML=ex;bTabs();startFbSync()}
+function showApp(){$('#login-screen').classList.add('hidden');$('#app').classList.add('active');let ex='';if(canPass())ex+='<button class="hdr-btn" onclick="switchTab(\'ustawienia\')" title="Ustawienia">⚙</button>';if(canEdit())ex+='<button class="hdr-btn" onclick="exportBackup()" title="Kopia">⬇</button>';$('#hdr-extra').innerHTML=ex;bTabs();startFbSync();setTimeout(()=>maybeDailySnapshot(),3000)}
 function bTabs(){const ts=RT[cR]||[];$('#app-nav').innerHTML=ts.map((t,i)=>'<button class="nav-tab'+(i===0?' active':'')+'" data-tab="'+t+'">'+TI[t]+' '+TL[t]+'</button>').join('');$$('.tab-panel').forEach(p=>p.classList.remove('active'));if(ts[0])$('#tab-'+ts[0]).classList.add('active');$('#app-nav').querySelectorAll('.nav-tab').forEach(bt=>bt.addEventListener('click',()=>{const prev=document.querySelector('.nav-tab.active');if(prev&&prev.dataset.tab==='dawki')maybeSaveDawkiSnapshot();$('#app-nav').querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));$$('.tab-panel').forEach(p=>p.classList.remove('active'));bt.classList.add('active');$('#tab-'+bt.dataset.tab).classList.add('active');oT(bt.dataset.tab)}));if(ts[0])oT(ts[0])}
 function switchTab(tabId){const prev=document.querySelector('.nav-tab.active');if(prev&&prev.dataset.tab==='dawki')maybeSaveDawkiSnapshot();$('#app-nav').querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));$$('.tab-panel').forEach(p=>p.classList.remove('active'));const btn=$('#app-nav').querySelector('[data-tab="'+tabId+'"]');if(btn)btn.classList.add('active');$('#tab-'+tabId).classList.add('active');oT(tabId)}
 function oT(t){const m={surowce:rSur,dawki:rDk,koszty:rKoszty,paszowoz:rWoz,'suchy-tmr':rStmr,raporty:rRap,ustawienia:()=>{renderPwFields();renderContactFields()}};if(m[t])m[t]()}
@@ -215,6 +215,7 @@ let sur=LD('sur',DS),gr=LD('gr',DG);
 let stmrRecipe=LD('stmrRecipe',DEF_STMR),stmrHistory=LD('stmrHistory',[]);
 let wozLog=LD('wozLog',{}); // {date: [{gid,time,niedojady,zadanaKg}]}
 let dawkiHistory=LD('dawkiHistory',[]); // [{date,time,role,snapshot}]
+let dawkiRealne=LD('dawkiRealne',[]); // [{date,snapshot:[{nazwa,realSz,naStole,sk:[{nazwa,kgReal}]}]}]
 let dawkiChanged=false,dawkiSnapTimer=null,lastSnapTime=0;
 // Migration: add new fields to groups
 gr.forEach(g=>{if(g.realSz==null)g.realSz=g.se.reduce((a,s)=>a+s.sz,0);if(g.zadanaKg==null)g.zadanaKg=0;if(!g.transfery)g.transfery=[]});
@@ -263,7 +264,7 @@ function applyModule(mod,d){
   if(mod==='surowce'&&d.sur)sur=d.sur;
   else if(mod==='grupy'&&d.gr){gr=d.gr;migrateGroups()}
   else if(mod==='logi')mergeWozLog(d.wozLog);
-  else if(mod==='historia')mergeHistory(d.dawkiHistory);
+  else if(mod==='historia'){mergeHistory(d.dawkiHistory);if(d.dawkiRealne){const seen=new Set(dawkiRealne.map(x=>x.date));d.dawkiRealne.forEach(x=>{if(!seen.has(x.date)){dawkiRealne.push(x);seen.add(x.date)}});dawkiRealne.sort((a,b)=>a.date.localeCompare(b.date))}}
   else if(mod==='suchytmr'){if(d.stmrRecipe)stmrRecipe=d.stmrRecipe;mergeStmrHistory(d.stmrHistory)}
   else if(mod==='kontakt'&&d.contactData)contactData=d.contactData;
   svAll();
@@ -299,7 +300,7 @@ function moduleData(mod){
   if(mod==='surowce')return{sur,_w:w,_ts:Date.now()};
   if(mod==='grupy')return{gr,_w:w,_ts:Date.now()};
   if(mod==='logi')return{wozLog,_w:w,_ts:Date.now()};
-  if(mod==='historia')return{dawkiHistory,_w:w,_ts:Date.now()};
+  if(mod==='historia')return{dawkiHistory,dawkiRealne,_w:w,_ts:Date.now()};
   if(mod==='suchytmr')return{stmrRecipe,stmrHistory,_w:w,_ts:Date.now()};
   if(mod==='kontakt')return{contactData,_w:w,_ts:Date.now()};
   return{_w:w};
@@ -320,7 +321,7 @@ function pushToFb(imm){ // wysyła wszystkie moduły (zgodność ze starym wywo�
   const go=()=>Object.values(FB_DOCS).forEach(m=>pushModule(m));
   if(imm)go();else fbSaveTimer=setTimeout(go,2000);
 }
-function svAll(){SV('sur',sur);SV('gr',gr);SV('contact',contactData);SV('stmrRecipe',stmrRecipe);SV('stmrHistory',stmrHistory);SV('wozLog',wozLog);SV('dawkiHistory',dawkiHistory)}
+function svAll(){SV('sur',sur);SV('gr',gr);SV('contact',contactData);SV('stmrRecipe',stmrRecipe);SV('stmrHistory',stmrHistory);SV('wozLog',wozLog);SV('dawkiHistory',dawkiHistory);SV('dawkiRealne',dawkiRealne)}
 
 /* sa(imm, mod) — mod ogranicza zapis do jednego modułu */
 function sa(imm,mod){
@@ -363,12 +364,12 @@ function dailyUse(sid){
   return total;
 }
 function rSur(){
-  let h='<table class="dt"><thead><tr><th>Surowiec</th><th>SM%</th><th>Kat.</th><th>Cena PLN/t</th><th>Stan (t)</th><th>Zużycie dz.</th><th>Wystarczy do</th><th></th></tr></thead><tbody>';
+  let h='<table class="dt"><thead><tr><th>Surowiec</th><th>Kat.</th><th>Cena PLN/t</th><th>Stan (t)</th><th>Zużycie dz.</th><th>Wystarczy do</th><th></th></tr></thead><tbody>';
   sur.forEach((s,i)=>{
     const du=dailyUse(s.id);const stanKg=s.stan_t*1000;let wyst='—';
     if(du>0){const days=Math.floor(stanKg/du);const dt=new Date();dt.setDate(dt.getDate()+days);wyst='<span class="'+(days<14?'sur-warn':'sur-ok')+'">'+fmtDate(dt)+' ('+days+'d)</span>'}
     h+='<tr><td><span style="display:inline-flex;flex-direction:column;margin-right:3px;line-height:1;vertical-align:middle">'+(i>0?'<button onclick="mvS('+i+',-1)" style="border:none;background:none;cursor:pointer;font-size:9px">▲</button>':'<span style="font-size:9px;opacity:.2">▲</span>')+(i<sur.length-1?'<button onclick="mvS('+i+',1)" style="border:none;background:none;cursor:pointer;font-size:9px">▼</button>':'<span style="font-size:9px;opacity:.2">▼</span>')+'</span>'+s.nazwa+' <button class="btn bs" style="padding:1px 4px;font-size:9px;background:none;color:var(--c-pri);border:1px solid var(--c-brd)" onclick="eSurN('+i+')">✎</button></td>';
-    h+='<td>'+s.proc_sm+'%</td><td><select style="width:85px;font-size:10px;padding:2px" onchange="sur['+i+'].kat=this.value;sa()">';['obj','tres','dod'].forEach(k=>{h+='<option value="'+k+'"'+((s.kat||'obj')===k?' selected':'')+'>'+KAT_LABELS[k]+'</option>'});
+    h+='<td><select style="width:85px;font-size:10px;padding:2px" onchange="sur['+i+'].kat=this.value;sa()">';['obj','tres','dod'].forEach(k=>{h+='<option value="'+k+'"'+((s.kat||'obj')===k?' selected':'')+'>'+KAT_LABELS[k]+'</option>'});
     h+='</select></td><td><input step="1" value="'+r2(s.cena_t,0)+'" onchange="sur['+i+'].cena_t=+this.value;sa()"></td><td><input step="0.01" value="'+r2(s.stan_t,2)+'" onchange="sur['+i+'].stan_t=+this.value;sa();rSur()"></td>';
     h+='<td>'+r2(du,1)+' kg</td><td style="text-align:left;font-family:var(--font);font-size:11px">'+wyst+'</td>';
     h+='<td><button class="btn bs bd" onclick="if(confirm(\'Usunąć?\')){sur.splice('+i+',1);sa(true,\'surowce\');rSur()}">✕</button></td></tr>';
@@ -383,8 +384,9 @@ function okAS(){const n=$('#as-n').value.trim();if(!n){toast('Podaj nazwę');ret
 /* ===== DAWKI ===== */
 function rDk(){
   const used=new Set();gr.forEach(g=>g.sk.forEach(sk=>used.add(sk.s)));const allS=sur.filter(s=>used.has(s.id)).map(s=>s.id);
+  // Table 1: Dawka wyliczona
   let h='<table class="fe"><thead><tr><th rowspan="2" style="text-align:left;min-width:180px">Nazwa</th>';
-  gr.forEach((g,gi)=>{const tsz=g.se.reduce((a,s)=>a+s.sz,0);h+='<th class="gh">'+g.nazwa+'<br><span style="font-weight:400;font-size:8px">'+tsz+' szt · '+(g.z||1)+'×/d</span> <button style="border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;font-size:8px;padding:0 3px;border-radius:3px;cursor:pointer" onclick="pDkGr('+gi+',\'wyl\')">📄</button></th>'});
+  gr.forEach((g,gi)=>{h+='<th class="gh">'+g.nazwa+'<br><span style="font-weight:400;font-size:8px">'+(canEdit()?'<input value="'+g.realSz+'" style="width:35px;padding:1px 2px;font-size:8px;text-align:center;border:1px solid rgba(255,255,255,.4);border-radius:3px;background:rgba(255,255,255,.15);color:#fff;font-family:var(--mono)" onchange="gr['+gi+'].realSz=+this.value;sa(false,\'grupy\');rDk()">':g.realSz)+' szt · '+(g.z||1)+'×/d</span> <button style="border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;font-size:8px;padding:0 3px;border-radius:3px;cursor:pointer" onclick="pDkGr('+gi+',\'wyl\')">📄</button></th>'});
   h+='</tr></thead><tbody>';
   allS.forEach((sid,ri)=>{const s=gS(sid);if(!s)return;const si=sur.indexOf(s);
     h+='<tr><td title="'+s.nazwa+'">';
@@ -395,33 +397,29 @@ function rDk(){
   h+='</tbody><tfoot><tr><td style="text-align:left"><b>Całość kg/szt</b></td>';
   gr.forEach(g=>{h+='<td><b>'+r2(g.sk.reduce((a,x)=>a+x.kg,0),1)+'</b></td>'});h+='</tr></tfoot></table>';
   $('#dk-w').innerHTML=h;
-  // Dawka realna panel
-  let dr='<table class="dt"><thead><tr><th>Grupa</th><th>Szt. realne</th><th>Dawka wylicz. (kg/szt)</th><th>Zadawane na grupę (kg)</th><th>Transfery na stół</th><th>Łącznie na stole</th><th>Per krowa</th><th>% realizacji</th></tr></thead><tbody>';
+  // Table 2: Dawka realna — korekta
+  let dr='<table class="dt"><thead><tr><th>Grupa</th><th>Wóz na X szt.</th><th>Dawka wylicz. (kg/szt)</th><th>Na wóz (kg)</th><th>Transfery</th><th>Na stole (kg)</th><th>Per krowa</th><th>% realizacji</th></tr></thead><tbody>';
   gr.forEach((g,gi)=>{
     const dWyl=g.sk.reduce((a,x)=>a+x.kg,0);const tsz=g.se.reduce((a,s)=>a+s.sz,0);
+    const trOut=getTransfersOut(g.id);const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);
     const zadana=g.zadanaKg||r2(dWyl*tsz*(g.z||1),0);
-    const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);const naStole=zadana+trIn;
+    const naStole=zadana-trOut+trIn;
     const perKrowa=g.realSz>0?r2(naStole/g.realSz,1):0;const pct=dWyl>0&&g.realSz>0?r2(perKrowa/dWyl*100,0):0;
     dr+='<tr><td>'+g.nazwa+'</td>';
-    dr+='<td>'+(canEdit()?'<input value="'+g.realSz+'" style="width:55px" onchange="gr['+gi+'].realSz=+this.value;sa(false,\'grupy\');rDk()">':g.realSz)+'</td>';
+    dr+='<td>'+(canEdit()?'<input value="'+tsz+'" style="width:55px" onchange="gr['+gi+'].se[0].sz=+this.value;sa(false,\'grupy\');rDk();rSur()">':tsz)+'</td>';
     dr+='<td>'+r2(dWyl,1)+'</td>';
     dr+='<td>'+(canEdit()?'<input value="'+(g.zadanaKg||'')+'" style="width:70px" placeholder="auto" onchange="gr['+gi+'].zadanaKg=+this.value||0;sa(false,\'grupy\');rDk();rSur()">':zadana)+'</td>';
-    // Transfery
-    let trStr='';g.transfery.forEach((t,ti)=>{const src=gr.find(x=>x.id===t.fromGid);trStr+=(src?src.nazwa:'?')+': '+t.kg+' kg '});
+    // Transfery: show both IN and OUT
+    let trStr='';
+    if(trOut>0){let det=[];gr.forEach(og=>{(og.transfery||[]).forEach(t=>{if(t.fromGid===g.id)det.push('−'+t.kg+' → '+og.nazwa)})});trStr+='<span style="color:var(--c-red)">'+det.join(', ')+'</span> '}
+    if(trIn>0){g.transfery.forEach(t=>{const src=gr.find(x=>x.id===t.fromGid);trStr+='<span style="color:#4CAF50">+'+t.kg+' z '+(src?src.nazwa:'?')+'</span> '})}
     dr+='<td style="font-size:11px">'+trStr+(canEdit()?'<button class="btn bs bo" style="padding:1px 4px;font-size:9px" onclick="editTransfery('+gi+')">✎</button>':'')+'</td>';
     dr+='<td><b>'+r2(naStole,0)+'</b></td><td><b>'+perKrowa+'</b></td>';
     dr+='<td><span style="color:'+(pct>=90?'#4CAF50':pct>=70?'var(--c-gold)':'var(--c-red)')+'"><b>'+pct+'%</b></span></td></tr>';
   });
   dr+='</tbody></table>';$('#dk-real').innerHTML=dr;
-  // Dawka realna MATRIX (4th table)
+  // Table 3: Dawka realna matrix
   rDkRealMatrix(allS);
-  // Groups/sectors
-  let gs='<table class="dt"><thead><tr><th>Grupa</th><th>Sektor</th><th>Sztuk (wirtualne)</th><th>×/dzień</th><th>Dawka total wylicz.</th></tr></thead><tbody>';
-  gr.forEach((g,gi)=>{g.se.forEach((s,si)=>{const tot=g.sk.reduce((a,x)=>a+x.kg,0);
-    gs+='<tr><td>'+g.nazwa+'</td><td>'+s.n+'</td><td>'+(canEdit()?'<input value="'+s.sz+'" style="width:50px" onchange="gr['+gi+'].se['+si+'].sz=+this.value;sa(false,\'grupy\');rDk();rSur()">':s.sz)+'</td>';
-    gs+='<td>'+(canEdit()?'<button class="btn bs bo" onclick="gr['+gi+'].z=gr['+gi+'].z===2?1:2;sa(true,\'grupy\');rDk();rSur();toast(gr['+gi+'].nazwa+\': \'+gr['+gi+'].z+\'×\')">'+(g.z||1)+'×</button>':g.z||1)+'</td>';
-    gs+='<td>'+r2(tot*s.sz*(g.z||1),0)+' kg</td></tr>'})});
-  gs+='</tbody></table>';$('#dk-s').innerHTML=gs;
 }
 function uDk(gi,sid,el){const v=+el.value||0;let item=gr[gi].sk.find(x=>x.s===sid);if(!item)gr[gi].sk.push({s:sid,kg:v});else item.kg=v;dawkiChanged=true;clearTimeout(dawkiSnapTimer);dawkiSnapTimer=setTimeout(()=>maybeSaveDawkiSnapshot(),3600000);sa(false,'grupy');rDk();rSur()}
 function editTransfery(gi){const g=gr[gi];let h='<div style="margin-bottom:10px;font-size:12px;color:var(--c-txt2)">TMR z innych grup trafiający na stół '+g.nazwa+'</div>';
@@ -605,10 +603,10 @@ function recalcWozTable(gi){
   const zadEl=$('#woz-zadana');const niedEl=$('#woz-nied');if(!zadEl)return;
   const zadana=+zadEl.value||0;const nied=+niedEl.value||0;
   const wrap=$('#woz-table-wrap');if(wrap)wrap.innerHTML=buildWozTable(gi,zadana,nied);
-  // Info
-  const g=gr[gi];const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);
-  const naStole=zadana+trIn;const perKrowa=g.realSz>0?r2(naStole/g.realSz,1):0;const pct=totRecipe>0&&g.realSz>0?r2(perKrowa/totRecipe*100,0):0;
-  const info=$('#woz-info');if(info)info.innerHTML='<b>Na stole łącznie:</b> '+zadana+(trIn>0?' + '+trIn+' (transfer)':'')+' = <b>'+naStole+' kg</b> · <b>Per krowa:</b> '+perKrowa+' kg · <b>Realizacja dawki:</b> <span style="color:'+(pct>=90?'#4CAF50':pct>=70?'var(--c-gold)':'var(--c-red)')+'">'+pct+'%</span>';
+  const g=gr[gi];const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);
+  const trOut=getTransfersOut(g.id);const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);
+  const naStole=zadana-trOut+trIn;const perKrowa=g.realSz>0?r2(naStole/g.realSz,1):0;const pct=totRecipe>0&&g.realSz>0?r2(perKrowa/totRecipe*100,0):0;
+  const info=$('#woz-info');if(info)info.innerHTML='<b>Na wóz:</b> '+zadana+' kg'+(trOut>0?' <span style="color:var(--c-red)">−'+trOut+' transfer</span>':'')+(trIn>0?' <span style="color:#4CAF50">+'+trIn+' transfer</span>':'')+' → <b>Na stole: '+r2(naStole,0)+' kg</b> · <b>Per krowa:</b> '+perKrowa+' kg · <b>Realizacja:</b> <span style="color:'+(pct>=90?'#4CAF50':pct>=70?'var(--c-gold)':'var(--c-red)')+'">'+pct+'%</span>';
 }
 
 function confirmWoz(gid,gi){
@@ -637,7 +635,7 @@ function printWozCard(gi){
 }
 
 /* ===== RAPORTY ===== */
-function rRap(){rRapDawki();rRapWoz();rRapNied()}
+function rRap(){rRapDawki();rRapWoz();rRapNied();rRapDR()}
 function rRapDawki(){
   if(!dawkiHistory.length){$('#rap-dawki').innerHTML='<div style="padding:20px;text-align:center;color:var(--c-txt2)">Brak zapisanych zmian receptury.<br>Snapshot tworzy się automatycznie po edycji dawek (1h debounce lub przy wyjściu z zakładki).</div>';return}
   let h='<div style="padding:12px">';
@@ -703,6 +701,62 @@ function rRapNied(){
   h+='</div>';
   $('#rap-nied').innerHTML=h;
 }
+
+/* Daily dawki realne auto-snapshot */
+function buildDawkiRealneSnapshot(){
+  const used=new Set();gr.forEach(g=>g.sk.forEach(sk=>{if(sk.kg>0)used.add(sk.s)}));
+  return gr.map(g=>{
+    const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);const tsz=g.se.reduce((a,s)=>a+s.sz,0);
+    const trOut=getTransfersOut(g.id);const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);
+    const zadana=g.zadanaKg||r2(totRecipe*tsz*(g.z||1),0);const naStole=zadana-trOut+trIn;
+    const sk=[];
+    used.forEach(sid=>{const s=gS(sid);if(!s)return;const item=g.sk.find(x=>x.s===sid);const kgWyl=item?item.kg:0;
+      const prop=totRecipe>0?kgWyl/totRecipe:0;let realKg=prop*(zadana-trOut);
+      (g.transfery||[]).forEach(tr=>{const src=gr.find(x=>x.id===tr.fromGid);if(!src)return;const st=src.sk.reduce((a,x)=>a+x.kg,0);const si=src.sk.find(x=>x.s===sid);if(si&&st>0)realKg+=(si.kg/st)*tr.kg});
+      const perCow=g.realSz>0?r2(realKg/g.realSz,2):0;
+      if(perCow>0)sk.push({nazwa:s.nazwa,kgReal:perCow})});
+    return{nazwa:g.nazwa,realSz:g.realSz,naWoz:zadana,naStole:r2(naStole,0),perKrowa:g.realSz>0?r2(naStole/g.realSz,1):0,sk};
+  });
+}
+function maybeDailySnapshot(){
+  const today=isoDate(new Date());
+  if(dawkiRealne.some(x=>x.date===today))return;
+  const snap={date:today,snapshot:buildDawkiRealneSnapshot()};
+  dawkiRealne.push(snap);if(dawkiRealne.length>365)dawkiRealne=dawkiRealne.slice(-365);
+  sa(true,'historia');
+}
+
+function rRapDR(){
+  if(!dawkiRealne.length){$('#rap-dr').innerHTML='<div style="padding:20px;text-align:center;color:var(--c-txt2)">Brak dziennych snapshotów. Tworzą się automatycznie przy otwarciu aplikacji.</div>';return}
+  let h='<div style="padding:12px">';
+  dawkiRealne.slice().reverse().forEach((snap,idx)=>{
+    const ri=dawkiRealne.length-1-idx;
+    h+='<div style="border:1px solid var(--c-brd);border-radius:8px;margin-bottom:8px;overflow:hidden"><div style="padding:8px 12px;background:var(--c-gold-bg);display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleSnapDetail(\'dr-'+ri+'\')">';
+    h+='<span style="color:var(--c-gold)"><b>'+snap.date+'</b></span><span style="font-size:11px;color:var(--c-txt2)">▼ rozwiń</span></div>';
+    h+='<div id="dr-'+ri+'" style="display:none;padding:10px;overflow-x:auto">';
+    // Summary row
+    h+='<table class="dt" style="margin-bottom:8px"><thead><tr><th>Grupa</th><th>Szt.</th><th>Na wóz</th><th>Na stole</th><th>Per krowa</th></tr></thead><tbody>';
+    snap.snapshot.forEach(g=>{h+='<tr><td>'+g.nazwa+'</td><td>'+g.realSz+'</td><td>'+g.naWoz+'</td><td><b>'+g.naStole+'</b></td><td><b>'+g.perKrowa+'</b></td></tr>'});
+    h+='</tbody></table>';
+    // Detail matrix
+    h+='<table class="fe" style="font-size:10px"><thead><tr><th style="text-align:left">Surowiec</th>';
+    snap.snapshot.forEach(g=>{h+='<th>'+g.nazwa+'</th>'});h+='</tr></thead><tbody>';
+    const allN=new Set();snap.snapshot.forEach(g=>g.sk.forEach(x=>allN.add(x.nazwa)));
+    allN.forEach(name=>{h+='<tr><td>'+name+'</td>';snap.snapshot.forEach(g=>{const it=g.sk.find(x=>x.nazwa===name);h+='<td>'+(it?it.kgReal:'')+'</td>'});h+='</tr>'});
+    h+='</tbody></table>';
+    h+='<div style="margin-top:6px;display:flex;gap:6px"><button class="btn bs bp" style="opacity:.7" onclick="printDR('+ri+')">📄 Drukuj</button><button class="btn bs bd" onclick="if(confirm(\'Usunąć?\')){dawkiRealne.splice('+ri+',1);sa(true,\'historia\');rRapDR()}">✕</button></div>';
+    h+='</div></div>';
+  });
+  h+='</div>';$('#rap-dr').innerHTML=h;
+}
+function printDR(ri){const snap=dawkiRealne[ri];if(!snap)return;
+  let h='<table border="1" cellpadding="5" style="border-collapse:collapse"><tr><th>Grupa</th><th>Szt.</th><th>Na wóz</th><th>Na stole</th><th>Per krowa</th></tr>';
+  snap.snapshot.forEach(g=>{h+='<tr><td>'+g.nazwa+'</td><td>'+g.realSz+'</td><td>'+g.naWoz+'</td><td style="font-weight:700">'+g.naStole+'</td><td style="font-weight:700">'+g.perKrowa+'</td></tr>'});
+  h+='</table><br><table border="1" cellpadding="5" style="border-collapse:collapse"><tr><th>Surowiec</th>';
+  snap.snapshot.forEach(g=>{h+='<th>'+g.nazwa+'</th>'});h+='</tr>';
+  const allN=new Set();snap.snapshot.forEach(g=>g.sk.forEach(x=>allN.add(x.nazwa)));
+  allN.forEach(n=>{h+='<tr><td>'+n+'</td>';snap.snapshot.forEach(g=>{const it=g.sk.find(x=>x.nazwa===n);h+='<td style="text-align:right">'+(it?it.kgReal:'')+'</td>'});h+='</tr>'});
+  h+='</table>';prn('Dawki realne — '+snap.date,h)}
 
 /* ===== SUCHY TMR ===== */
 function rStmr(){

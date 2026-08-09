@@ -11,6 +11,8 @@
 <title>Ferma Stuchowo</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{--c-pri:#2F6B3A;--c-pri-d:#1E4A27;--c-pri-l:#E8F0E9;--c-bg:#F6F7F2;--c-card:#fff;--c-gold:#C9A227;--c-gold-bg:#FFF8E1;--c-red:#B3392C;--c-red-bg:#FDECEA;--c-txt:#1A2E1D;--c-txt2:#5A6B5C;--c-brd:#D4DDD5;--c-nav:#243E29;--radius:8px;--shadow:0 2px 8px rgba(0,0,0,.08);--shadow-lg:0 4px 20px rgba(0,0,0,.12);--font:'Segoe UI',system-ui,-apple-system,sans-serif;--mono:'Cascadia Code','SF Mono',Consolas,monospace}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -79,6 +81,29 @@ table.fe tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gold
 .stmr-prod label{font-size:13px;font-weight:700;color:var(--c-gold);text-transform:uppercase}
 .stmr-prod input{font-size:22px;padding:12px;margin-top:6px;text-align:center;font-weight:700;border:2px solid var(--c-gold);border-radius:8px}
 .stmr-row{display:flex;align-items:center;gap:8px;padding:6px 12px;border-bottom:1px solid var(--c-brd)}.stmr-row .sr-name{flex:1;font-weight:500}.stmr-row .sr-pct{font-family:var(--mono);font-weight:700;color:var(--c-pri);min-width:50px;text-align:right}
+/* WYDAJNOSC */
+.wyd-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;padding:12px}
+.wyd-tile{background:var(--c-card);border:1px solid var(--c-brd);border-radius:8px;padding:10px;text-align:center}
+.wyd-tile .wt-lbl{font-size:10px;text-transform:uppercase;color:var(--c-txt2);letter-spacing:.04em;font-weight:600}
+.wyd-tile .wt-val{font-size:19px;font-weight:700;color:var(--c-pri-d);font-family:var(--mono);margin:2px 0}
+.wyd-tile .wt-sub{font-size:10px;color:var(--c-txt2)}
+.wyd-tile.hf{border-left:3px solid #2F6B3A}.wyd-tile.mo{border-left:3px solid #B3392C}.wyd-tile.all{border-left:3px solid var(--c-gold)}
+.wyd-warn{background:var(--c-red-bg);border:1px solid #e0a0a0;border-radius:8px;padding:10px;margin:12px;font-size:12px;color:var(--c-red)}
+.wyd-warn b{display:block;margin-bottom:4px}
+.wyd-flag{border:1px solid var(--c-brd);border-radius:6px;margin-bottom:6px;overflow:hidden}
+.wyd-flag-h{padding:8px 10px;background:var(--c-pri-l);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600}
+.wyd-flag-h .cnt{background:var(--c-pri);color:#fff;border-radius:10px;padding:1px 8px;font-size:11px}
+.wyd-flag-h.zero .cnt{background:#bbb}
+.wyd-flag-b{display:none;padding:8px 10px;font-size:12px;max-height:260px;overflow-y:auto}
+.small-n{opacity:.45;font-style:italic}
+table.wyd{width:100%;border-collapse:collapse;font-size:11px}
+table.wyd th{background:var(--c-pri);color:#fff;font-size:9px;text-transform:uppercase;padding:5px 4px;text-align:right;white-space:nowrap;border:1px solid #1E4A27}
+table.wyd th.gh{background:#1E4A27;font-size:10px}
+table.wyd th:first-child{text-align:left}
+table.wyd td{padding:4px;border:1px solid var(--c-brd);text-align:right;font-family:var(--mono);font-size:11px}
+table.wyd td:first-child{text-align:left;font-family:var(--font);font-weight:500;white-space:nowrap}
+table.wyd tr:nth-child(even){background:#F8FAF8}
+table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gold);border-top:2px solid var(--c-gold)}
 .empty-state{text-align:center;padding:50px 20px;color:var(--c-txt2)}.empty-state h3{font-size:15px;margin-bottom:4px;color:var(--c-txt)}.empty-state p{font-size:12px}
 .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:12px}.mo.open{display:flex}
 .mob{background:var(--c-card);border-radius:var(--radius);width:100%;max-width:560px;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto}
@@ -123,6 +148,17 @@ table.fe tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gold
       <div class="sub-panel" id="rap-2"><div class="card"><div class="ch">Raport niedojadów</div><div id="rap-nied"></div></div></div>
       <div class="sub-panel" id="rap-3"><div class="card"><div class="ch">Dzienne snapshoty dawek realnych</div><div id="rap-dr"></div></div></div>
     </div>
+    <!-- WYDAJNOŚĆ --><div class="tab-panel" id="tab-wydajnosc">
+      <div class="card"><div class="ch"><span>Wyniki próbnego doju (SOL / PFHB)</span>
+        <div style="display:flex;gap:4px;align-items:center">
+          <select id="wyd-month" style="width:auto;padding:4px 6px;font-size:11px" onchange="loadWydSnapshot()"><option value="">— brak danych —</option></select>
+          <button class="btn bs bo" onclick="openWydImport()">📂 Wczytaj plik</button>
+          <button class="btn bs bo" onclick="openRasMap()">⚙ Rasy</button>
+        </div>
+      </div>
+      <div id="wyd-content"><div class="empty-state"><h3>Brak wczytanych danych</h3><p>Wczytaj plik .xlsx wyeksportowany z SOLa</p></div></div>
+      </div>
+    </div>
     <!-- SUCHY TMR --><div class="tab-panel" id="tab-suchy-tmr">
       <div class="card"><div class="ch" style="background:var(--c-gold-bg);color:var(--c-gold)"><span>Receptura Suchego TMR (na 1 tonę)</span><span id="stmr-edit-btns"></span></div><div id="stmr-recipe-panel"></div>
       <div style="padding:8px 14px;font-size:11px;color:var(--c-txt2);font-style:italic">💡 Kolejność: najpierw słoma, potem melasa (klejenie), potem reszta.</div></div>
@@ -158,9 +194,9 @@ function subTab(pfx,idx){const tabs=document.querySelectorAll('.sub-tab');const 
 /* ===== AUTH ===== */
 const DEF_PASSES={tworca:'admin',zootechnik:'zoo',zywieniowiec:'dawki',paszowoz:'woz'};
 let passes=LD('passes',null),cR=null;
-const RT={tworca:['surowce','dawki','koszty','paszowoz','raporty','suchy-tmr'],zootechnik:['surowce','dawki','koszty','paszowoz','raporty','suchy-tmr'],zywieniowiec:['dawki'],paszowoz:['paszowoz']};
-const TL={surowce:'Surowce',dawki:'Dawki',koszty:'Koszty',paszowoz:'Paszowóz',raporty:'Raporty','suchy-tmr':'Suchy TMR'};
-const TI={surowce:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M5 20V8l7-5 7 5v12M9 20v-6h6v6"/></svg>',dawki:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12l4-4 4 4M13 8l4-4 4 4"/></svg>',koszty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.7 0-3 1-3 2.5s1.3 2.5 3 2.5c1.7 0 3 1 3 2.5s-1.3 2.5-3 2.5c-1 0-2-.5-2.5-1.5"/></svg>',paszowoz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="15" height="10" rx="2"/><path d="M16 10h4l3 4v2h-7V10z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',raporty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>','suchy-tmr':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l2 6H4l2-6zM4 9v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9M9 13h6"/></svg>'};
+const RT={tworca:['surowce','dawki','koszty','paszowoz','raporty','wydajnosc','suchy-tmr'],zootechnik:['surowce','dawki','koszty','paszowoz','raporty','wydajnosc','suchy-tmr'],zywieniowiec:['dawki'],paszowoz:['paszowoz']};
+const TL={surowce:'Surowce',dawki:'Dawki',koszty:'Koszty',paszowoz:'Paszowóz',raporty:'Raporty',wydajnosc:'Wydajność','suchy-tmr':'Suchy TMR'};
+const TI={surowce:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M5 20V8l7-5 7 5v12M9 20v-6h6v6"/></svg>',dawki:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12l4-4 4 4M13 8l4-4 4 4"/></svg>',koszty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.7 0-3 1-3 2.5s1.3 2.5 3 2.5c1.7 0 3 1 3 2.5s-1.3 2.5-3 2.5c-1 0-2-.5-2.5-1.5"/></svg>',paszowoz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="15" height="10" rx="2"/><path d="M16 10h4l3 4v2h-7V10z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',raporty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>',wydajnosc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l3-4 3 2 5-7"/><circle cx="7" cy="15" r="1"/><circle cx="18" cy="6" r="1"/></svg>','suchy-tmr':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l2 6H4l2-6zM4 9v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9M9 13h6"/></svg>'};
 function canPass(){return cR==='tworca'}
 function canEdit(){return cR==='tworca'||cR==='zootechnik'||cR==='zywieniowiec'}
 function doLogin(){const p=$('#lp').value.trim();if(!p){$('#le').textContent='Wpisz hasło';return}const pw=Object.assign({},DEF_PASSES,passes||{});let role=null;for(const[r,v]of Object.entries(pw))if(v===p){role=r;break}if(!role){$('#le').textContent='Nieprawidłowe hasło';return}cR=role;SV('sess',role);showApp()}
@@ -168,7 +204,7 @@ function doLogout(){maybeSaveDawkiSnapshot();cR=null;localStorage.removeItem('st
 function showApp(){$('#login-screen').classList.add('hidden');$('#app').classList.add('active');let ex='';if(canPass())ex+='<button class="hdr-btn" onclick="switchTab(\'ustawienia\')" title="Ustawienia">⚙</button>';if(canEdit())ex+='<button class="hdr-btn" onclick="exportBackup()" title="Kopia">⬇</button>';$('#hdr-extra').innerHTML=ex;bTabs();startFbSync();setTimeout(()=>maybeDailySnapshot(),3000)}
 function bTabs(){const ts=RT[cR]||[];$('#app-nav').innerHTML=ts.map((t,i)=>'<button class="nav-tab'+(i===0?' active':'')+'" data-tab="'+t+'">'+TI[t]+' '+TL[t]+'</button>').join('');$$('.tab-panel').forEach(p=>p.classList.remove('active'));if(ts[0])$('#tab-'+ts[0]).classList.add('active');$('#app-nav').querySelectorAll('.nav-tab').forEach(bt=>bt.addEventListener('click',()=>{const prev=document.querySelector('.nav-tab.active');if(prev&&prev.dataset.tab==='dawki')maybeSaveDawkiSnapshot();$('#app-nav').querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));$$('.tab-panel').forEach(p=>p.classList.remove('active'));bt.classList.add('active');$('#tab-'+bt.dataset.tab).classList.add('active');oT(bt.dataset.tab)}));if(ts[0])oT(ts[0])}
 function switchTab(tabId){const prev=document.querySelector('.nav-tab.active');if(prev&&prev.dataset.tab==='dawki')maybeSaveDawkiSnapshot();$('#app-nav').querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));$$('.tab-panel').forEach(p=>p.classList.remove('active'));const btn=$('#app-nav').querySelector('[data-tab="'+tabId+'"]');if(btn)btn.classList.add('active');$('#tab-'+tabId).classList.add('active');oT(tabId)}
-function oT(t){const m={surowce:rSur,dawki:rDk,koszty:rKoszty,paszowoz:rWoz,'suchy-tmr':rStmr,raporty:rRap,ustawienia:()=>{renderPwFields();renderContactFields()}};if(m[t])m[t]()}
+function oT(t){const m={surowce:rSur,dawki:rDk,koszty:rKoszty,paszowoz:rWoz,'suchy-tmr':rStmr,raporty:rRap,wydajnosc:()=>rWyd(),ustawienia:()=>{renderPwFields();renderContactFields()}};if(m[t])m[t]()}
 function pT(t){const ti={surowce:'Stany magazynowe surowców',dawki:'Dawki TMR — dawka wyliczona'};prn(ti[t]||t,$('#'+(t==='surowce'?'sur-w':'dk-w')).innerHTML)}
 
 /* ===== CONTACT ===== */
@@ -274,7 +310,8 @@ function applyModule(mod,d){
 
 function startFbSync(){
   if(!fbDb){setSyncBadge('offline');fbInitialLoaded=true;return}
-  fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists&&doc.data().passes){passes=doc.data().passes;SV('passes',passes)}}).catch(()=>{});
+  fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists){const cd=doc.data();if(cd.passes){passes=cd.passes;SV('passes',passes)}if(cd.rasRules&&cd.rasRules.length){rasRules=cd.rasRules;SV('rasRules',rasRules)}}}).catch(()=>{});
+  loadWydIndex();
   // Migration: check if old 'state' doc exists and new modules don't
   fbDb.collection('farm_data').doc('grupy').get().then(doc=>{
     if(!doc.exists){
@@ -778,6 +815,394 @@ function printDR(ri){const snap=dawkiRealne[ri];if(!snap)return;
   const allN=new Set();snap.snapshot.forEach(g=>g.sk.forEach(x=>allN.add(x.nazwa)));
   allN.forEach(n=>{h+='<tr><td>'+n+'</td>';snap.snapshot.forEach(g=>{const it=g.sk.find(x=>x.nazwa===n);h+='<td style="text-align:right">'+(it?it.kgReal:'')+'</td>'});h+='</tr>'});
   h+='</table>';prn('Dawki realne — '+snap.date,h)}
+
+
+/* ============================================================
+   MODUŁ WYDAJNOŚĆ — import SOL/PFHB, agregaty, flagi
+   ============================================================ */
+const DEF_RAS_RULES=[{txt:'holszty',g:'HF'},{txt:'montbe',g:'MO'}];
+let rasRules=LD('rasRules',DEF_RAS_RULES);
+let wydIndex=LD('wydIndex',[]);          // ['2026-08',...]
+let wydSnapshots=LD('wydSnapshots',{});  // {'2026-08':{meta,agg,counts,valid}}
+let wydRaw=LD('wydRaw',null);            // surowe wiersze ostatniego importu (lokalnie)
+let wydFlags=LD('wydFlags',null);        // flagi ostatniego importu (lokalnie)
+let wydView=LD('wydView','std');         // 'std' | 'det'
+let wydParity=LD('wydParity','all');     // 'all' | 'p1' | 'p2'
+
+const PHASES_STD=[[0,30,'0–30'],[31,60,'31–60'],[61,100,'61–100'],[101,200,'101–200'],[201,305,'201–305'],[306,99999,'>305']];
+function phasesDet(){const a=[];for(let s=0;s<600;s+=50)a.push([s,s+49,(s)+'–'+(s+49)]);a.push([600,99999,'>600']);return a}
+function getPhases(){return wydView==='det'?phasesDet():PHASES_STD}
+function phaseOf(dpw){if(dpw==null||dpw==='')return 'brak DPW';const d=+dpw;for(const[a,b,l]of getPhases())if(d>=a&&d<=b)return l;return '>305'}
+function rasToGroup(rasa){const r=(rasa||'').toLowerCase();for(const rule of rasRules){if(rule.txt&&r.includes(rule.txt.toLowerCase()))return rule.g}return 'INNE'}
+const num=v=>{if(v==null||v==='')return null;const n=typeof v==='number'?v:parseFloat(String(v).replace(',','.'));return isNaN(n)?null:n};
+function geoMean(arr){if(!arr.length)return 0;return Math.exp(arr.reduce((a,x)=>a+Math.log(Math.max(x,1)),0)/arr.length)}
+function median(arr){if(!arr.length)return 0;const s=[...arr].sort((a,b)=>a-b);const m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2}
+function ecmOf(ml,tl,bi){if(ml==null||tl==null||bi==null)return null;return ml*(0.383*tl+0.242*bi+0.7832)/3.1138}
+
+/* ---------- IMPORT ---------- */
+function openWydImport(){
+  opM('Wczytaj wyniki próbnego doju',
+    '<div style="font-size:13px;color:var(--c-txt2);margin-bottom:12px">Wybierz plik <b>.xlsx</b> wyeksportowany z SOLa (arkusz <i>Report</i>).</div>'
+    +'<input type="file" id="wyd-file" accept=".xlsx,.xls" style="padding:10px;border:2px dashed var(--c-brd);border-radius:8px;width:100%">'
+    +'<div id="wyd-imp-status" style="margin-top:10px;font-size:12px"></div>',
+    '<button class="btn bo" onclick="clM()">Anuluj</button>');
+  setTimeout(()=>{const f=$('#wyd-file');if(f)f.addEventListener('change',handleWydFile)},100);
+}
+
+function handleWydFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const st=$('#wyd-imp-status');st.innerHTML='Wczytywanie…';
+  if(typeof XLSX==='undefined'){st.innerHTML='<span style="color:var(--c-red)">Biblioteka XLSX niedostępna — sprawdź połączenie z internetem.</span>';return}
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});
+      const res=parseSol(aoa);
+      if(res.error){st.innerHTML='<span style="color:var(--c-red)">'+res.error+'</span>';return}
+      showImportPreview(res,file.name);
+    }catch(err){st.innerHTML='<span style="color:var(--c-red)">Błąd odczytu: '+err.message+'</span>'}
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function parseSol(aoa){
+  if(!aoa||!aoa.length)return{error:'Pusty plik'};
+  // map columns by header text
+  const hdr=(aoa[0]||[]).map(x=>String(x==null?'':x).trim().toLowerCase());
+  const find=(...names)=>{for(const n of names){const i=hdr.findIndex(h=>h===n.toLowerCase());if(i>=0)return i}
+    for(const n of names){const i=hdr.findIndex(h=>h.includes(n.toLowerCase()));if(i>=0)return i}return -1};
+  const C={lp:find('lp'),kol:find('kolczyk'),nrob:find('nr oborowy'),rasa:find('rasa'),lakt:find('nr laktacji'),
+    dpw:find('dpw'),status:find('status reprodukcyjny'),mleko:find('mleko'),tl:find('%tł','%tl'),bi:find('%bi'),
+    lks:find('lks'),moc:find('mocznik')};
+  const missing=[];
+  if(C.kol<0)missing.push('Kolczyk');if(C.rasa<0)missing.push('Rasa');if(C.mleko<0)missing.push('mleko');
+  if(missing.length)return{error:'Brak wymaganych kolumn: '+missing.join(', ')+'. Sprawdź czy to właściwy plik z SOLa.'};
+  const rows=[];let reportDate=null;
+  for(let i=1;i<aoa.length;i++){
+    const row=aoa[i]||[];
+    const cell0=String(row[0]==null?'':row[0]);
+    if(/utworzono/i.test(cell0)){const m=cell0.match(/\d{4}-\d{2}-\d{2}/);if(m)reportDate=m[0];continue}
+    const lpv=num(C.lp>=0?row[C.lp]:null);const kolv=row[C.kol];
+    if(lpv==null||kolv==null||String(kolv).trim()==='')continue;   // odrzuca stopkę
+    rows.push({kol:String(kolv).trim(),nrob:C.nrob>=0?row[C.nrob]:null,rasa:C.rasa>=0?row[C.rasa]:null,
+      lakt:num(C.lakt>=0?row[C.lakt]:null),dpw:num(C.dpw>=0?row[C.dpw]:null),status:C.status>=0?row[C.status]:null,
+      mleko:num(row[C.mleko]),tl:num(C.tl>=0?row[C.tl]:null),bi:num(C.bi>=0?row[C.bi]:null),
+      lks:num(C.lks>=0?row[C.lks]:null),moc:num(C.moc>=0?row[C.moc]:null)});
+  }
+  if(!rows.length)return{error:'Nie znaleziono wierszy z danymi.'};
+  rows.forEach(r=>{r.g=rasToGroup(r.rasa);r.ecm=ecmOf(r.mleko,r.tl,r.bi);
+    r.tlbi=(r.tl!=null&&r.bi)?r.tl/r.bi:null;
+    r.kat=(r.mleko!=null&&r.mleko>0)?'DOJONA':(r.dpw!=null?'NIEDOJONA':'NIEDOJONA');
+    r.par=r.lakt==null?'nd':(r.lakt===1?'p1':'p2')});
+  const unmapped=[...new Set(rows.filter(r=>r.g==='INNE').map(r=>r.rasa||'(puste)'))];
+  return{rows,reportDate:reportDate||isoDate(new Date()),unmapped};
+}
+
+/* ---------- PODGLĄD IMPORTU ---------- */
+let _pendingImport=null;
+function showImportPreview(res,fname){
+  _pendingImport={res,fname};
+  const dojone=res.rows.filter(r=>r.kat==='DOJONA');
+  const month=res.reportDate.slice(0,7);
+  const exists=wydIndex.includes(month);
+  let h='<div style="font-size:13px"><b>Plik:</b> '+fname+'<br><b>Data raportu:</b> '+res.reportDate+'</div>';
+  h+='<div style="margin:10px 0;padding:10px;background:var(--c-pri-l);border-radius:6px;font-size:13px">';
+  h+='Wierszy: <b>'+res.rows.length+'</b> · Dojonych: <b>'+dojone.length+'</b> · Niedojonych: <b>'+(res.rows.length-dojone.length)+'</b><br>';
+  const byG={};res.rows.forEach(r=>{byG[r.g]=(byG[r.g]||0)+1});
+  h+='Grupy: '+Object.entries(byG).map(([k,v])=>k+': <b>'+v+'</b>').join(' · ')+'</div>';
+  if(res.unmapped.length){
+    h+='<div class="wyd-warn" style="margin:0 0 10px"><b>⚠ Rasy nieprzypisane do grup HF/MO:</b>'
+      +res.unmapped.map(u=>'<div>• '+u+'</div>').join('')
+      +'<div style="margin-top:6px">Trafią do grupy INNE. Możesz poprawić mapowanie (⚙ Rasy) i wczytać plik ponownie.</div></div>';
+  }
+  h+='<div class="fg"><label>Miesiąc snapshotu</label><input type="text" id="wyd-month-in" value="'+month+'" placeholder="RRRR-MM"></div>';
+  if(exists)h+='<div class="wyd-warn" style="margin:10px 0 0"><b>⚠ Snapshot za '+month+' już istnieje</b>Zapis go nadpisze.</div>';
+  opM('Podgląd importu',h,'<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="confirmWydImport()">'+(exists?'Nadpisz':'Zapisz snapshot')+'</button>');
+}
+
+function confirmWydImport(){
+  if(!_pendingImport)return;
+  const month=($('#wyd-month-in').value||'').trim();
+  if(!/^\d{4}-\d{2}$/.test(month)){toast('Format miesiąca: RRRR-MM');return}
+  const{res,fname}=_pendingImport;
+  const agg=buildWydAggregates(res.rows);
+  const flags=buildWydFlags(res.rows);
+  const valid=validateWyd(res.rows);
+  const snap={meta:{month,reportDate:res.reportDate,importedAt:new Date().toISOString(),by:cR||'?',file:fname,rowCount:res.rows.length},
+    agg,counts:agg.counts,valid};
+  wydSnapshots[month]=snap;
+  if(!wydIndex.includes(month)){wydIndex.push(month);wydIndex.sort()}
+  wydRaw={month,rows:res.rows};wydFlags={month,flags};
+  SV('wydIndex',wydIndex);SV('wydSnapshots',wydSnapshots);SV('wydRaw',wydRaw);SV('wydFlags',wydFlags);
+  pushWydSnapshot(month,snap);
+  _pendingImport=null;clM();rWyd(month);toast('Snapshot '+month+' zapisany');
+}
+
+/* ---------- AGREGATY ---------- */
+function aggCell(rows){
+  const d=rows.filter(r=>r.kat==='DOJONA'&&r.mleko!=null);
+  if(!d.length)return null;
+  const ml=d.map(r=>r.mleko);
+  const wTl=d.filter(r=>r.tl!=null),wBi=d.filter(r=>r.bi!=null);
+  const sumMlTl=wTl.reduce((a,r)=>a+r.mleko,0),sumMlBi=wBi.reduce((a,r)=>a+r.mleko,0);
+  const tl=sumMlTl?wTl.reduce((a,r)=>a+r.mleko*r.tl,0)/sumMlTl:null;
+  const bi=sumMlBi?wBi.reduce((a,r)=>a+r.mleko*r.bi,0)/sumMlBi:null;
+  const ecms=d.filter(r=>r.ecm!=null).map(r=>r.ecm);
+  const lks=d.filter(r=>r.lks!=null).map(r=>r.lks);
+  const moc=d.filter(r=>r.moc!=null).map(r=>r.moc);
+  const tlbiRows=d.filter(r=>r.tl!=null&&r.bi);
+  const kgTlBi=tlbiRows.reduce((a,r)=>a+r.mleko*(r.tl+r.bi)/100,0);
+  return{n:d.length,mleko:ml.reduce((a,x)=>a+x,0)/ml.length,
+    ecm:ecms.length?ecms.reduce((a,x)=>a+x,0)/ecms.length:null,
+    tl,bi,tlbi:(tl&&bi)?tl/bi:null,
+    kgTlBi,kgTlBiSzt:d.length?kgTlBi/d.length:0,
+    mocznik:moc.length?moc.reduce((a,x)=>a+x,0)/moc.length:null,mocznikMed:median(moc),
+    lksGeo:lks.length?geoMean(lks):null,lksMed:median(lks),
+    lksOver400:lks.length?100*lks.filter(x=>x>400).length/lks.length:0,
+    saraPct:tlbiRows.length?100*tlbiRows.filter(r=>r.tl/r.bi<1.0).length/tlbiRows.length:0};
+}
+function buildWydAggregates(rows){
+  const groups=['HF','MO','INNE'];const phases=getPhases().map(p=>p[2]).concat(['brak DPW']);
+  const cells={};
+  ['all','p1','p2'].forEach(par=>{
+    groups.forEach(g=>{
+      phases.forEach(ph=>{
+        const sel=rows.filter(r=>r.g===g&&phaseOf(r.dpw)===ph&&(par==='all'||r.par===par));
+        const a=aggCell(sel);if(a)cells[par+'|'+g+'|'+ph]=a;
+      });
+      const selG=rows.filter(r=>r.g===g&&(par==='all'||r.par===par));
+      const ag=aggCell(selG);if(ag)cells[par+'|'+g+'|RAZEM']=ag;
+    });
+    const selAll=rows.filter(r=>par==='all'||r.par===par);
+    const aa=aggCell(selAll);if(aa)cells[par+'|STADO|RAZEM']=aa;
+  });
+  const counts={total:rows.length,dojone:rows.filter(r=>r.kat==='DOJONA').length,
+    niedojone:rows.filter(r=>r.kat==='NIEDOJONA').length,
+    bezDpw:rows.filter(r=>r.kat==='DOJONA'&&r.dpw==null).length,
+    p1:rows.filter(r=>r.par==='p1').length,p2:rows.filter(r=>r.par==='p2').length,
+    brakLakt:rows.filter(r=>r.par==='nd').length,
+    perGroup:{}};
+  groups.forEach(g=>{counts.perGroup[g]={total:rows.filter(r=>r.g===g).length,dojone:rows.filter(r=>r.g===g&&r.kat==='DOJONA').length}});
+  return{cells,counts,phases,view:wydView};
+}
+
+/* ---------- FLAGI ---------- */
+function buildWydFlags(rows){
+  const d=rows.filter(r=>r.kat==='DOJONA');
+  const medByGP={};
+  d.forEach(r=>{const k=r.g+'|'+phaseOf(r.dpw);(medByGP[k]=medByGP[k]||[]).push(r.mleko)});
+  Object.keys(medByGP).forEach(k=>medByGP[k]=median(medByGP[k]));
+  const mk=r=>({kol:r.kol,nrob:r.nrob,dpw:r.dpw,g:r.g});
+  return{
+    ketoza:d.filter(r=>r.dpw!=null&&r.dpw<60&&r.tlbi!=null&&r.tlbi>1.4).map(r=>Object.assign(mk(r),{v:r2(r.tlbi,2),vl:'tł/bi'})),
+    sara:d.filter(r=>r.tlbi!=null&&r.tlbi<1.0).map(r=>Object.assign(mk(r),{v:r2(r.tlbi,2),vl:'tł/bi'})),
+    mocznikNiski:d.filter(r=>r.moc!=null&&r.moc<150).map(r=>Object.assign(mk(r),{v:r.moc,vl:'mg/l'})),
+    mocznikWysoki:d.filter(r=>r.moc!=null&&r.moc>300).map(r=>Object.assign(mk(r),{v:r.moc,vl:'mg/l'})),
+    mastitis:d.filter(r=>r.lks!=null&&r.lks>400&&r.lks<=1000).map(r=>Object.assign(mk(r),{v:r.lks,vl:'LKS'})),
+    mastitisPrzewlekle:d.filter(r=>r.lks!=null&&r.lks>1000).map(r=>Object.assign(mk(r),{v:r.lks,vl:'LKS'})),
+    spadek:d.filter(r=>{const m=medByGP[r.g+'|'+phaseOf(r.dpw)];return m&&r.mleko<0.6*m}).map(r=>Object.assign(mk(r),{v:r2(r.mleko,1),vl:'kg'}))
+  };
+}
+const FLAG_LABELS={ketoza:'Ryzyko ketozy (DPW<60, tł/bi>1,4)',sara:'Ryzyko SARA (tł/bi<1,0)',
+  mocznikNiski:'Mocznik niski (<150 mg/l)',mocznikWysoki:'Mocznik wysoki (>300 mg/l)',
+  mastitis:'Podejrzenie mastitis (LKS 400–1000)',mastitisPrzewlekle:'Mastitis przewlekłe (LKS>1000)',
+  spadek:'Spadek wydajności (<60% mediany fazy)'};
+
+/* ---------- WALIDACJA ---------- */
+function validateWyd(rows){
+  const w=[];
+  const dojone=rows.filter(r=>r.kat==='DOJONA').length;
+  const lakGroups=gr.filter(g=>/HF|MO/i.test(g.nazwa));
+  const obsada=lakGroups.reduce((a,g)=>a+(g.realSz||0),0);
+  if(obsada>0&&Math.abs(dojone-obsada)>0)w.push({t:'Liczba dojnych z SOLa ('+dojone+') ≠ obsada grup laktacyjnych w aplikacji ('+obsada+')',d:'Różnica '+Math.abs(dojone-obsada)+' szt. Część sztuk może być zasuszona, ale stoi w grupie i pobiera TMR. Zweryfikuj pole obsady w zakładce Dawki.'});
+  ['HF','MO'].forEach(g=>{
+    const nSol=rows.filter(r=>r.g===g).length;
+    const grp=gr.find(x=>x.nazwa.toUpperCase().includes(g));
+    if(grp&&nSol>0&&grp.realSz>0&&Math.abs(nSol-grp.realSz)>2)
+      w.push({t:'Rasa '+g+': SOL '+nSol+' szt. vs obsada grupy '+grp.nazwa+' '+grp.realSz+' szt.',d:'Rozjazd '+Math.abs(nSol-grp.realSz)+' szt. Sztuki tej rasy mogą stać także w grupach nielaktacyjnych.'});
+  });
+  const inne=rows.filter(r=>r.g==='INNE').length;
+  if(inne)w.push({t:inne+' szt. w grupie INNE (rasa nieprzypisana)',d:'Uzupełnij mapowanie ras (⚙ Rasy), żeby te sztuki weszły do właściwej grupy.'});
+  return w;
+}
+
+/* ---------- RENDER ---------- */
+function rWyd(month){
+  // month selector
+  const sel=$('#wyd-month');
+  if(sel){const cur=month||sel.value||wydIndex[wydIndex.length-1]||'';
+    sel.innerHTML=wydIndex.length?wydIndex.slice().reverse().map(m=>'<option value="'+m+'"'+(m===cur?' selected':'')+'>'+m+'</option>').join(''):'<option value="">— brak danych —</option>';
+    month=cur}
+  const cont=$('#wyd-content');
+  if(!month||!wydSnapshots[month]){cont.innerHTML='<div class="empty-state"><h3>Brak wczytanych danych</h3><p>Wczytaj plik .xlsx wyeksportowany z SOLa</p></div>';return}
+  const snap=wydSnapshots[month];
+  const hasRaw=wydRaw&&wydRaw.month===month;
+  const agg=hasRaw?buildWydAggregates(wydRaw.rows):snap.agg;   // przelicz z surowych, jeśli są (przełącznik faz)
+  const c=snap.counts;
+  let h='';
+  // Meta
+  h+='<div style="padding:10px 12px;font-size:11px;color:var(--c-txt2);border-bottom:1px solid var(--c-brd)">Raport z '+snap.meta.reportDate+' · import: '+snap.meta.by+' · '+snap.meta.file+' · '+c.total+' wierszy</div>';
+  // Warnings
+  (snap.valid||[]).forEach(w=>{h+='<div class="wyd-warn"><b>⚠ '+w.t+'</b>'+w.d+'</div>'});
+  // Tiles
+  const A=k=>agg.cells[k]||null;
+  const st=A('all|STADO|RAZEM'),hf=A('all|HF|RAZEM'),mo=A('all|MO|RAZEM');
+  h+='<div class="wyd-tiles">';
+  const tile=(cls,lbl,val,sub)=>'<div class="wyd-tile '+cls+'"><div class="wt-lbl">'+lbl+'</div><div class="wt-val">'+val+'</div><div class="wt-sub">'+(sub||'')+'</div></div>';
+  if(st){h+=tile('all','Stado — mleko',r2(st.mleko,1),'ECM '+r2(st.ecm,1)+' kg · n='+st.n);
+    h+=tile('all','Tł + biał.',r2(st.kgTlBiSzt,2)+' kg','na sztukę · Σ '+r2(st.kgTlBi,0)+' kg');
+    h+=tile('all','LKS (geom.)',r2(st.lksGeo,0),'mediana '+r2(st.lksMed,0)+' · >400: '+r2(st.lksOver400,0)+'%');
+    h+=tile('all','Mocznik',r2(st.mocznik,0),'mediana '+r2(st.mocznikMed,0)+' mg/l');}
+  h+=tile('','Dojone',c.dojone,'niedojone: '+c.niedojone+(c.bezDpw?' · bez DPW: '+c.bezDpw:''));
+  if(hf)h+=tile('hf','HF — mleko',r2(hf.mleko,1),'ECM '+r2(hf.ecm,1)+' · %bi '+r2(hf.bi,2)+' · n='+hf.n);
+  if(mo)h+=tile('mo','MO — mleko',r2(mo.mleko,1),'ECM '+r2(mo.ecm,1)+' · %bi '+r2(mo.bi,2)+' · n='+mo.n);
+  h+='</div>';
+  // Controls
+  h+='<div class="fr" style="border-top:1px solid var(--c-brd);border-bottom:1px solid var(--c-brd);background:#fafbfa">';
+  h+='<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">';
+  h+='<span style="font-size:11px;font-weight:600;color:var(--c-txt2)">FAZY:</span>';
+  h+='<button class="btn bs '+(wydView==='std'?'bp':'bo')+'" onclick="setWydView(\'std\')">standardowe</button>';
+  h+='<button class="btn bs '+(wydView==='det'?'bp':'bo')+'" onclick="setWydView(\'det\')">co 50 dni</button>';
+  h+='<span style="width:10px"></span><span style="font-size:11px;font-weight:600;color:var(--c-txt2)">SZTUKI:</span>';
+  h+='<button class="btn bs '+(wydParity==='all'?'bp':'bo')+'" onclick="setWydParity(\'all\')">razem</button>';
+  h+='<button class="btn bs '+(wydParity==='p1'?'bp':'bo')+'" onclick="setWydParity(\'p1\')">pierwiastki ('+c.p1+')</button>';
+  h+='<button class="btn bs '+(wydParity==='p2'?'bp':'bo')+'" onclick="setWydParity(\'p2\')">wieloródki ('+c.p2+')</button>';
+  h+='<span style="width:10px"></span><button class="btn bs bo" onclick="copyWydCsv()">📋 Kopiuj CSV</button>';
+  h+='</div></div>';
+  if(!hasRaw&&wydView!=='std')h+='<div style="padding:8px 12px;font-size:11px;color:var(--c-gold)">Przełącznik faz działa tylko na urządzeniu, które wykonało import (dane surowe nie są wysyłane na serwer).</div>';
+  // Main table
+  h+='<div class="tw" id="wyd-table-wrap">'+buildWydTable(agg)+'</div>';
+  // Flags
+  if(hasRaw&&wydFlags&&wydFlags.month===month){
+    h+='<div style="padding:12px"><div style="font-size:14px;font-weight:700;color:var(--c-pri-d);margin-bottom:8px">Listy interwencyjne</div>';
+    Object.entries(FLAG_LABELS).forEach(([k,lbl])=>{
+      const arr=wydFlags.flags[k]||[];
+      h+='<div class="wyd-flag"><div class="wyd-flag-h'+(arr.length?'':' zero')+'" onclick="toggleSnapDetail(\'flag-'+k+'\')"><span>'+lbl+'</span><span class="cnt">'+arr.length+'</span></div>';
+      h+='<div class="wyd-flag-b" id="flag-'+k+'">';
+      if(!arr.length)h+='<div style="color:var(--c-txt2)">Brak sztuk</div>';
+      else{h+='<table class="dt"><thead><tr><th>Kolczyk</th><th>Nr ob.</th><th>Grupa</th><th>DPW</th><th>Wartość</th></tr></thead><tbody>';
+        arr.slice(0,200).forEach(x=>{h+='<tr><td>'+x.kol+'</td><td>'+(x.nrob||'—')+'</td><td>'+x.g+'</td><td>'+(x.dpw!=null?x.dpw:'—')+'</td><td><b>'+x.v+'</b> '+x.vl+'</td></tr>'});
+        h+='</tbody></table>'}
+      h+='</div></div>';
+    });
+    // SARA structural note
+    const saraHf=A('all|HF|RAZEM'),saraMo=A('all|MO|RAZEM');
+    if(saraHf&&saraMo){
+      h+='<div style="margin-top:10px;padding:10px;background:var(--c-pri-l);border-radius:6px;font-size:12px">';
+      h+='<b>Wskaźnik strukturalny dawki (% sztuk z tł/bi &lt; 1,0):</b><br>';
+      h+='HF: <b>'+r2(saraHf.saraPct,0)+'%</b> · MO: <b>'+r2(saraMo.saraPct,0)+'%</b><br>';
+      h+='<span style="color:var(--c-txt2)">Wysoki odsetek w grupie to sygnał o strukturze fizycznej TMR (sortowanie, za drobna sieczka), a nie o chorobie pojedynczych sztuk. Sprawdź sito Penn State, zanim zmienisz recepturę.</span></div>';
+    }
+    h+='</div>';
+  }else{
+    h+='<div style="padding:12px;font-size:12px;color:var(--c-txt2)">Listy interwencyjne (kolczyki sztuk) są dostępne tylko na urządzeniu, które wykonało import — dane pojedynczych sztuk nie są wysyłane na serwer.</div>';
+  }
+  cont.innerHTML=h;
+}
+
+function buildWydTable(agg){
+  const groups=['HF','MO','INNE'];const par=wydParity;
+  const phases=(agg.phases&&!(wydRaw)) ? agg.phases : getPhases().map(p=>p[2]).concat(['brak DPW']);
+  const A=k=>agg.cells[k]||null;
+  const cols=['n','mleko','ecm','tl','bi','tlbi','lksGeo','mocznik'];
+  const colLbl={n:'n',mleko:'mleko',ecm:'ECM',tl:'%tł',bi:'%bi',tlbi:'tł/bi',lksGeo:'LKS geo',mocznik:'mocznik'};
+  let h='<table class="wyd"><thead><tr><th rowspan="2" style="text-align:left">Faza (DPW)</th>';
+  groups.forEach(g=>{h+='<th class="gh" colspan="'+cols.length+'">'+g+'</th>'});
+  h+='</tr><tr>';
+  groups.forEach(()=>{cols.forEach(c=>{h+='<th>'+colLbl[c]+'</th>'})});
+  h+='</tr></thead><tbody>';
+  const fmt=(c,v)=>{if(v==null)return '';if(c==='n')return v;if(c==='mleko'||c==='ecm')return r2(v,1);if(c==='tl'||c==='bi'||c==='tlbi')return r2(v,2);return r2(v,0)};
+  phases.forEach(ph=>{
+    let any=false;groups.forEach(g=>{if(A(par+'|'+g+'|'+ph))any=true});
+    if(!any)return;
+    h+='<tr><td>'+ph+'</td>';
+    groups.forEach(g=>{const a=A(par+'|'+g+'|'+ph);
+      const small=a&&a.n<3;
+      cols.forEach(c=>{h+='<td'+(small?' class="small-n"':'')+(small&&c==='n'?' title="mała próba"':'')+'>'+(a?fmt(c,a[c]):'')+'</td>'})});
+    h+='</tr>';
+  });
+  h+='</tbody><tfoot><tr><td>RAZEM</td>';
+  groups.forEach(g=>{const a=A(par+'|'+g+'|RAZEM');cols.forEach(c=>{h+='<td>'+(a?fmt(c,a[c]):'')+'</td>'})});
+  h+='</tr></tfoot></table>';
+  return h;
+}
+
+function setWydView(v){wydView=v;SV('wydView',v);const m=$('#wyd-month').value;rWyd(m)}
+function setWydParity(p){wydParity=p;SV('wydParity',p);const m=$('#wyd-month').value;rWyd(m)}
+function loadWydSnapshot(){rWyd($('#wyd-month').value)}
+
+function copyWydCsv(){
+  const tbl=$('#wyd-table-wrap table');if(!tbl){toast('Brak tabeli');return}
+  const lines=[];
+  tbl.querySelectorAll('tr').forEach(tr=>{const cells=[...tr.querySelectorAll('th,td')].map(td=>{
+    const cs=+(td.getAttribute('colspan')||1);const t=td.textContent.trim();
+    return cs>1?[t].concat(Array(cs-1).fill('')).join(';'):t});lines.push(cells.join(';'))});
+  const csv=lines.join('\n');
+  navigator.clipboard.writeText(csv).then(()=>toast('Skopiowano do schowka')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=csv;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');toast('Skopiowano')}catch(e){toast('Nie udało się skopiować')}
+    document.body.removeChild(ta)});
+}
+
+/* ---------- MAPOWANIE RAS ---------- */
+function openRasMap(){
+  let h='<div style="font-size:12px;color:var(--c-txt2);margin-bottom:10px">Reguła dopasowuje <b>fragment</b> nazwy rasy (bez znaczenia wielkość liter). Pierwsza pasująca wygrywa. Rasy niepasujące trafiają do grupy INNE.</div>';
+  h+='<div id="ras-rows">';
+  rasRules.forEach((r,i)=>{h+=rasRowHtml(r,i)});
+  h+='</div><button class="btn bs bo" onclick="addRasRow()" style="margin-top:6px">+ Dodaj regułę</button>';
+  if(wydRaw&&wydRaw.rows){
+    const seen=[...new Set(wydRaw.rows.map(r=>r.rasa||'(puste)'))];
+    h+='<div style="margin-top:12px;font-size:11px;color:var(--c-txt2)"><b>Rasy w ostatnim imporcie:</b><br>'+seen.map(x=>'• '+x+' → <b>'+rasToGroup(x==='(puste)'?'':x)+'</b>').join('<br>')+'</div>';
+  }
+  opM('Mapowanie ras na grupy',h,'<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="saveRasMap()">Zapisz</button>');
+}
+function rasRowHtml(r,i){
+  return '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-end" class="ras-row">'
+    +'<div class="fg" style="flex:2"><label>Fragment nazwy rasy</label><input type="text" class="ras-txt" value="'+(r.txt||'')+'"></div>'
+    +'<div class="fg" style="flex:1"><label>Grupa</label><select class="ras-grp"><option value="HF"'+(r.g==='HF'?' selected':'')+'>HF</option><option value="MO"'+(r.g==='MO'?' selected':'')+'>MO</option></select></div>'
+    +'<button class="btn bs bd" onclick="this.parentElement.remove()">✕</button></div>';
+}
+function addRasRow(){const d=document.createElement('div');d.innerHTML=rasRowHtml({txt:'',g:'HF'},999);$('#ras-rows').appendChild(d.firstChild)}
+function saveRasMap(){
+  const rows=[...document.querySelectorAll('.ras-row')];
+  const nr=rows.map(r=>({txt:r.querySelector('.ras-txt').value.trim(),g:r.querySelector('.ras-grp').value})).filter(x=>x.txt);
+  if(!nr.length){toast('Dodaj przynajmniej jedną regułę');return}
+  rasRules=nr;SV('rasRules',rasRules);
+  if(fbDb&&fbInitialLoaded)fbDb.collection('farm_data').doc('config').set({rasRules},{merge:true}).catch(()=>{});
+  // recalc current import if raw available
+  if(wydRaw&&wydRaw.rows){wydRaw.rows.forEach(r=>{r.g=rasToGroup(r.rasa)});SV('wydRaw',wydRaw);
+    const m=wydRaw.month;if(wydSnapshots[m]){wydSnapshots[m].agg=buildWydAggregates(wydRaw.rows);wydSnapshots[m].counts=wydSnapshots[m].agg.counts;
+      wydSnapshots[m].valid=validateWyd(wydRaw.rows);wydFlags={month:m,flags:buildWydFlags(wydRaw.rows)};
+      SV('wydSnapshots',wydSnapshots);SV('wydFlags',wydFlags);pushWydSnapshot(m,wydSnapshots[m])}}
+  clM();rWyd($('#wyd-month').value);toast('Mapowanie zapisane');
+}
+
+/* ---------- FIRESTORE ---------- */
+function pushWydSnapshot(month,snap){
+  if(!fbDb||!fbInitialLoaded)return;
+  fbDb.collection('farm_data').doc('wydajnosc_'+month).set(Object.assign({},snap,{_ts:Date.now()}))
+    .then(()=>fbDb.collection('farm_data').doc('wydajnosc_index').set({months:wydIndex,_ts:Date.now()}))
+    .then(()=>setSyncBadge('ok')).catch(()=>setSyncBadge('offline'));
+}
+function loadWydIndex(){
+  if(!fbDb)return;
+  fbDb.collection('farm_data').doc('wydajnosc_index').get().then(doc=>{
+    if(!doc.exists)return;
+    const months=doc.data().months||[];
+    months.forEach(m=>{if(!wydIndex.includes(m))wydIndex.push(m)});
+    wydIndex.sort();SV('wydIndex',wydIndex);
+    // fetch snapshots not held locally
+    months.filter(m=>!wydSnapshots[m]).forEach(m=>{
+      fbDb.collection('farm_data').doc('wydajnosc_'+m).get().then(d=>{
+        if(d.exists){wydSnapshots[m]=d.data();SV('wydSnapshots',wydSnapshots);
+          const a=document.querySelector('.nav-tab.active');if(a&&a.dataset.tab==='wydajnosc')rWyd($('#wyd-month').value)}
+      }).catch(()=>{});
+    });
+    const a=document.querySelector('.nav-tab.active');if(a&&a.dataset.tab==='wydajnosc')rWyd();
+  }).catch(()=>{});
+}
 
 /* ===== SUCHY TMR ===== */
 function rStmr(){

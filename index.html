@@ -1029,6 +1029,22 @@ function validateWyd(rows){
   return w;
 }
 
+/* Akcesor komórek agregatu z fallbackiem na surowe wiersze */
+let _aggCache={};
+function aggAt(agg,k){
+  if(agg&&agg.cells&&agg.cells[k])return agg.cells[k];
+  if(_aggCache[k]!==undefined)return _aggCache[k];
+  if(!wydRaw||!wydRaw.rows){_aggCache[k]=null;return null}
+  const parts=k.split('|');const par=parts[0],gk=parts[1],ph=parts[2];
+  const rows=wydRaw.rows.filter(r=>{
+    if(par!=='all'&&r.par!==par)return false;
+    if(gk!=='STADO'&&r.g!==gk)return false;
+    if(ph!=='RAZEM'&&phaseOf(r.dpw)!==ph)return false;
+    return true});
+  const a=rows.length?aggCell(rows):null;
+  _aggCache[k]=a;return a;
+}
+
 /* ---------- RENDER ---------- */
 function rWyd(month){
   // month selector
@@ -1048,7 +1064,8 @@ function rWyd(month){
   // Warnings
   (snap.valid||[]).forEach(w=>{h+='<div class="wyd-warn"><b>⚠ '+w.t+'</b>'+w.d+'</div>'});
   // Tiles
-  const A=k=>agg.cells[k]||null;
+  _aggCache={};
+  const A=k=>aggAt(agg,k);
   const PARL={all:'wszystkie',p1:'pierwiastki',p2:'wieloródki'};
   const selKey=wydGroup==='all'?wydParity+'|STADO|RAZEM':wydParity+'|'+wydGroup+'|RAZEM';
   const selAgg=A(selKey);
@@ -1063,13 +1080,19 @@ function rWyd(month){
   else h+=tile('','Brak danych','—','dla wybranego filtra');
   h+=tile('','Dojone',c.dojone,'niedojone: '+c.niedojone+(c.bezDpw?' · bez DPW: '+c.bezDpw:''));
   h+='</div>';
-  // Porównanie grup (zawsze widoczne, wg bieżącej parzystości)
+  // Porównanie grup — liczone z surowych wierszy, gdy dostępne (odporne na niekompletny snapshot)
   if(wydGroup==='all'){
-    const ghf=A(wydParity+'|HF|RAZEM'),gmo=A(wydParity+'|MO|RAZEM'),gin=A(wydParity+'|INNE|RAZEM');
-    if(ghf||gmo){h+='<div class="wyd-tiles" style="padding-top:0">';
-      if(ghf)h+=tile('hf','HF — mleko',r2(ghf.mleko,1),'ECM '+r2(ghf.ecm,1)+' · %bi '+r2(ghf.bi,2)+' · n='+ghf.n);
-      if(gmo)h+=tile('mo','MO — mleko',r2(gmo.mleko,1),'ECM '+r2(gmo.ecm,1)+' · %bi '+r2(gmo.bi,2)+' · n='+gmo.n);
-      if(gin)h+=tile('','INNE — mleko',r2(gin.mleko,1),'ECM '+r2(gin.ecm,1)+' · n='+gin.n);
+    const grpTiles=[];
+    ['HF','MO','INNE'].forEach(gk=>{
+      let a=A(wydParity+'|'+gk+'|RAZEM');
+      if(!a&&hasRaw){const selRows=wydRaw.rows.filter(r=>r.g===gk&&(wydParity==='all'||r.par===wydParity));a=aggCell(selRows)}
+      if(a)grpTiles.push({gk,a});
+    });
+    if(grpTiles.length){h+='<div class="wyd-tiles" style="padding-top:0">';
+      grpTiles.forEach(({gk,a})=>{
+        const cls=gk==='HF'?'hf':(gk==='MO'?'mo':'');
+        h+=tile(cls,gk+' — mleko',r2(a.mleko,1),'ECM '+r2(a.ecm,1)+' · %bi '+r2(a.bi,2)+' · n='+a.n);
+      });
       h+='</div>'}
   }
   // Controls
@@ -1129,7 +1152,7 @@ function rWyd(month){
 function buildWydTable(agg){
   const groups=wydGroup==='all'?['HF','MO','INNE']:[wydGroup];const par=wydParity;
   const phases=(agg.phases&&!(wydRaw)) ? agg.phases : getPhases().map(p=>p[2]).concat(['brak DPW']);
-  const A=k=>agg.cells[k]||null;
+  const A=k=>aggAt(agg,k);
   const cols=['n','mleko','ecm','tl','bi','tlbi','lksGeo','mocznik'];
   const colLbl={n:'n',mleko:'mleko',ecm:'ECM',tl:'%tł',bi:'%bi',tlbi:'tł/bi',lksGeo:'LKS geo',mocznik:'mocznik'};
   let h='<table class="wyd"><thead><tr><th rowspan="2" style="text-align:left">Faza (DPW)</th>';
@@ -1140,6 +1163,7 @@ function buildWydTable(agg){
   const fmt=(c,v)=>{if(v==null)return '';if(c==='n')return v;if(c==='mleko'||c==='ecm')return r2(v,1);if(c==='tl'||c==='bi'||c==='tlbi')return r2(v,2);return r2(v,0)};
   phases.forEach(ph=>{
     let any=false;groups.forEach(g=>{if(A(par+'|'+g+'|'+ph))any=true});
+
     if(!any)return;
     h+='<tr><td>'+ph+'</td>';
     groups.forEach(g=>{const a=A(par+'|'+g+'|'+ph);
@@ -1196,7 +1220,7 @@ function kosztDawkiRealnej(g){
 function grupaDlaRasy(kod){return gr.find(g=>g.nazwa.toUpperCase().replace(/\s/g,'').includes(kod))||null}
 
 function buildEkonomia(agg){
-  const A=k=>agg.cells[k]||null;
+  const A=k=>aggAt(agg,k);
   const rows=[];
   const kody=wydGroup==='all'?['HF','MO']:[wydGroup];
   kody.forEach(kod=>{

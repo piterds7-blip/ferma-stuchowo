@@ -310,7 +310,7 @@ function applyModule(mod,d){
 
 function startFbSync(){
   if(!fbDb){setSyncBadge('offline');fbInitialLoaded=true;return}
-  fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists){const cd=doc.data();if(cd.passes){passes=cd.passes;SV('passes',passes)}if(cd.rasRules&&cd.rasRules.length){rasRules=cd.rasRules;SV('rasRules',rasRules)}}}).catch(()=>{});
+  fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists){const cd=doc.data();if(cd.passes){passes=cd.passes;SV('passes',passes)}if(cd.rasRules&&cd.rasRules.length){rasRules=cd.rasRules;SV('rasRules',rasRules)}if(cd.cenaMleka!=null){cenaMleka=cd.cenaMleka;SV('cenaMleka',cenaMleka)}}}).catch(()=>{});
   loadWydIndex();
   // Migration: check if old 'state' doc exists and new modules don't
   fbDb.collection('farm_data').doc('grupy').get().then(doc=>{
@@ -996,8 +996,8 @@ function buildWydFlags(rows){
   Object.keys(medByGP).forEach(k=>medByGP[k]=median(medByGP[k]));
   const mk=r=>({kol:r.kol,nrob:r.nrob,dpw:r.dpw,g:r.g});
   return{
-    ketoza:d.filter(r=>r.dpw!=null&&r.dpw<60&&r.tlbi!=null&&r.tlbi>1.4).map(r=>Object.assign(mk(r),{v:r2(r.tlbi,2),vl:'tł/bi'})),
-    sara:d.filter(r=>r.tlbi!=null&&r.tlbi<1.0).map(r=>Object.assign(mk(r),{v:r2(r.tlbi,2),vl:'tł/bi'})),
+    ketoza:d.filter(r=>r.dpw!=null&&r.dpw<60&&r.tlbi!=null&&r.tlbi>1.4).map(r=>Object.assign(mk(r),{v:r2(r.tlbi,2),vl:'tł/bi',tl:r2(r.tl,2),bi:r2(r.bi,2),ml:r2(r.mleko,1)})),
+    sara:d.filter(r=>r.tlbi!=null&&r.tlbi<1.0).map(r=>Object.assign(mk(r),{v:r2(r.tlbi,2),vl:'tł/bi',tl:r2(r.tl,2),bi:r2(r.bi,2),ml:r2(r.mleko,1)})),
     mocznikNiski:d.filter(r=>r.moc!=null&&r.moc<150).map(r=>Object.assign(mk(r),{v:r.moc,vl:'mg/l'})),
     mocznikWysoki:d.filter(r=>r.moc!=null&&r.moc>300).map(r=>Object.assign(mk(r),{v:r.moc,vl:'mg/l'})),
     mastitis:d.filter(r=>r.lks!=null&&r.lks>400&&r.lks<=1000).map(r=>Object.assign(mk(r),{v:r.lks,vl:'LKS'})),
@@ -1074,6 +1074,8 @@ function rWyd(month){
   if(!hasRaw&&wydView!=='std')h+='<div style="padding:8px 12px;font-size:11px;color:var(--c-gold)">Przełącznik faz działa tylko na urządzeniu, które wykonało import (dane surowe nie są wysyłane na serwer).</div>';
   // Main table
   h+='<div class="tw" id="wyd-table-wrap">'+buildWydTable(agg)+'</div>';
+  // Ekonomia
+  h+=renderEkonomia(agg);
   // Flags
   if(hasRaw&&wydFlags&&wydFlags.month===month){
     h+='<div style="padding:12px"><div style="font-size:14px;font-weight:700;color:var(--c-pri-d);margin-bottom:8px">Listy interwencyjne</div>';
@@ -1082,8 +1084,11 @@ function rWyd(month){
       h+='<div class="wyd-flag"><div class="wyd-flag-h'+(arr.length?'':' zero')+'" onclick="toggleSnapDetail(\'flag-'+k+'\')"><span>'+lbl+'</span><span class="cnt">'+arr.length+'</span></div>';
       h+='<div class="wyd-flag-b" id="flag-'+k+'">';
       if(!arr.length)h+='<div style="color:var(--c-txt2)">Brak sztuk</div>';
-      else{h+='<table class="dt"><thead><tr><th>Kolczyk</th><th>Nr ob.</th><th>Grupa</th><th>DPW</th><th>Wartość</th></tr></thead><tbody>';
-        arr.slice(0,200).forEach(x=>{h+='<tr><td>'+x.kol+'</td><td>'+(x.nrob||'—')+'</td><td>'+x.g+'</td><td>'+(x.dpw!=null?x.dpw:'—')+'</td><td><b>'+x.v+'</b> '+x.vl+'</td></tr>'});
+      else{const det=arr.some(x=>x.tl!=null);
+        h+='<table class="dt"><thead><tr><th>Kolczyk</th><th>Nr ob.</th><th>Grupa</th><th>DPW</th>'+(det?'<th>mleko</th><th>%tł</th><th>%bi</th>':'')+'<th>Wartość</th></tr></thead><tbody>';
+        arr.slice(0,200).forEach(x=>{h+='<tr><td>'+x.kol+'</td><td>'+(x.nrob||'—')+'</td><td>'+x.g+'</td><td>'+(x.dpw!=null?x.dpw:'—')+'</td>'
+          +(det?'<td>'+(x.ml!=null?x.ml:'—')+'</td><td>'+(x.tl!=null?x.tl:'—')+'</td><td>'+(x.bi!=null?x.bi:'—')+'</td>':'')
+          +'<td><b>'+x.v+'</b> '+x.vl+'</td></tr>'});
         h+='</tbody></table>'}
       h+='</div></div>';
     });
@@ -1145,6 +1150,84 @@ function copyWydCsv(){
     try{document.execCommand('copy');toast('Skopiowano')}catch(e){toast('Nie udało się skopiować')}
     document.body.removeChild(ta)});
 }
+
+
+/* ---------- EKONOMIA: cena mleka, koszt dawki, IOFC ---------- */
+let cenaMleka=LD('cenaMleka',0);   // zł/litr (netto)
+
+/* koszt dawki REALNEJ na sztukę/dzień dla grupy (zł) */
+function kosztDawkiRealnej(g){
+  const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);if(!totRecipe||!g.realSz)return null;
+  const tsz=g.se.reduce((a,s)=>a+s.sz,0);
+  const trOut=getTransfersOut(g.id);
+  const zadana=g.zadanaKg>0?g.zadanaKg:r2(totRecipe*tsz*(g.z||1),0);
+  let koszt=0;
+  // własna receptura, pomniejszona o transfery wychodzące
+  g.sk.forEach(sk=>{if(sk.kg<=0)return;const s=gS(sk.s);if(!s)return;
+    koszt+=(sk.kg/totRecipe)*(zadana-trOut)*s.cena_t/1000});
+  // transfery przychodzące — liczone po składzie grupy źródłowej
+  (g.transfery||[]).forEach(tr=>{const src=gr.find(x=>x.id===tr.fromGid);if(!src)return;
+    const st=src.sk.reduce((a,x)=>a+x.kg,0);if(!st)return;
+    src.sk.forEach(sk=>{if(sk.kg<=0)return;const s=gS(sk.s);if(!s)return;
+      koszt+=(sk.kg/st)*tr.kg*s.cena_t/1000})});
+  return koszt/g.realSz;
+}
+/* dopasowanie grupy żywieniowej do grupy z SOLa (HF/MO) */
+function grupaDlaRasy(kod){return gr.find(g=>g.nazwa.toUpperCase().replace(/\s/g,'').includes(kod))||null}
+
+function buildEkonomia(agg){
+  const A=k=>agg.cells[k]||null;
+  const rows=[];
+  ['HF','MO'].forEach(kod=>{
+    const a=A('all|'+kod+'|RAZEM');const g=grupaDlaRasy(kod);
+    if(!a||!g)return;
+    const koszt=kosztDawkiRealnej(g);
+    if(koszt==null)return;
+    const przychod=a.mleko*cenaMleka;
+    rows.push({kod,nazwa:g.nazwa,n:a.n,obsada:g.realSz,mleko:a.mleko,ecm:a.ecm,koszt,przychod,
+      iofc:przychod-koszt,kosztLitr:a.mleko?koszt/a.mleko:null,
+      prog:cenaMleka>0?koszt/cenaMleka:null});
+  });
+  return rows;
+}
+
+function renderEkonomia(agg){
+  let h='<div class="card" style="margin:12px"><div class="ch" style="background:var(--c-gold-bg);color:var(--c-gold)"><span>Ekonomia — IOFC i progi opłacalności</span>';
+  h+='<div style="display:flex;gap:6px;align-items:center"><label style="font-size:11px;font-weight:600;color:var(--c-gold)">Cena mleka zł/l</label>';
+  h+='<input type="number" id="cena-mleka" value="'+(cenaMleka||'')+'" step="0.01" placeholder="0.00" style="width:80px;padding:4px 6px;font-size:13px;text-align:right;border:2px solid var(--c-gold);border-radius:6px" onchange="setCenaMleka(this.value)">';
+  h+='</div></div>';
+  if(!cenaMleka){h+='<div style="padding:20px;text-align:center;color:var(--c-txt2);font-size:13px">Wpisz cenę mleka, aby zobaczyć IOFC i progi opłacalności.</div></div>';return h}
+  const rows=buildEkonomia(agg);
+  if(!rows.length){h+='<div style="padding:20px;text-align:center;color:var(--c-txt2);font-size:13px">Brak danych — sprawdź czy grupy HF/MO mają uzupełnione ceny surowców i obsadę.</div></div>';return h}
+  h+='<div class="tw"><table class="dt"><thead><tr><th>Grupa</th><th>Obsada</th><th>Mleko kg</th><th>Przychód zł/szt</th><th>Koszt dawki zł/szt</th><th>Koszt zł/litr</th><th>IOFC zł/szt</th><th>IOFC grupa/dzień</th><th>Próg zera (kg)</th></tr></thead><tbody>';
+  let sumIofc=0;
+  rows.forEach(r=>{const gIofc=r.iofc*r.obsada;sumIofc+=gIofc;
+    h+='<tr><td>'+r.nazwa+'</td><td>'+r.obsada+'</td><td>'+r2(r.mleko,1)+'</td><td>'+r2(r.przychod,2)+'</td><td>'+r2(r.koszt,2)+'</td>';
+    h+='<td>'+r2(r.kosztLitr,2)+'</td>';
+    h+='<td style="color:'+(r.iofc>0?'#2E7D32':'var(--c-red)')+'"><b>'+r2(r.iofc,2)+'</b></td>';
+    h+='<td style="color:'+(gIofc>0?'#2E7D32':'var(--c-red)')+'"><b>'+r2(gIofc,0)+'</b></td>';
+    h+='<td>'+r2(r.prog,1)+'</td></tr>'});
+  h+='</tbody><tfoot><tr><td colspan="7"><b>RAZEM IOFC dziennie</b></td><td><b>'+r2(sumIofc,0)+' zł</b></td><td></td></tr>';
+  h+='<tr><td colspan="7"><b>Miesięcznie (30 dni)</b></td><td><b>'+r2(sumIofc*30,0)+' zł</b></td><td></td></tr></tfoot></table></div>';
+  // Progi wydajności
+  h+='<div style="padding:12px"><div style="font-size:13px;font-weight:700;color:var(--c-pri-d);margin-bottom:6px">IOFC przy różnych poziomach wydajności (zł/szt/dzień)</div>';
+  h+='<div class="tw"><table class="dt"><thead><tr><th>Grupa</th>';
+  const levels=[20,25,30,35,40,45,50];
+  levels.forEach(l=>{h+='<th>'+l+' kg</th>'});
+  h+='</tr></thead><tbody>';
+  rows.forEach(r=>{h+='<tr><td>'+r.nazwa+'<br><span style="font-size:9px;color:var(--c-txt2)">obecnie '+r2(r.mleko,1)+' kg</span></td>';
+    levels.forEach(l=>{const v=l*cenaMleka-r.koszt;
+      const near=Math.abs(l-r.mleko)<2.5;
+      h+='<td style="color:'+(v>0?'#2E7D32':'var(--c-red)')+(near?';background:var(--c-gold-bg);font-weight:700':'')+'">'+r2(v,2)+'</td>'});
+    h+='</tr>'});
+  h+='</tbody></table></div>';
+  h+='<div style="font-size:11px;color:var(--c-txt2);margin-top:6px">Podświetlona kolumna = poziom najbliższy obecnej wydajności grupy. Próg zera to wydajność, przy której przychód pokrywa koszt paszy (bez pozostałych kosztów produkcji).</div>';
+  h+='</div></div>';
+  return h;
+}
+function setCenaMleka(v){cenaMleka=parseFloat(String(v).replace(',','.'))||0;SV('cenaMleka',cenaMleka);
+  if(fbDb&&fbInitialLoaded)fbDb.collection('farm_data').doc('config').set({cenaMleka},{merge:true}).catch(()=>{});
+  rWyd($('#wyd-month').value)}
 
 /* ---------- MAPOWANIE RAS ---------- */
 function openRasMap(){

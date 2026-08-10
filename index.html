@@ -1084,8 +1084,9 @@ function rWyd(month){
   if(wydGroup==='all'){
     const grpTiles=[];
     ['HF','MO','INNE'].forEach(gk=>{
-      let a=A(wydParity+'|'+gk+'|RAZEM');
-      if(!a&&hasRaw){const selRows=wydRaw.rows.filter(r=>r.g===gk&&(wydParity==='all'||r.par===wydParity));a=aggCell(selRows)}
+      let a=null;
+      if(hasRaw&&wydRaw&&wydRaw.rows){const selRows=wydRaw.rows.filter(r=>r.g===gk&&(wydParity==='all'||r.par===wydParity));if(selRows.length)a=aggCell(selRows)}
+      if(!a)a=A(wydParity+'|'+gk+'|RAZEM');
       if(a)grpTiles.push({gk,a});
     });
     if(grpTiles.length){h+='<div class="wyd-tiles" style="padding-top:0">';
@@ -1118,9 +1119,13 @@ function rWyd(month){
   h+=renderEkonomia(agg);
   // Flags
   if(hasRaw){
-    // przelicz flagi na bieżąco — dzięki temu nowe kolumny działają bez ponownego importu
-    wydFlags={month:month,flags:buildWydFlags(wydRaw.rows)};SV('wydFlags',wydFlags);
-    h+='<div style="padding:12px"><div style="font-size:14px;font-weight:700;color:var(--c-pri-d);margin-bottom:8px">Listy interwencyjne</div>';
+    // flagi liczone dla bieżącego filtra (grupa + parzystość)
+    const flagRows=wydRaw.rows.filter(r=>(wydGroup==='all'||r.g===wydGroup)&&(wydParity==='all'||r.par===wydParity));
+    wydFlags={month:month,flags:buildWydFlags(flagRows)};SV('wydFlags',wydFlags);
+    const PARL2={all:'wszystkie sztuki',p1:'pierwiastki',p2:'wieloródki'};
+    const filtTxt=(wydGroup==='all'?'całe stado':wydGroup)+' · '+PARL2[wydParity];
+    h+='<div style="padding:12px"><div style="font-size:14px;font-weight:700;color:var(--c-pri-d);margin-bottom:2px">Listy interwencyjne</div>';
+    h+='<div style="font-size:11px;color:var(--c-txt2);margin-bottom:8px">Filtr: <b>'+filtTxt+'</b> — listy zawierają tylko sztuki z wybranej kategorii</div>';
     Object.entries(FLAG_LABELS).forEach(([k,lbl])=>{
       const arr=wydFlags.flags[k]||[];
       h+='<div class="wyd-flag"><div class="wyd-flag-h'+(arr.length?'':' zero')+'" onclick="toggleSnapDetail(\'flag-'+k+'\')"><span>'+lbl+'</span><span class="cnt">'+arr.length+'</span></div>';
@@ -1135,7 +1140,8 @@ function rWyd(month){
       h+='</div></div>';
     });
     // SARA structural note
-    const saraHf=A('all|HF|RAZEM'),saraMo=A('all|MO|RAZEM');
+    const saraFrom=gk=>{if(hasRaw&&wydRaw&&wydRaw.rows){const rr=wydRaw.rows.filter(r=>r.g===gk&&(wydParity==='all'||r.par===wydParity));if(rr.length)return aggCell(rr)}return A(wydParity+'|'+gk+'|RAZEM')};
+    const saraHf=saraFrom('HF'),saraMo=saraFrom('MO');
     if(saraHf&&saraMo){
       h+='<div style="margin-top:10px;padding:10px;background:var(--c-pri-l);border-radius:6px;font-size:12px">';
       h+='<b>Wskaźnik strukturalny dawki (% sztuk z tł/bi &lt; 1,0):</b><br>';

@@ -637,6 +637,7 @@ function showWozDetail(gi){
     h+='<div id="woz-info" style="padding:8px;font-size:12px;color:var(--c-txt2);background:var(--c-pri-l);border-radius:6px;margin:8px 0"></div>';
     // Confirm
     h+='<button class="woz-confirm-btn bp" onclick="confirmWoz(\''+g.id+'\','+gi+')">✓ Potwierdź realizację wozu</button>';
+    h+='<div style="text-align:center;margin-top:8px"><button class="btn bo" onclick="printWozPreview('+gi+')">📄 Drukuj recepturę (PDF)</button></div>';
   }
   h+='</div>';
   opM(g.nazwa+' — '+g.realSz+' szt',h,'<button class="btn bo" onclick="clM()">Zamknij</button>');
@@ -682,6 +683,20 @@ function confirmWoz(gid,gi){
   sa(true,'logi');pushModule('surowce');clM();rWoz();toast(g.nazwa+' — wóz zarejestrowany')}
 
 function undoWoz(gid){if(!confirm('Cofnąć ten wpis? Stany surowców NIE zostaną automatycznie przywrócone.'))return;const key=todayKey();if(wozLog[key])wozLog[key]=wozLog[key].filter(e=>e.gid!==gid);sa(true,'logi');rWoz();toast('Usunięto')}
+
+function printWozPreview(gi){
+  const g=gr[gi];const tsz=g.se.reduce((a,s)=>a+s.sz,0);
+  const zadEl=$('#woz-zadana');const niedEl=$('#woz-nied');
+  const zadana=zadEl?+zadEl.value||0:r2(g.sk.reduce((a,x)=>a+x.kg,0)*tsz*(g.z||1),0);
+  const nied=niedEl?+niedEl.value||0:0;
+  const trOut=getTransfersOut(g.id);const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);
+  const naStole=zadana-trOut+trIn;const perKrowa=g.realSz>0?r2(naStole/g.realSz,1):0;
+  let h=buildWozTable(gi,zadana,nied);
+  if(trOut>0){let det=[];gr.forEach(og=>{(og.transfery||[]).forEach(t=>{if(t.fromGid===g.id)det.push(og.nazwa+': '+t.kg+' kg')})});
+    h+='<div style="margin-top:10px;font-size:13pt;color:#1565C0"><b>⚠ '+trOut+' kg z tego wozu → '+det.join(', ')+'</b></div>'}
+  h+='<div style="margin-top:10px;font-size:13pt"><b>Szt. realne:</b> '+g.realSz+' · <b>Na stole:</b> '+naStole+' kg · <b>Per krowa:</b> '+perKrowa+' kg'+(nied>0?' · <b>Niedojady:</b> '+nied+' kg':'')+'</div>';
+  prn(g.nazwa+' — receptura wozu — '+fmtDate(new Date()),h);
+}
 
 function printWozCard(gi){
   const g=gr[gi];const log=getGLog(g.id);if(!log)return;

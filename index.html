@@ -180,6 +180,7 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const r2=(v,d=1)=>{const f=10**d;return Math.round(v*f)/f};
+const pv=v=>{const s=String(v==null?'':v).replace(',','.').trim();const n=parseFloat(s);return isNaN(n)?0:n};
 function LD(k,fb){try{const v=localStorage.getItem('stu_'+k);return v?JSON.parse(v):fb}catch{return fb}}
 function SV(k,v){localStorage.setItem('stu_'+k,JSON.stringify(v))}
 let _tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2e3)}
@@ -428,7 +429,7 @@ function rSur(){
     if(du>0){const days=Math.floor(stanKg/du);const dt=new Date();dt.setDate(dt.getDate()+days);wyst='<span class="'+(days<14?'sur-warn':'sur-ok')+'">'+fmtDate(dt)+' ('+days+'d)</span>'}
     h+='<tr><td><span style="display:inline-flex;flex-direction:column;margin-right:3px;line-height:1;vertical-align:middle">'+(i>0?'<button onclick="mvS('+i+',-1)" style="border:none;background:none;cursor:pointer;font-size:9px">▲</button>':'<span style="font-size:9px;opacity:.2">▲</span>')+(i<sur.length-1?'<button onclick="mvS('+i+',1)" style="border:none;background:none;cursor:pointer;font-size:9px">▼</button>':'<span style="font-size:9px;opacity:.2">▼</span>')+'</span>'+s.nazwa+' <button class="btn bs" style="padding:1px 4px;font-size:9px;background:none;color:var(--c-pri);border:1px solid var(--c-brd)" onclick="eSurN('+i+')">✎</button></td>';
     h+='<td><select style="width:85px;font-size:10px;padding:2px" onchange="sur['+i+'].kat=this.value;sa()">';['obj','tres','dod'].forEach(k=>{h+='<option value="'+k+'"'+((s.kat||'obj')===k?' selected':'')+'>'+KAT_LABELS[k]+'</option>'});
-    h+='</select></td><td><input step="1" value="'+r2(s.cena_t,0)+'" onchange="sur['+i+'].cena_t=+this.value;sa()"></td><td><input step="0.01" value="'+r2(s.stan_t,2)+'" onchange="sur['+i+'].stan_t=+this.value;sa();rSur()"></td>';
+    h+='</select></td><td><input step="1" value="'+r2(s.cena_t,0)+'" onchange="sur['+i+'].cena_t=pv(this.value);sa()"></td><td><input step="0.01" value="'+r2(s.stan_t,2)+'" onchange="sur['+i+'].stan_t=pv(this.value);sa();rSur()"></td>';
     h+='<td>'+r2(du,1)+' kg</td><td style="text-align:left;font-family:var(--font);font-size:11px">'+wyst+'</td>';
     h+='<td><button class="btn bs bd" onclick="if(confirm(\'Usunąć?\')){sur.splice('+i+',1);sa(true,\'surowce\');rSur()}">✕</button></td></tr>';
   });
@@ -437,14 +438,14 @@ function rSur(){
 function mvS(i,d){const j=i+d;if(j<0||j>=sur.length)return;[sur[i],sur[j]]=[sur[j],sur[i]];sa(true,'surowce');rSur();rDk()}
 function eSurN(i){opM('Edytuj surowiec','<div class="fg" style="margin-bottom:8px"><label>Nazwa</label><input type="text" id="esn" value="'+sur[i].nazwa+'"></div><div class="fg"><label>SM %</label><input type="number" id="esm" value="'+sur[i].proc_sm+'"></div>','<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="sur['+i+'].nazwa=$(\'#esn\').value.trim();sur['+i+'].proc_sm=+$(\'#esm\').value||0;sa(true,\'surowce\');clM();rSur();rDk();toast(\'OK\')">Zapisz</button>')}
 function addSur(){opM('Dodaj surowiec','<div class="fg" style="margin-bottom:8px"><label>Nazwa</label><input type="text" id="as-n"></div><div style="display:flex;gap:8px;margin-bottom:8px"><div class="fg"><label>Kategoria</label><select id="as-kat"><option value="obj">Objętościowa</option><option value="tres">Treściwa</option><option value="dod">Dodatek</option></select></div><div class="fg"><label>SM %</label><input type="number" id="as-sm" value="88"></div></div><div style="display:flex;gap:8px"><div class="fg"><label>Cena PLN/t</label><input type="number" id="as-c" value="0"></div><div class="fg"><label>Stan (t)</label><input type="number" id="as-s" step="0.01" value="0"></div></div>','<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="okAS()">Dodaj</button>')}
-function okAS(){const n=$('#as-n').value.trim();if(!n){toast('Podaj nazwę');return}sur.push({id:uid(),nazwa:n,proc_sm:+$('#as-sm').value||88,cena_t:+$('#as-c').value||0,stan_t:+$('#as-s').value||0,kat:$('#as-kat').value||'obj'});sa(true,'surowce');clM();rSur();toast('Dodano')}
+function okAS(){const n=$('#as-n').value.trim();if(!n){toast('Podaj nazwę');return}sur.push({id:uid(),nazwa:n,proc_sm:pv($('#as-sm').value)||88,cena_t:pv($('#as-c').value)||0,stan_t:pv($('#as-s').value)||0,kat:$('#as-kat').value||'obj'});sa(true,'surowce');clM();rSur();toast('Dodano')}
 
 /* ===== DAWKI ===== */
 function rDk(){
   const used=new Set();gr.forEach(g=>g.sk.forEach(sk=>used.add(sk.s)));const allS=sur.filter(s=>used.has(s.id)).map(s=>s.id);
   // Table 1: Dawka wyliczona
   let h='<table class="fe"><thead><tr><th rowspan="2" style="text-align:left;min-width:180px">Nazwa</th>';
-  gr.forEach((g,gi)=>{h+='<th class="gh">'+g.nazwa+'<br><span style="font-weight:400;font-size:8px">'+(canEdit()?'<input value="'+g.realSz+'" style="width:35px;padding:1px 2px;font-size:8px;text-align:center;border:1px solid rgba(255,255,255,.4);border-radius:3px;background:rgba(255,255,255,.15);color:#fff;font-family:var(--mono)" onchange="gr['+gi+'].realSz=+this.value;sa(false,\'grupy\');rDk()">':g.realSz)+' szt · '+(g.z||1)+'×/d</span> <button style="border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;font-size:8px;padding:0 3px;border-radius:3px;cursor:pointer" onclick="pDkGr('+gi+',\'wyl\')">📄</button></th>'});
+  gr.forEach((g,gi)=>{h+='<th class="gh">'+g.nazwa+'<br><span style="font-weight:400;font-size:8px">'+(canEdit()?'<input value="'+g.realSz+'" style="width:35px;padding:1px 2px;font-size:8px;text-align:center;border:1px solid rgba(255,255,255,.4);border-radius:3px;background:rgba(255,255,255,.15);color:#fff;font-family:var(--mono)" onchange="gr['+gi+'].realSz=pv(this.value);sa(false,\'grupy\');rDk()">':g.realSz)+' szt · '+(g.z||1)+'×/d</span> <button style="border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;font-size:8px;padding:0 3px;border-radius:3px;cursor:pointer" onclick="pDkGr('+gi+',\'wyl\')">📄</button></th>'});
   h+='</tr></thead><tbody>';
   allS.forEach((sid,ri)=>{const s=gS(sid);if(!s)return;const si=sur.indexOf(s);
     h+='<tr><td title="'+s.nazwa+'">';
@@ -464,9 +465,9 @@ function rDk(){
     const naStole=zadana-trOut+trIn;
     const perKrowa=g.realSz>0?r2(naStole/g.realSz,1):0;const pct=dWyl>0&&g.realSz>0?r2(perKrowa/dWyl*100,0):0;
     dr+='<tr><td>'+g.nazwa+'</td>';
-    dr+='<td>'+(canEdit()?'<input value="'+tsz+'" style="width:55px" onchange="gr['+gi+'].se[0].sz=+this.value;sa(false,\'grupy\');rDk();rSur()">':tsz)+'</td>';
+    dr+='<td>'+(canEdit()?'<input value="'+tsz+'" style="width:55px" onchange="gr['+gi+'].se[0].sz=pv(this.value);sa(false,\'grupy\');rDk();rSur()">':tsz)+'</td>';
     dr+='<td>'+r2(dWyl,1)+'</td>';
-    dr+='<td>'+(canEdit()?'<input value="'+(g.zadanaKg||'')+'" style="width:70px" placeholder="auto" onchange="gr['+gi+'].zadanaKg=+this.value||0;sa(false,\'grupy\');rDk();rSur()">':zadana)+'</td>';
+    dr+='<td>'+(canEdit()?'<input value="'+(g.zadanaKg||'')+'" style="width:70px" placeholder="auto" onchange="gr['+gi+'].zadanaKg=pv(this.value)||0;sa(false,\'grupy\');rDk();rSur()">':zadana)+'</td>';
     // Transfery: show both IN and OUT
     let trStr='';
     if(trOut>0){let det=[];gr.forEach(og=>{(og.transfery||[]).forEach(t=>{if(t.fromGid===g.id)det.push('−'+t.kg+' → '+og.nazwa)})});trStr+='<span style="color:var(--c-red)">'+det.join(', ')+'</span> '}
@@ -479,14 +480,14 @@ function rDk(){
   // Table 3: Dawka realna matrix
   rDkRealMatrix(allS);
 }
-function uDk(gi,sid,el){const v=+el.value||0;let item=gr[gi].sk.find(x=>x.s===sid);if(!item)gr[gi].sk.push({s:sid,kg:v});else item.kg=v;dawkiChanged=true;clearTimeout(dawkiSnapTimer);dawkiSnapTimer=setTimeout(()=>maybeSaveDawkiSnapshot(),3600000);sa(false,'grupy');rDk();rSur()}
+function uDk(gi,sid,el){const v=pv(el.value);let item=gr[gi].sk.find(x=>x.s===sid);if(!item)gr[gi].sk.push({s:sid,kg:v});else item.kg=v;dawkiChanged=true;clearTimeout(dawkiSnapTimer);dawkiSnapTimer=setTimeout(()=>maybeSaveDawkiSnapshot(),3600000);sa(false,'grupy');rDk();rSur()}
 function editTransfery(gi){const g=gr[gi];let h='<div style="margin-bottom:10px;font-size:12px;color:var(--c-txt2)">TMR z innych grup trafiający na stół '+g.nazwa+'</div>';
   g.transfery.forEach((t,ti)=>{const src=gr.find(x=>x.id===t.fromGid);h+='<div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-end"><div class="fg"><label>Z grupy</label><span style="font-weight:600">'+(src?src.nazwa:'?')+'</span></div><div class="fg"><label>kg</label><input type="number" id="tr-kg-'+ti+'" value="'+t.kg+'"></div><button class="btn bs bd" onclick="gr['+gi+'].transfery.splice('+ti+',1);sa(true,\'grupy\');clM();editTransfery('+gi+')">✕</button></div>'});
   h+='<div style="display:flex;gap:6px;margin-top:8px;align-items:flex-end"><div class="fg"><label>Dodaj z grupy</label><select id="tr-new-g">'+gr.filter(x=>x.id!==g.id).map(x=>'<option value="'+x.id+'">'+x.nazwa+'</option>').join('')+'</select></div><div class="fg"><label>kg</label><input type="number" id="tr-new-kg" value="0"></div><button class="btn bs bp" onclick="gr['+gi+'].transfery.push({fromGid:$(\'#tr-new-g\').value,kg:+$(\'#tr-new-kg\').value||0});sa(true,\'grupy\');clM();editTransfery('+gi+')">+</button></div>';
   opM('Transfery — '+g.nazwa,h,'<button class="btn bo" onclick="clM();rDk();rSur()">Zamknij</button>')}
 function addDkS(){const ex=new Set();gr.forEach(g=>g.sk.forEach(x=>ex.add(x.s)));const av=sur.filter(s=>!ex.has(s.id));
   opM('Dodaj surowiec do dawek','<div class="fg" style="margin-bottom:8px"><label>Z bazy</label><select id="ad-s"><option value="">—</option>'+av.map(s=>'<option value="'+s.id+'">'+s.nazwa+'</option>').join('')+'</select></div><p style="font-size:12px;color:var(--c-txt2);margin:8px 0">— lub nowy —</p><div class="fg" style="margin-bottom:8px"><label>Nazwa</label><input type="text" id="ad-nn"></div><div style="display:flex;gap:8px"><div class="fg"><label>SM%</label><input type="number" id="ad-sm" value="88"></div><div class="fg"><label>PLN/t</label><input type="number" id="ad-ct" value="0"></div></div>','<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="okADS()">Dodaj</button>')}
-function okADS(){let sid=$('#ad-s').value;const nn=$('#ad-nn').value.trim();if(!sid&&!nn){toast('Wybierz lub wpisz');return}if(nn){sid=uid();sur.push({id:sid,nazwa:nn,proc_sm:+$('#ad-sm').value||88,cena_t:+$('#ad-ct').value||0,stan_t:0,kat:'obj'})}gr.forEach(g=>{if(!g.sk.find(x=>x.s===sid))g.sk.push({s:sid,kg:0})});sa();clM();rDk();rSur();toast('Dodano')}
+function okADS(){let sid=$('#ad-s').value;const nn=$('#ad-nn').value.trim();if(!sid&&!nn){toast('Wybierz lub wpisz');return}if(nn){sid=uid();sur.push({id:sid,nazwa:nn,proc_sm:pv($('#ad-sm').value)||88,cena_t:pv($('#ad-ct').value)||0,stan_t:0,kat:'obj'})}gr.forEach(g=>{if(!g.sk.find(x=>x.s===sid))g.sk.push({s:sid,kg:0})});sa();clM();rDk();rSur();toast('Dodano')}
 
 /* transfers OUT: how much TMR leaves each group to other groups' tables */
 function getTransfersOut(gid){let out=0;gr.forEach(g=>{if(g.id===gid)return;(g.transfery||[]).forEach(t=>{if(t.fromGid===gid)out+=t.kg});});return out}
@@ -660,7 +661,7 @@ function buildWozTable(gi,zadanaKg,niedKg){
 
 function recalcWozTable(gi){
   const zadEl=$('#woz-zadana');const niedEl=$('#woz-nied');if(!zadEl)return;
-  const zadana=+zadEl.value||0;const nied=+niedEl.value||0;
+  const zadana=pv(zadEl.value);const nied=pv(niedEl.value);
   const wrap=$('#woz-table-wrap');if(wrap)wrap.innerHTML=buildWozTable(gi,zadana,nied);
   const g=gr[gi];const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);
   const trOut=getTransfersOut(g.id);const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);
@@ -670,7 +671,7 @@ function recalcWozTable(gi){
 
 function confirmWoz(gid,gi){
   const zadEl=$('#woz-zadana');const niedEl=$('#woz-nied');
-  const zadanaKg=zadEl?+zadEl.value||0:0;const nied=niedEl?+niedEl.value||0:0;
+  const zadanaKg=zadEl?pv(zadEl.value):0;const nied=niedEl?pv(niedEl.value):0;
   if(zadanaKg<=0){toast('Wpisz ile kg załadowałeś');return}
   if(!confirm('Potwierdzić realizację wozu?\n\nZadano: '+zadanaKg+' kg'+(nied>0?'\nNiedojady: '+nied+' kg':'')))return;
   const g=gr.find(x=>x.id===gid);if(!g)return;
@@ -687,8 +688,8 @@ function undoWoz(gid){if(!confirm('Cofnąć ten wpis? Stany surowców NIE zostan
 function printWozPreview(gi){
   const g=gr[gi];const tsz=g.se.reduce((a,s)=>a+s.sz,0);
   const zadEl=$('#woz-zadana');const niedEl=$('#woz-nied');
-  const zadana=zadEl?+zadEl.value||0:r2(g.sk.reduce((a,x)=>a+x.kg,0)*tsz*(g.z||1),0);
-  const nied=niedEl?+niedEl.value||0:0;
+  const zadana=zadEl?pv(zadEl.value):r2(g.sk.reduce((a,x)=>a+x.kg,0)*tsz*(g.z||1),0);
+  const nied=niedEl?pv(niedEl.value):0;
   const trOut=getTransfersOut(g.id);const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);
   const naStole=zadana-trOut+trIn;const perKrowa=g.realSz>0?r2(naStole/g.realSz,1):0;
   let h=buildWozTable(gi,zadana,nied);

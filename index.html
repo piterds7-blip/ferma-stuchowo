@@ -202,7 +202,7 @@ function canPass(){return cR==='tworca'}
 function canEdit(){return cR==='tworca'||cR==='zootechnik'||cR==='zywieniowiec'}
 function doLogin(){const p=$('#lp').value.trim();if(!p){$('#le').textContent='Wpisz hasło';return}const pw=Object.assign({},DEF_PASSES,passes||{});let role=null;for(const[r,v]of Object.entries(pw))if(v===p){role=r;break}if(!role){$('#le').textContent='Nieprawidłowe hasło';return}cR=role;SV('sess',role);showApp()}
 function doLogout(){maybeSaveDawkiSnapshot();cR=null;localStorage.removeItem('stu_sess');$('#app').classList.remove('active');$('#login-screen').classList.remove('hidden');$('#lp').value='';$('#le').textContent=''}
-function showApp(){$('#login-screen').classList.add('hidden');$('#app').classList.add('active');let ex='';if(canPass())ex+='<button class="hdr-btn" onclick="switchTab(\'ustawienia\')" title="Ustawienia">⚙</button>';if(canEdit())ex+='<button class="hdr-btn" onclick="exportBackup()" title="Kopia">⬇</button>';$('#hdr-extra').innerHTML=ex;bTabs();startFbSync();setTimeout(()=>maybeDailySnapshot(),3000)}
+function showApp(){$('#login-screen').classList.add('hidden');$('#app').classList.add('active');let ex='';if(canPass())ex+='<button class="hdr-btn" onclick="switchTab(\'ustawienia\')" title="Ustawienia">⚙</button>';if(canEdit())ex+='<button class="hdr-btn" onclick="exportBackup()" title="Kopia">⬇</button>';$('#hdr-extra').innerHTML=ex;bTabs();startFbSync();setTimeout(()=>{maybeDailySnapshot();maybeDailyDeduction()},3000)}
 function bTabs(){const ts=RT[cR]||[];$('#app-nav').innerHTML=ts.map((t,i)=>'<button class="nav-tab'+(i===0?' active':'')+'" data-tab="'+t+'">'+TI[t]+' '+TL[t]+'</button>').join('');$$('.tab-panel').forEach(p=>p.classList.remove('active'));if(ts[0])$('#tab-'+ts[0]).classList.add('active');$('#app-nav').querySelectorAll('.nav-tab').forEach(bt=>bt.addEventListener('click',()=>{const prev=document.querySelector('.nav-tab.active');if(prev&&prev.dataset.tab==='dawki')maybeSaveDawkiSnapshot();$('#app-nav').querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));$$('.tab-panel').forEach(p=>p.classList.remove('active'));bt.classList.add('active');$('#tab-'+bt.dataset.tab).classList.add('active');oT(bt.dataset.tab)}));if(ts[0])oT(ts[0])}
 function switchTab(tabId){const prev=document.querySelector('.nav-tab.active');if(prev&&prev.dataset.tab==='dawki')maybeSaveDawkiSnapshot();$('#app-nav').querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));$$('.tab-panel').forEach(p=>p.classList.remove('active'));const btn=$('#app-nav').querySelector('[data-tab="'+tabId+'"]');if(btn)btn.classList.add('active');$('#tab-'+tabId).classList.add('active');oT(tabId)}
 function oT(t){const m={surowce:rSur,dawki:rDk,koszty:rKoszty,paszowoz:rWoz,'suchy-tmr':rStmr,raporty:rRap,wydajnosc:()=>rWyd(),ustawienia:()=>{renderPwFields();renderContactFields()}};if(m[t])m[t]()}
@@ -409,6 +409,39 @@ function renderPwFields(){const pw=Object.assign({},DEF_PASSES,passes||{});const
 function savePasswords(){passes={tworca:$('#pw-tworca').value.trim()||DEF_PASSES.tworca,zootechnik:$('#pw-zootechnik').value.trim()||DEF_PASSES.zootechnik,zywieniowiec:$('#pw-zywieniowiec').value.trim()||DEF_PASSES.zywieniowiec,paszowoz:$('#pw-paszowoz').value.trim()||DEF_PASSES.paszowoz};SV('passes',passes);if(fbDb)fbDb.collection('farm_data').doc('config').set({passes}).catch(()=>{});toast('Hasła zapisane')}
 function exportBackup(){const d=JSON.stringify(collectState(),null,2);const b=new Blob([d],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='stuchowo_'+isoDate(new Date())+'.json';a.click();toast('Kopia pobrana')}
 function importBackup(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{if(!confirm('Nadpisać WSZYSTKIE dane z kopii?'))return;try{const d=JSON.parse(ev.target.result);fbApplyingRemote=true;if(d.sur)sur=d.sur;if(d.gr){gr=d.gr;migrateGroups()}if(d.contactData)contactData=d.contactData;if(d.stmrRecipe)stmrRecipe=d.stmrRecipe;if(d.stmrHistory)stmrHistory=d.stmrHistory;if(d.wozLog)wozLog=d.wozLog;if(d.dawkiHistory)dawkiHistory=d.dawkiHistory;svAll();fbApplyingRemote=false;pushToFb(true);const a=document.querySelector('.nav-tab.active');if(a)oT(a.dataset.tab);toast('Przywrócono z kopii')}catch(e){toast('Błąd: '+e.message)}};r.readAsText(f)};i.click()}
+
+/* ===== AUTO-DEDUCTION: odejmowanie dziennego zużycia ze stanów ===== */
+function maybeDailyDeduction(){
+  const today=isoDate(new Date());
+  const lastDeduct=LD('lastAutoDeduct','');
+  if(lastDeduct===today)return; // już odjęto dzisiaj
+  // Sprawdź, które grupy zostały potwierdzone przez wóz dzisiaj
+  const todayLog=wozLog[today]||[];
+  const confirmedGroups=new Set(todayLog.map(e=>e.gid));
+  // Dla grup, które NIE zostały potwierdzone przez wóz, odejmij automatycznie
+  let anyDeducted=false;
+  gr.forEach(g=>{
+    if(confirmedGroups.has(g.id))return; // ta grupa już odjęta przez wóz
+    const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);
+    if(!totRecipe)return;
+    const tsz=g.se.reduce((a,s)=>a+s.sz,0);
+    const zadana=g.zadanaKg>0?g.zadanaKg:totRecipe*tsz*(g.z||1);
+    // Odejmij proporcjonalnie z każdego surowca
+    g.sk.forEach(sk=>{
+      if(sk.kg<=0)return;const s=gS(sk.s);if(!s)return;
+      const prop=sk.kg/totRecipe;
+      const usedKg=prop*zadana*(g.z||1);
+      s.stan_t=Math.max(0,r2(s.stan_t-usedKg/1000,4));
+    });
+    anyDeducted=true;
+  });
+  SV('lastAutoDeduct',today);
+  if(anyDeducted){
+    sa(true,'surowce');
+    const a=document.querySelector('.nav-tab.active');
+    if(a&&a.dataset.tab==='surowce')rSur();
+  }
+}
 
 /* ===== SUROWCE ===== */
 function dailyUse(sid){
@@ -954,6 +987,7 @@ function confirmWydImport(){
   wydRaw={month,rows:res.rows};wydFlags={month,flags};
   SV('wydIndex',wydIndex);SV('wydSnapshots',wydSnapshots);SV('wydRaw',wydRaw);SV('wydFlags',wydFlags);
   pushWydSnapshot(month,snap);
+  pushWydRaw(month,res.rows);
   _pendingImport=null;clM();rWyd(month);toast('Snapshot '+month+' zapisany');
 }
 
@@ -1072,6 +1106,7 @@ function rWyd(month){
   if(!month||!wydSnapshots[month]){cont.innerHTML='<div class="empty-state"><h3>Brak wczytanych danych</h3><p>Wczytaj plik .xlsx wyeksportowany z SOLa</p></div>';return}
   const snap=wydSnapshots[month];
   const hasRaw=wydRaw&&wydRaw.month===month;
+  if(!hasRaw&&month){loadWydRawFromFb(month);} // pobierz surowe wiersze z Firebase jeśli brak lokalnie
   const agg=hasRaw?buildWydAggregates(wydRaw.rows):snap.agg;   // przelicz z surowych, jeśli są (przełącznik faz)
   const c=snap.counts;
   let h='';
@@ -1335,6 +1370,25 @@ function pushWydSnapshot(month,snap){
   fbDb.collection('farm_data').doc('wydajnosc_'+month).set(Object.assign({},snap,{_ts:Date.now()}))
     .then(()=>fbDb.collection('farm_data').doc('wydajnosc_index').set({months:wydIndex,_ts:Date.now()}))
     .then(()=>setSyncBadge('ok')).catch(()=>setSyncBadge('offline'));
+}
+function pushWydRaw(month,rows){
+  if(!fbDb||!fbInitialLoaded)return;
+  fbDb.collection('farm_data').doc('wydajnosc_raw_'+month).set({month,rows,_ts:Date.now()})
+    .then(()=>setSyncBadge('ok')).catch(()=>setSyncBadge('offline'));
+}
+function loadWydRawFromFb(month){
+  if(!fbDb||!month)return;
+  fbDb.collection('farm_data').doc('wydajnosc_raw_'+month).get().then(doc=>{
+    if(doc.exists){
+      const d=doc.data();
+      if(d.rows&&d.rows.length){
+        wydRaw={month:d.month||month,rows:d.rows};
+        SV('wydRaw',wydRaw);
+        const a=document.querySelector('.nav-tab.active');
+        if(a&&a.dataset.tab==='wydajnosc')rWyd(month);
+      }
+    }
+  }).catch(()=>{});
 }
 function loadWydIndex(){
   if(!fbDb)return;

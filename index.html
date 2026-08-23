@@ -114,7 +114,14 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
 #pa{display:none}
 @media print{body>*{display:none!important}#pa{display:block!important;position:absolute;left:0;top:0;width:100%;padding:10mm;font-size:12pt;color:#000}
 #pa table{border-collapse:collapse;width:100%}#pa th,#pa td{border:1px solid #555;padding:6px 8px;font-size:12pt}#pa th{background:#ddd!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-#pa h2{font-size:16pt;margin-bottom:4px}#pa .pm{font-size:10pt;color:#555;margin-bottom:10px}@page{size:A4;margin:10mm}}
+#pa h2{font-size:16pt;margin-bottom:4px}#pa .pm{font-size:10pt;color:#555;margin-bottom:10px}
+#pa.land table th,#pa.land table td{font-size:15pt;font-weight:700;padding:7px 6px}
+#pa.land table th{background:#ccc!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:14pt}
+#pa.land h2{font-size:20pt}
+#pa.land .tr-note{font-size:13pt;font-weight:700;color:#000;margin-top:10px;padding:8px;border:2px solid #555}
+#pa.land .sumrow td{background:#e8e8e8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:17pt}
+@page{size:A4;margin:10mm}}
+@media print{body.landscape #pa{}@page landscape{size:A4 landscape;margin:8mm}}
 @media(max-width:480px){.fr{flex-direction:column;gap:6px}.fg{min-width:0}}
 </style>
 </head>
@@ -137,7 +144,7 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
     </div>
     <!-- KOSZTY --><div class="tab-panel" id="tab-koszty"><div class="card"><div class="ch"><span>Koszt na sztukę/dzień</span><button class="btn bs bp" style="opacity:.7" onclick="pKoszty()">📄</button></div><div class="tw" id="kos-s1"></div></div><div class="card"><div class="ch">Zużycie wg kategorii</div><div class="tw" id="kos-s2"></div></div><div class="card"><div class="ch">Koszt wg grup</div><div class="tw" id="kos-s3"></div></div></div>
     <!-- PASZOWÓZ --><div class="tab-panel" id="tab-paszowoz">
-      <div style="padding:12px 14px 4px;display:flex;justify-content:space-between;align-items:center"><div><span style="font-size:17px;font-weight:700;color:var(--c-pri-d)">Dawki do realizacji</span><br><span style="font-size:12px;color:var(--c-txt2)" id="woz-date"></span></div></div>
+      <div style="padding:12px 14px 4px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div><span style="font-size:17px;font-weight:700;color:var(--c-pri-d)">Dawki do realizacji</span><br><span style="font-size:12px;color:var(--c-txt2)" id="woz-date"></span></div><button class="btn bp" onclick="printKartaZaladunku()" style="padding:10px 16px;font-size:14px">🖨 Drukuj kartę załadunku</button></div>
       <div id="woz-panel"></div>
       <div class="card" style="margin:0 0 12px"><div class="ch"><span>Dzisiejszy dziennik</span></div><div id="woz-log-panel"></div></div>
     </div>
@@ -741,6 +748,82 @@ function printWozCard(gi){
   prn(g.nazwa+' — '+fmtDate(new Date())+' '+log.time,h);
 }
 
+
+/* ---------- ZBIORCZA KARTA ZAŁADUNKU (wszystkie grupy, A4 poziomo) ---------- */
+function printKartaZaladunku(){
+  const today=todayKey();
+  const log=wozLog[today]||[];
+  // Kolejność surowców zgodna z zakładką Surowce
+  const used=new Set();gr.forEach(g=>g.sk.forEach(sk=>{if(sk.kg>0)used.add(sk.s)}));
+  const surOrder=sur.filter(x=>used.has(x.id));
+  // Dane per grupa: zadana kg, niedojady (z dziennika, jeśli zrealizowano)
+  const cols=gr.map(g=>{
+    const entry=log.find(e=>e.gid===g.id);
+    const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);
+    const tsz=g.se.reduce((a,ss)=>a+ss.sz,0);
+    const zadana=entry?entry.zadanaKg:(g.zadanaKg>0?g.zadanaKg:r2(totRecipe*tsz*(g.z||1),0));
+    const nied=entry?(entry.niedojady||0):0;
+    const trOut=getTransfersOut(g.id);
+    const trIn=(g.transfery||[]).reduce((a,t)=>a+t.kg,0);
+    return{g,zadana,nied,trOut,trIn,totRecipe,tsz,done:!!entry};
+  });
+  let h='<table style="width:100%;border-collapse:collapse">';
+  // Nagłówek
+  h+='<thead><tr><th style="text-align:left">Składnik</th>';
+  cols.forEach(c=>{h+='<th>'+c.g.nazwa+'<br><span style="font-size:11pt;font-weight:600">'+c.g.realSz+' szt'+(c.done?' ✓':'')+'</span></th>'});
+  h+='</tr></thead><tbody>';
+  // Wiersz niedojadów (jeśli gdziekolwiek są)
+  const anyNied=cols.some(c=>c.nied>0);
+  const running=cols.map(c=>c.nied>0?c.nied:0);
+  if(anyNied){
+    h+='<tr><td style="text-align:left">🔄 Niedojady</td>';
+    cols.forEach((c,i)=>{h+='<td>'+(c.nied>0?c.nied:'—')+'</td>'});
+    h+='</tr>';
+  }
+  // Surowce — narastająco "w wozie"
+  surOrder.forEach(sv=>{
+    let rowHasValue=false;const cells=[];
+    cols.forEach((c,i)=>{
+      const item=c.g.sk.find(x=>x.s===sv.id);
+      if(!item||item.kg<=0||c.totRecipe<=0){cells.push('');return}
+      const fresh=Math.max(0,c.zadana-c.nied);
+      const naWoz=r2((item.kg/c.totRecipe)*fresh,0);
+      if(naWoz>0){running[i]+=naWoz;rowHasValue=true;cells.push(running[i])}
+      else cells.push('');
+    });
+    if(rowHasValue){
+      h+='<tr><td style="text-align:left">'+sv.nazwa+'</td>';
+      cells.forEach(v=>{h+='<td>'+(v===''?'':v)+'</td>'});
+      h+='</tr>';
+    }
+  });
+  // Suma
+  h+='<tr class="sumrow"><td style="text-align:left"><b>RAZEM W WOZIE</b></td>';
+  cols.forEach((c,i)=>{h+='<td><b>'+running[i]+' kg</b></td>'});
+  h+='</tr></tbody></table>';
+  // Adnotacje o transferach
+  let notes=[];
+  cols.forEach(c=>{
+    if(c.trOut>0){let det=[];gr.forEach(og=>{(og.transfery||[]).forEach(t=>{if(t.fromGid===c.g.id)det.push(t.kg+' kg → '+og.nazwa)})});
+      notes.push('<b>'+c.g.nazwa+'</b>: zrzuć '+det.join(', '))}
+  });
+  if(notes.length)h+='<div class="tr-note"><b>⚠ TRANSFERY PASZY:</b><br>'+notes.join('<br>')+'</div>';
+  if(anyNied){
+    let nd=cols.filter(c=>c.nied>0).map(c=>c.g.nazwa+': '+c.nied+' kg');
+    h+='<div class="tr-note" style="margin-top:6px"><b>NIEDOJADY WRZUCONE DO WOZU:</b> '+nd.join(' · ')+'</div>';
+  }
+  h+='<div style="margin-top:14px;font-size:12pt">Podpis operatora: ......................................................</div>';
+  prnLand('KARTA ZAŁADUNKU — '+fmtDate(new Date()),h);
+}
+function prnLand(t,h){
+  const pa=$('#pa');pa.className='land';
+  pa.innerHTML='<h2>'+t+'</h2><div class="pm">Ferma Stuchowo</div>'+h;
+  const st=document.createElement('style');st.id='land-style';
+  st.textContent='@page{size:A4 landscape;margin:8mm}';
+  document.head.appendChild(st);
+  setTimeout(()=>{window.print();setTimeout(()=>{const e=$('#land-style');if(e)e.remove();pa.className=''},500)},200);
+}
+
 /* ===== RAPORTY ===== */
 function rRap(){rRapDawki();rRapWoz();rRapNied();rRapDR()}
 function rRapDawki(){
@@ -750,17 +833,17 @@ function rRapDawki(){
     const ri=dawkiHistory.length-1-idx;
     const prevSnap=ri>0?dawkiHistory[ri-1]:null;
     h+='<div style="border:1px solid var(--c-brd);border-radius:8px;margin-bottom:8px;overflow:hidden"><div style="padding:8px 12px;background:var(--c-pri-l);display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleSnapDetail(\'snap-'+ri+'\')">';
-    h+='<span><b>'+snap.date+' '+snap.time+'</b> — '+snap.role+(prevSnap?' <span style="font-size:11px;font-weight:400;color:var(--c-txt2)">(zmiany na czerwono)</span>':'')+'</span><span style="font-size:11px;color:var(--c-txt2)">▼ rozwiń</span></div>';
+    h+='<span style="font-size:15px;font-weight:700"><b>'+snap.date+' '+snap.time+'</b> — '+snap.role+(prevSnap?' <span style="font-size:12px;font-weight:500;color:var(--c-txt2)">(zmiany na czerwono)</span>':'')+'</span><span style="font-size:12px;font-weight:600;color:var(--c-txt2)">▼ rozwiń</span></div>';
     h+='<div id="snap-'+ri+'" style="display:none;padding:10px;overflow-x:auto">';
     // Build snapshot table with diff highlighting
-    h+='<table class="fe" style="font-size:10px"><thead><tr><th style="text-align:left">Surowiec</th>';
-    snap.snapshot.forEach(g=>{h+='<th>'+g.nazwa+'</th>'});h+='</tr></thead><tbody>';
+    h+='<table class="fe" style="font-size:13px;font-weight:600"><thead><tr><th style="text-align:left;font-size:12px">Surowiec</th>';
+    snap.snapshot.forEach(g=>{h+='<th style="font-size:12px">'+g.nazwa+'</th>'});h+='</tr></thead><tbody>';
     const allNames=new Set();snap.snapshot.forEach(g=>g.sk.forEach(x=>allNames.add(x.nazwa)));
-    allNames.forEach(name=>{h+='<tr><td>'+name+'</td>';snap.snapshot.forEach(g=>{
+    allNames.forEach(name=>{h+='<tr><td style="font-size:13px;font-weight:600">'+name+'</td>';snap.snapshot.forEach(g=>{
       const it=g.sk.find(x=>x.nazwa===name);const val=it?r2(it.kg,2):null;
       let changed=false;
       if(prevSnap){const prevG=prevSnap.snapshot.find(x=>x.nazwa===g.nazwa);const prevIt=prevG?prevG.sk.find(x=>x.nazwa===name):null;const prevVal=prevIt?r2(prevIt.kg,2):null;if(prevVal!==val)changed=true}
-      h+='<td'+(changed?' style="color:var(--c-red);font-weight:700"':'')+'>'+(val!=null?val:'')+'</td>'});h+='</tr>'});
+      h+='<td'+(changed?' style="color:var(--c-red);font-weight:800;font-size:14px"':' style="font-size:13px"')+'>'+(val!=null?val:'')+'</td>'});h+='</tr>'});
     h+='</tbody></table>';
     h+='<div style="margin-top:6px;display:flex;gap:6px"><button class="btn bs bp" style="opacity:.7" onclick="printSnap('+ri+')">📄 Drukuj</button><button class="btn bs bd" onclick="if(confirm(\'Usunąć ten snapshot?\')){dawkiHistory.splice('+ri+',1);sa(true,\'historia\');rRapDawki()}">✕</button></div>';
     h+='</div></div>';
@@ -1131,19 +1214,29 @@ function rWyd(month){
   else h+=tile('','Brak danych','—','dla wybranego filtra');
   h+=tile('','Dojone',c.dojone,'niedojone: '+c.niedojone+(c.bezDpw?' · bez DPW: '+c.bezDpw:''));
   h+='</div>';
-  // Porównanie grup — liczone z surowych wierszy, gdy dostępne (odporne na niekompletny snapshot)
+  // Porównanie grup — ZAWSZE z obiektu agg (już policzony z raw lub snapshot)
   if(wydGroup==='all'){
     const grpTiles=[];
     ['HF','MO','INNE'].forEach(gk=>{
-      let a=null;
-      if(hasRaw&&wydRaw&&wydRaw.rows){const selRows=wydRaw.rows.filter(r=>r.g===gk&&(wydParity==='all'||r.par===wydParity));if(selRows.length)a=aggCell(selRows)}
-      if(!a)a=A(wydParity+'|'+gk+'|RAZEM');
-      if(a)grpTiles.push({gk,a});
+      // 1. próbuj z agg.cells
+      let a=(agg&&agg.cells)?agg.cells[wydParity+'|'+gk+'|RAZEM']:null;
+      // 2. jeśli brak (stary snapshot) i mamy surowe dane — przelicz
+      if(!a&&wydRaw&&wydRaw.rows&&wydRaw.month===month){
+        const selRows=wydRaw.rows.filter(r=>r.g===gk&&r.kat==='DOJONA'&&r.mleko!=null&&(wydParity==='all'||r.par===wydParity));
+        if(selRows.length){
+          const ml=selRows.map(r=>r.mleko);
+          const wTl=selRows.filter(r=>r.tl!=null),wBi=selRows.filter(r=>r.bi!=null);
+          a={n:selRows.length,mleko:ml.reduce((s,x)=>s+x,0)/ml.length,
+            ecm:selRows.filter(r=>r.ecm!=null).reduce((s,r)=>s+r.ecm,0)/(selRows.filter(r=>r.ecm!=null).length||1),
+            bi:wBi.length&&wBi.reduce((s,r)=>s+r.mleko,0)?wBi.reduce((s,r)=>s+r.mleko*r.bi,0)/wBi.reduce((s,r)=>s+r.mleko,0):null};
+        }
+      }
+      if(a&&a.n>0)grpTiles.push({gk,a});
     });
     if(grpTiles.length){h+='<div class="wyd-tiles" style="padding-top:0">';
       grpTiles.forEach(({gk,a})=>{
         const cls=gk==='HF'?'hf':(gk==='MO'?'mo':'');
-        h+=tile(cls,gk+' — mleko',r2(a.mleko,1),'ECM '+r2(a.ecm,1)+' · %bi '+r2(a.bi,2)+' · n='+a.n);
+        h+=tile(cls,gk+' — mleko',r2(a.mleko,1),'ECM '+r2(a.ecm||0,1)+' · %bi '+r2(a.bi||0,2)+' · n='+a.n);
       });
       h+='</div>'}
   }
@@ -1158,7 +1251,8 @@ function rWyd(month){
   h+='<button class="btn bs '+(wydParity==='p1'?'bp':'bo')+'" onclick="setWydParity(\'p1\')">pierwiastki ('+c.p1+')</button>';
   h+='<button class="btn bs '+(wydParity==='p2'?'bp':'bo')+'" onclick="setWydParity(\'p2\')">wieloródki ('+c.p2+')</button>';
   h+='<span style="width:10px"></span><span style="font-size:11px;font-weight:600;color:var(--c-txt2)">GRUPA:</span>';
-  h+='<button class="btn bs '+(wydGroup==='all'?'bp':'bo')+'" onclick="setWydGroup(\'all\')">razem</button>';
+  const nHF=(c.perGroup&&c.perGroup.HF?c.perGroup.HF.dojone:0),nMO=(c.perGroup&&c.perGroup.MO?c.perGroup.MO.dojone:0);
+  h+='<button class="btn bs '+(wydGroup==='all'?'bp':'bo')+'" onclick="setWydGroup(\'all\')">razem ('+(nHF+nMO)+')</button>';
   h+='<button class="btn bs '+(wydGroup==='HF'?'bp':'bo')+'" onclick="setWydGroup(\'HF\')">HF ('+(c.perGroup&&c.perGroup.HF?c.perGroup.HF.dojone:0)+')</button>';
   h+='<button class="btn bs '+(wydGroup==='MO'?'bp':'bo')+'" onclick="setWydGroup(\'MO\')">MO ('+(c.perGroup&&c.perGroup.MO?c.perGroup.MO.dojone:0)+')</button>';
   h+='<span style="width:10px"></span><button class="btn bs bo" onclick="copyWydCsv()">📋 Kopiuj CSV</button>';
@@ -1294,14 +1388,14 @@ function buildEkonomia(agg){
 }
 
 function renderEkonomia(agg){
-  let h='<div class="card" style="margin:12px"><div class="ch" style="background:var(--c-gold-bg);color:var(--c-gold)"><span>Ekonomia — IOFC i progi opłacalności</span>';
+  let h='<div class="card" style="margin:12px"><div class="ch" style="background:var(--c-gold-bg);color:var(--c-gold)"><span>Ekonomia — przychód minus koszty żywienia</span>';
   h+='<div style="display:flex;gap:6px;align-items:center"><label style="font-size:11px;font-weight:600;color:var(--c-gold)">Cena mleka zł/l</label>';
   h+='<input type="number" id="cena-mleka" value="'+(cenaMleka||'')+'" step="0.01" placeholder="0.00" style="width:80px;padding:4px 6px;font-size:13px;text-align:right;border:2px solid var(--c-gold);border-radius:6px" onchange="setCenaMleka(this.value)">';
   h+='</div></div>';
-  if(!cenaMleka){h+='<div style="padding:20px;text-align:center;color:var(--c-txt2);font-size:13px">Wpisz cenę mleka, aby zobaczyć IOFC i progi opłacalności.</div></div>';return h}
+  if(!cenaMleka){h+='<div style="padding:20px;text-align:center;color:var(--c-txt2);font-size:13px">Wpisz cenę mleka, aby zobaczyć wynik i progi opłacalności.</div></div>';return h}
   const rows=buildEkonomia(agg);
   if(!rows.length){h+='<div style="padding:20px;text-align:center;color:var(--c-txt2);font-size:13px">Brak danych — sprawdź czy grupy HF/MO mają uzupełnione ceny surowców i obsadę.</div></div>';return h}
-  h+='<div class="tw"><table class="dt"><thead><tr><th>Grupa</th><th>Obsada</th><th>Mleko kg</th><th>Przychód zł/szt</th><th>Koszt dawki zł/szt</th><th>Koszt zł/litr</th><th>IOFC zł/szt</th><th>IOFC grupa/dzień</th><th>Próg zera (kg)</th></tr></thead><tbody>';
+  h+='<div class="tw"><table class="dt"><thead><tr><th>Grupa</th><th>Obsada</th><th>Mleko kg</th><th>Przychód zł/szt</th><th>Koszt dawki zł/szt</th><th>Koszt zł/litr</th><th>Przych. − koszty Ż<br>zł/szt</th><th>Przych. − koszty Ż<br>grupa/dzień</th><th>Próg zera (kg)</th></tr></thead><tbody>';
   let sumIofc=0;
   rows.forEach(r=>{const gIofc=r.iofc*r.obsada;sumIofc+=gIofc;
     h+='<tr><td>'+r.nazwa+'</td><td>'+r.obsada+'</td><td>'+r2(r.mleko,1)+'</td><td>'+r2(r.przychod,2)+'</td><td>'+r2(r.koszt,2)+'</td>';
@@ -1309,10 +1403,10 @@ function renderEkonomia(agg){
     h+='<td style="color:'+(r.iofc>0?'#2E7D32':'var(--c-red)')+'"><b>'+r2(r.iofc,2)+'</b></td>';
     h+='<td style="color:'+(gIofc>0?'#2E7D32':'var(--c-red)')+'"><b>'+r2(gIofc,0)+'</b></td>';
     h+='<td>'+r2(r.prog,1)+'</td></tr>'});
-  h+='</tbody><tfoot><tr><td colspan="7"><b>RAZEM IOFC dziennie</b></td><td><b>'+r2(sumIofc,0)+' zł</b></td><td></td></tr>';
+  h+='</tbody><tfoot><tr><td colspan="7"><b>RAZEM przychód − koszty Ż dziennie</b></td><td><b>'+r2(sumIofc,0)+' zł</b></td><td></td></tr>';
   h+='<tr><td colspan="7"><b>Miesięcznie (30 dni)</b></td><td><b>'+r2(sumIofc*30,0)+' zł</b></td><td></td></tr></tfoot></table></div>';
   // Progi wydajności
-  h+='<div style="padding:12px"><div style="font-size:13px;font-weight:700;color:var(--c-pri-d);margin-bottom:6px">IOFC przy różnych poziomach wydajności (zł/szt/dzień)</div>';
+  h+='<div style="padding:12px"><div style="font-size:13px;font-weight:700;color:var(--c-pri-d);margin-bottom:6px">Przychód − koszty żywienia przy różnych poziomach wydajności (zł/szt/dzień)</div>';
   h+='<div class="tw"><table class="dt"><thead><tr><th>Grupa</th>';
   const levels=[20,25,30,35,40,45,50];
   levels.forEach(l=>{h+='<th>'+l+' kg</th>'});

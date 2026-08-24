@@ -1094,6 +1094,7 @@ function aggCell(rows){
     kgTlBi,kgTlBiSzt:d.length?kgTlBi/d.length:0,
     mocznik:moc.length?moc.reduce((a,x)=>a+x,0)/moc.length:null,mocznikMed:median(moc),
     lksGeo:lks.length?geoMean(lks):null,lksMed:median(lks),
+    lksWaz:(function(){const lr=d.filter(r=>r.lks!=null&&r.mleko!=null);const sm=lr.reduce((a,r)=>a+r.mleko,0);return sm?lr.reduce((a,r)=>a+r.mleko*r.lks,0)/sm:null})(),
     lksOver400:lks.length?100*lks.filter(x=>x>400).length/lks.length:0,
     saraPct:tlbiRows.length?100*tlbiRows.filter(r=>r.tl/r.bi<1.0).length/tlbiRows.length:0};
 }
@@ -1210,35 +1211,33 @@ function rWyd(month){
     h+=tile('all','Tł + biał.',r2(selAgg.kgTlBiSzt,2)+' kg','na sztukę · Σ '+r2(selAgg.kgTlBi,0)+' kg');
     h+=tile('all','%tł / %bi',r2(selAgg.tl,2)+' / '+r2(selAgg.bi,2),'tł/bi '+r2(selAgg.tlbi,2)+' · SARA '+r2(selAgg.saraPct,0)+'%');
     h+=tile('all','LKS (geom.)',r2(selAgg.lksGeo,0),'mediana '+r2(selAgg.lksMed,0)+' · >400: '+r2(selAgg.lksOver400,0)+'%');
+    if(selAgg.lksWaz!=null)h+=tile('all','LKS w tanku',r2(selAgg.lksWaz,0),'ważona wydajnością (jak RW-1)');
     h+=tile('all','Mocznik',r2(selAgg.mocznik,0),'mediana '+r2(selAgg.mocznikMed,0)+' mg/l');}
   else h+=tile('','Brak danych','—','dla wybranego filtra');
   h+=tile('','Dojone',c.dojone,'niedojone: '+c.niedojone+(c.bezDpw?' · bez DPW: '+c.bezDpw:''));
   h+='</div>';
-  // Porównanie grup — ZAWSZE z obiektu agg (już policzony z raw lub snapshot)
+  // Porównanie grup — HF i MO ZAWSZE widoczne (INNE tylko gdy ma sztuki)
   if(wydGroup==='all'){
-    const grpTiles=[];
-    ['HF','MO','INNE'].forEach(gk=>{
-      // 1. próbuj z agg.cells
+    const getGrp=gk=>{
       let a=(agg&&agg.cells)?agg.cells[wydParity+'|'+gk+'|RAZEM']:null;
-      // 2. jeśli brak (stary snapshot) i mamy surowe dane — przelicz
-      if(!a&&wydRaw&&wydRaw.rows&&wydRaw.month===month){
-        const selRows=wydRaw.rows.filter(r=>r.g===gk&&r.kat==='DOJONA'&&r.mleko!=null&&(wydParity==='all'||r.par===wydParity));
-        if(selRows.length){
-          const ml=selRows.map(r=>r.mleko);
-          const wTl=selRows.filter(r=>r.tl!=null),wBi=selRows.filter(r=>r.bi!=null);
-          a={n:selRows.length,mleko:ml.reduce((s,x)=>s+x,0)/ml.length,
-            ecm:selRows.filter(r=>r.ecm!=null).reduce((s,r)=>s+r.ecm,0)/(selRows.filter(r=>r.ecm!=null).length||1),
-            bi:wBi.length&&wBi.reduce((s,r)=>s+r.mleko,0)?wBi.reduce((s,r)=>s+r.mleko*r.bi,0)/wBi.reduce((s,r)=>s+r.mleko,0):null};
-        }
+      if((!a||!a.n)&&wydRaw&&wydRaw.rows&&wydRaw.month===month){
+        const sr=wydRaw.rows.filter(r=>r.g===gk&&r.kat==='DOJONA'&&r.mleko!=null&&(wydParity==='all'||r.par===wydParity));
+        if(sr.length)a=aggCell(sr);
       }
-      if(a&&a.n>0)grpTiles.push({gk,a});
+      return a;
+    };
+    h+='<div class="wyd-tiles" style="padding-top:0">';
+    ['HF','MO'].forEach(gk=>{
+      const a=getGrp(gk);const cls=gk==='HF'?'hf':'mo';
+      if(a&&a.n>0){
+        h+=tile(cls,gk+' — mleko',r2(a.mleko,1),'ECM '+r2(a.ecm||0,1)+' · %bi '+r2(a.bi||0,2)+' · n='+a.n+(a.lksWaz!=null?' · LKS tank '+r2(a.lksWaz,0):''));
+      }else{
+        h+=tile(cls,gk+' — mleko','—','brak sztuk dla tego filtra');
+      }
     });
-    if(grpTiles.length){h+='<div class="wyd-tiles" style="padding-top:0">';
-      grpTiles.forEach(({gk,a})=>{
-        const cls=gk==='HF'?'hf':(gk==='MO'?'mo':'');
-        h+=tile(cls,gk+' — mleko',r2(a.mleko,1),'ECM '+r2(a.ecm||0,1)+' · %bi '+r2(a.bi||0,2)+' · n='+a.n);
-      });
-      h+='</div>'}
+    const ai=getGrp('INNE');
+    if(ai&&ai.n>0)h+=tile('','INNE — mleko',r2(ai.mleko,1),'ECM '+r2(ai.ecm||0,1)+' · %bi '+r2(ai.bi||0,2)+' · n='+ai.n);
+    h+='</div>';
   }
   // Controls
   h+='<div class="fr" style="border-top:1px solid var(--c-brd);border-bottom:1px solid var(--c-brd);background:#fafbfa">';
@@ -1304,8 +1303,8 @@ function buildWydTable(agg){
   const groups=wydGroup==='all'?['HF','MO','INNE']:[wydGroup];const par=wydParity;
   const phases=(agg.phases&&!(wydRaw)) ? agg.phases : getPhases().map(p=>p[2]).concat(['brak DPW']);
   const A=k=>aggAt(agg,k);
-  const cols=['n','mleko','ecm','tl','bi','tlbi','lksGeo','mocznik'];
-  const colLbl={n:'n',mleko:'mleko',ecm:'ECM',tl:'%tł',bi:'%bi',tlbi:'tł/bi',lksGeo:'LKS geo',mocznik:'mocznik'};
+  const cols=['n','mleko','ecm','tl','bi','tlbi','lksGeo','lksWaz','mocznik'];
+  const colLbl={n:'n',mleko:'mleko',ecm:'ECM',tl:'%tł',bi:'%bi',tlbi:'tł/bi',lksGeo:'LKS geo',lksWaz:'LKS tank',mocznik:'mocznik'};
   let h='<table class="wyd"><thead><tr><th rowspan="2" style="text-align:left">Faza (DPW)</th>';
   groups.forEach(g=>{h+='<th class="gh" colspan="'+cols.length+'">'+g+'</th>'});
   h+='</tr><tr>';
@@ -1313,9 +1312,6 @@ function buildWydTable(agg){
   h+='</tr></thead><tbody>';
   const fmt=(c,v)=>{if(v==null)return '';if(c==='n')return v;if(c==='mleko'||c==='ecm')return r2(v,1);if(c==='tl'||c==='bi'||c==='tlbi')return r2(v,2);return r2(v,0)};
   phases.forEach(ph=>{
-    let any=false;groups.forEach(g=>{if(A(par+'|'+g+'|'+ph))any=true});
-
-    if(!any)return;
     h+='<tr><td>'+ph+'</td>';
     groups.forEach(g=>{const a=A(par+'|'+g+'|'+ph);
       const small=a&&a.n<3;

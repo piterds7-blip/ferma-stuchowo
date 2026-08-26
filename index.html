@@ -133,7 +133,7 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v26</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v27</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
@@ -1216,7 +1216,7 @@ function rWyd(month){
   else h+=tile('','Brak danych','—','dla wybranego filtra');
   h+=tile('','Dojone',c.dojone,'niedojone: '+c.niedojone+(c.bezDpw?' · bez DPW: '+c.bezDpw:''));
   h+='</div>';
-  // Porównanie grup — HF i MO ZAWSZE widoczne (INNE tylko gdy ma sztuki)
+  // Porównanie grup — HF i MO OSOBNO, bez forEach
   if(wydGroup==='all'){
     const getGrp=gk=>{
       let a=(agg&&agg.cells)?agg.cells[wydParity+'|'+gk+'|RAZEM']:null;
@@ -1227,17 +1227,27 @@ function rWyd(month){
       return a;
     };
     h+='<div class="wyd-tiles" style="padding-top:0">';
-    ['HF','MO'].forEach(gk=>{
-      const a=getGrp(gk);const cls=gk==='HF'?'hf':'mo';
-      console.log('[v26] Kafelek '+gk+': '+(a?'n='+a.n+' mleko='+a.mleko:'NULL'));
-      if(a&&a.n>0){
-        h+=tile(cls,gk+' — mleko',r2(a.mleko,1),'ECM '+r2(a.ecm||0,1)+' · %bi '+r2(a.bi||0,2)+' · n='+a.n+(a.lksWaz!=null?' · LKS tank '+r2(a.lksWaz,0):''));
-      }else{
-        h+=tile(cls,gk+' — mleko','—','brak sztuk dla tego filtra');
-      }
-    });
-    const ai=getGrp('INNE');
-    if(ai&&ai.n>0)h+=tile('','INNE — mleko',r2(ai.mleko,1),'ECM '+r2(ai.ecm||0,1)+' · %bi '+r2(ai.bi||0,2)+' · n='+ai.n);
+    // === HF ===
+    const aHF=getGrp('HF');
+    console.log('[v27] HF kafelek:',aHF?'n='+aHF.n+' mleko='+aHF.mleko:'NULL');
+    if(aHF&&aHF.n>0){
+      h+='<div class="wyd-tile hf"><div class="wt-lbl">HF — mleko</div><div class="wt-val">'+r2(aHF.mleko,1)+'</div><div class="wt-sub">ECM '+r2(aHF.ecm||0,1)+' · %bi '+r2(aHF.bi||0,2)+' · n='+aHF.n+(aHF.lksWaz!=null?' · LKS tank '+r2(aHF.lksWaz,0):'')+'</div></div>';
+    }else{
+      h+='<div class="wyd-tile hf"><div class="wt-lbl">HF — mleko</div><div class="wt-val">—</div><div class="wt-sub">brak danych</div></div>';
+    }
+    // === MO ===
+    const aMO=getGrp('MO');
+    console.log('[v27] MO kafelek:',aMO?'n='+aMO.n+' mleko='+aMO.mleko:'NULL');
+    if(aMO&&aMO.n>0){
+      h+='<div class="wyd-tile mo"><div class="wt-lbl">MO — mleko</div><div class="wt-val">'+r2(aMO.mleko,1)+'</div><div class="wt-sub">ECM '+r2(aMO.ecm||0,1)+' · %bi '+r2(aMO.bi||0,2)+' · n='+aMO.n+(aMO.lksWaz!=null?' · LKS tank '+r2(aMO.lksWaz,0):'')+'</div></div>';
+    }else{
+      h+='<div class="wyd-tile mo" style="border:3px solid red"><div class="wt-lbl" style="color:red">MO — BRAK DANYCH</div><div class="wt-val" style="color:red">⚠</div><div class="wt-sub" style="color:red">getGrp zwrócił null — wczytaj plik SOL ponownie</div></div>';
+    }
+    // === INNE (opcjonalne) ===
+    const aINNE=getGrp('INNE');
+    if(aINNE&&aINNE.n>0){
+      h+='<div class="wyd-tile"><div class="wt-lbl">INNE — mleko</div><div class="wt-val">'+r2(aINNE.mleko,1)+'</div><div class="wt-sub">ECM '+r2(aINNE.ecm||0,1)+' · %bi '+r2(aINNE.bi||0,2)+' · n='+aINNE.n+'</div></div>';
+    }
     h+='</div>';
   }
   // Controls

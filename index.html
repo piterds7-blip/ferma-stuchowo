@@ -87,7 +87,7 @@ table.fe tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gold
 .wyd-tile .wt-lbl{font-size:10px;text-transform:uppercase;color:var(--c-txt2);letter-spacing:.04em;font-weight:600}
 .wyd-tile .wt-val{font-size:19px;font-weight:700;color:var(--c-pri-d);font-family:var(--mono);margin:2px 0}
 .wyd-tile .wt-sub{font-size:10px;color:var(--c-txt2)}
-.wyd-tile.hf{border-left:3px solid #2F6B3A}.wyd-tile.mo{border-left:3px solid #B3392C}.wyd-tile.all{border-left:3px solid var(--c-gold)}
+.wyd-tile.hf{border-left:3px solid #2F6B3A}.wyd-tile.tmo{border-left:3px solid #B3392C}.wyd-tile.all{border-left:3px solid var(--c-gold)}
 .wyd-warn{background:var(--c-red-bg);border:1px solid #e0a0a0;border-radius:8px;padding:10px;margin:12px;font-size:12px;color:var(--c-red)}
 .wyd-warn b{display:block;margin-bottom:4px}
 .wyd-flag{border:1px solid var(--c-brd);border-radius:6px;margin-bottom:6px;overflow:hidden}
@@ -133,7 +133,7 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v28</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v29</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
@@ -1235,17 +1235,17 @@ function rWyd(month){
     }else{
       h+='<div class="wyd-tile hf"><div class="wt-lbl">HF — mleko</div><div class="wt-val">—</div><div class="wt-sub">brak danych</div></div>';
     }
-    }catch(eHF){console.error('[v28] HF ERROR:',eHF);h+='<div class="wyd-tile hf" style="border:3px solid red"><div class="wt-val">HF błąd: '+eHF.message+'</div></div>'}
+    }catch(eHF){console.error('[v29] HF ERROR:',eHF);h+='<div class="wyd-tile hf" style="border:3px solid red"><div class="wt-val">HF błąd: '+eHF.message+'</div></div>'}
     // === MO ===
     try{
     const aMO=getGrp('MO');
-    console.log('[v28] MO:',JSON.stringify(aMO?{n:aMO.n,mleko:aMO.mleko}:'NULL'));
+    console.log('[v29] MO:',JSON.stringify(aMO?{n:aMO.n,mleko:aMO.mleko}:'NULL'));
     if(aMO&&aMO.n>0){
-      h+='<div class="wyd-tile mo"><div class="wt-lbl">MO — mleko</div><div class="wt-val">'+r2(aMO.mleko,1)+'</div><div class="wt-sub">ECM '+r2(aMO.ecm||0,1)+' · %bi '+r2(aMO.bi||0,2)+' · n='+aMO.n+(aMO.lksWaz!=null?' · LKS tank '+r2(aMO.lksWaz,0):'')+'</div></div>';
+      h+='<div class="wyd-tile tmo"><div class="wt-lbl">MO — mleko</div><div class="wt-val">'+r2(aMO.mleko,1)+'</div><div class="wt-sub">ECM '+r2(aMO.ecm||0,1)+' · %bi '+r2(aMO.bi||0,2)+' · n='+aMO.n+(aMO.lksWaz!=null?' · LKS tank '+r2(aMO.lksWaz,0):'')+'</div></div>';
     }else{
-      h+='<div class="wyd-tile mo" style="border:3px solid red;background:#FFEBEE"><div class="wt-lbl" style="color:red;font-size:14px">⚠ MO — BRAK DANYCH</div><div class="wt-val" style="color:red;font-size:28px">⚠</div><div class="wt-sub" style="color:red">aMO='+(aMO===null?'null':typeof aMO)+' — wczytaj plik SOL ponownie</div></div>';
+      h+='<div class="wyd-tile tmo" style="border:3px solid red;background:#FFEBEE"><div class="wt-lbl" style="color:red;font-size:14px">⚠ MO — BRAK DANYCH</div><div class="wt-val" style="color:red;font-size:28px">⚠</div><div class="wt-sub" style="color:red">aMO='+(aMO===null?'null':typeof aMO)+' — wczytaj plik SOL ponownie</div></div>';
     }
-    }catch(eMO){console.error('[v28] MO ERROR:',eMO);h+='<div class="wyd-tile mo" style="border:3px solid red"><div class="wt-val" style="color:red">MO błąd: '+eMO.message+'</div></div>'}
+    }catch(eMO){console.error('[v29] MO ERROR:',eMO);h+='<div class="wyd-tile tmo" style="border:3px solid red"><div class="wt-val" style="color:red">MO błąd: '+eMO.message+'</div></div>'}
     // === INNE (opcjonalne) ===
     try{
     const aINNE=getGrp('INNE');

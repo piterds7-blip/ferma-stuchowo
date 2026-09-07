@@ -133,7 +133,7 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v27</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v28</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
@@ -1228,26 +1228,31 @@ function rWyd(month){
     };
     h+='<div class="wyd-tiles" style="padding-top:0">';
     // === HF ===
+    try{
     const aHF=getGrp('HF');
-    console.log('[v27] HF kafelek:',aHF?'n='+aHF.n+' mleko='+aHF.mleko:'NULL');
     if(aHF&&aHF.n>0){
       h+='<div class="wyd-tile hf"><div class="wt-lbl">HF — mleko</div><div class="wt-val">'+r2(aHF.mleko,1)+'</div><div class="wt-sub">ECM '+r2(aHF.ecm||0,1)+' · %bi '+r2(aHF.bi||0,2)+' · n='+aHF.n+(aHF.lksWaz!=null?' · LKS tank '+r2(aHF.lksWaz,0):'')+'</div></div>';
     }else{
       h+='<div class="wyd-tile hf"><div class="wt-lbl">HF — mleko</div><div class="wt-val">—</div><div class="wt-sub">brak danych</div></div>';
     }
+    }catch(eHF){console.error('[v28] HF ERROR:',eHF);h+='<div class="wyd-tile hf" style="border:3px solid red"><div class="wt-val">HF błąd: '+eHF.message+'</div></div>'}
     // === MO ===
+    try{
     const aMO=getGrp('MO');
-    console.log('[v27] MO kafelek:',aMO?'n='+aMO.n+' mleko='+aMO.mleko:'NULL');
+    console.log('[v28] MO:',JSON.stringify(aMO?{n:aMO.n,mleko:aMO.mleko}:'NULL'));
     if(aMO&&aMO.n>0){
       h+='<div class="wyd-tile mo"><div class="wt-lbl">MO — mleko</div><div class="wt-val">'+r2(aMO.mleko,1)+'</div><div class="wt-sub">ECM '+r2(aMO.ecm||0,1)+' · %bi '+r2(aMO.bi||0,2)+' · n='+aMO.n+(aMO.lksWaz!=null?' · LKS tank '+r2(aMO.lksWaz,0):'')+'</div></div>';
     }else{
-      h+='<div class="wyd-tile mo" style="border:3px solid red"><div class="wt-lbl" style="color:red">MO — BRAK DANYCH</div><div class="wt-val" style="color:red">⚠</div><div class="wt-sub" style="color:red">getGrp zwrócił null — wczytaj plik SOL ponownie</div></div>';
+      h+='<div class="wyd-tile mo" style="border:3px solid red;background:#FFEBEE"><div class="wt-lbl" style="color:red;font-size:14px">⚠ MO — BRAK DANYCH</div><div class="wt-val" style="color:red;font-size:28px">⚠</div><div class="wt-sub" style="color:red">aMO='+(aMO===null?'null':typeof aMO)+' — wczytaj plik SOL ponownie</div></div>';
     }
+    }catch(eMO){console.error('[v28] MO ERROR:',eMO);h+='<div class="wyd-tile mo" style="border:3px solid red"><div class="wt-val" style="color:red">MO błąd: '+eMO.message+'</div></div>'}
     // === INNE (opcjonalne) ===
+    try{
     const aINNE=getGrp('INNE');
     if(aINNE&&aINNE.n>0){
       h+='<div class="wyd-tile"><div class="wt-lbl">INNE — mleko</div><div class="wt-val">'+r2(aINNE.mleko,1)+'</div><div class="wt-sub">ECM '+r2(aINNE.ecm||0,1)+' · %bi '+r2(aINNE.bi||0,2)+' · n='+aINNE.n+'</div></div>';
     }
+    }catch(eI){}
     h+='</div>';
   }
   // Controls

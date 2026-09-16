@@ -83,6 +83,14 @@ table.fe tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gold
 .stmr-row{display:flex;align-items:center;gap:8px;padding:6px 12px;border-bottom:1px solid var(--c-brd)}.stmr-row .sr-name{flex:1;font-weight:500}.stmr-row .sr-pct{font-family:var(--mono);font-weight:700;color:var(--c-pri);min-width:50px;text-align:right}
 /* WYDAJNOSC */
 .wyd-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;padding:12px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:8px}
+.cal-hdr{font-size:10px;font-weight:700;text-align:center;color:var(--c-txt2);padding:4px 0}
+.cal-day{position:relative;min-height:38px;padding:4px;border-radius:6px;cursor:pointer;font-size:12px;text-align:center;border:1px solid transparent;transition:all .15s}
+.cal-day:hover{background:var(--c-pri-l)}.cal-day.empty{cursor:default;background:none}
+.cal-day.has-data{background:#E8F5E9;border-color:#4CAF50}.cal-day.has-note{border-color:var(--c-gold)}
+.cal-day.selected{background:var(--c-pri);color:#fff;border-color:var(--c-pri-d)}
+.cal-day .cal-num{font-weight:600}.cal-day .cal-dot{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);display:flex;gap:2px}
+.cal-day .cal-dot span{width:5px;height:5px;border-radius:50%}
 .wyd-tile{background:var(--c-card);border:1px solid var(--c-brd);border-radius:8px;padding:10px;text-align:center}
 .wyd-tile .wt-lbl{font-size:10px;text-transform:uppercase;color:var(--c-txt2);letter-spacing:.04em;font-weight:600}
 .wyd-tile .wt-val{font-size:19px;font-weight:700;color:var(--c-pri-d);font-family:var(--mono);margin:2px 0}
@@ -133,7 +141,7 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v32</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v35</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
@@ -149,11 +157,12 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
       <div class="card" style="margin:0 0 12px"><div class="ch"><span>Dzisiejszy dziennik</span></div><div id="woz-log-panel"></div></div>
     </div>
     <!-- RAPORTY --><div class="tab-panel" id="tab-raporty">
-      <div class="sub-tabs"><button class="sub-tab active" onclick="subTab('rap',0)">📋 Dawki</button><button class="sub-tab" onclick="subTab('rap',1)">🚜 Wóz</button><button class="sub-tab" onclick="subTab('rap',2)">🥣 Niedojady</button><button class="sub-tab" onclick="subTab('rap',3)">📊 Dawki realne</button></div>
+      <div class="sub-tabs"><button class="sub-tab active" onclick="subTab('rap',0)">📋 Dawki</button><button class="sub-tab" onclick="subTab('rap',1)">🚜 Wóz</button><button class="sub-tab" onclick="subTab('rap',2)">🥣 Niedojady</button><button class="sub-tab" onclick="subTab('rap',3)">📊 Dawki realne</button><button class="sub-tab" onclick="subTab('rap',4)">🍽 Zjedzone</button></div>
       <div class="sub-panel active" id="rap-0"><div class="card"><div class="ch">Historia zmian receptury dawek</div><div id="rap-dawki"></div></div></div>
       <div class="sub-panel" id="rap-1"><div class="fr"><div class="fg"><label>Od</label><input type="date" id="rap-od" onchange="rRapWoz()"></div><div class="fg"><label>Do</label><input type="date" id="rap-do" onchange="rRapWoz()"></div></div><div class="card"><div class="ch">Dziennik wozu paszowego</div><div id="rap-woz"></div></div></div>
       <div class="sub-panel" id="rap-2"><div class="card"><div class="ch">Raport niedojadów</div><div id="rap-nied"></div></div></div>
       <div class="sub-panel" id="rap-3"><div class="card"><div class="ch">Dzienne snapshoty dawek realnych</div><div id="rap-dr"></div></div></div>
+      <div class="sub-panel" id="rap-4"><div class="card"><div class="ch">Dawki zjedzone — co krowy faktycznie pobrały</div><div id="rap-eaten"></div></div></div>
     </div>
     <!-- WYDAJNOŚĆ --><div class="tab-panel" id="tab-wydajnosc">
       <div class="card"><div class="ch"><span>Wyniki próbnego doju (SOL / PFHB)</span>
@@ -178,7 +187,11 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
       <div class="tw" id="zoo-table"></div>
       <div style="padding:8px 14px"><label style="font-size:13px;font-weight:600;color:var(--c-txt2)">Notatka na ten dzień (opcjonalnie)</label><textarea id="zoo-note" rows="2" style="width:100%;margin-top:4px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:var(--font);resize:vertical" placeholder="np. duży upał poprzedniego dnia, zmiana dawki, awaria wozu..."></textarea></div>
       <div style="padding:8px 14px"><button class="btn bp" onclick="saveZoo()">Zapisz niedojady</button></div></div>
-      <div class="card"><div class="ch"><span>Historia pobrania</span></div><div class="tw" id="zoo-history"></div></div>
+      <div class="card" id="zoo-eaten-card" style="display:none"><div class="ch"><span>Dawka zjedzona — realne pobranie per surowiec</span></div><div class="tw" id="zoo-eaten"></div></div>
+      <div class="card"><div class="ch"><span>Kalendarz — notatki i raporty</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="calNav(-1)">◀</button><span id="cal-title" style="font-size:14px;min-width:120px;text-align:center"></span><button class="btn bs bo" onclick="calNav(1)">▶</button></div></div>
+        <div id="zoo-cal" style="padding:8px 14px"></div>
+        <div id="zoo-day-detail" style="padding:0 14px 14px;display:none"></div>
+      </div>
     </div>
     <!-- USTAWIENIA --><div class="tab-panel" id="tab-ustawienia">
       <h2 style="font-size:18px;font-weight:700;color:var(--c-pri-d);margin-bottom:12px">Ustawienia</h2>
@@ -211,7 +224,7 @@ function subTab(pfx,idx){const tabs=document.querySelectorAll('.sub-tab');const 
 const DEF_PASSES={tworca:'admin',zootechnik:'zoo',zywieniowiec:'dawki',paszowoz:'woz'};
 let passes=LD('passes',null),cR=null;
 const RT={tworca:['surowce','dawki','koszty','paszowoz','raporty','wydajnosc','suchy-tmr','zootechnik'],zootechnik:['surowce','dawki','koszty','paszowoz','raporty','wydajnosc','suchy-tmr','zootechnik'],zywieniowiec:['dawki'],paszowoz:['paszowoz']};
-const TL={surowce:'Surowce',dawki:'Dawki',koszty:'Koszty',paszowoz:'Paszowóz',raporty:'Raporty',wydajnosc:'Wydajność','suchy-tmr':'Suchy TMR',zootechnik:'Zootechnik'};
+const TL={surowce:'Surowce',dawki:'Dawki',koszty:'Koszty',paszowoz:'Paszowóz',raporty:'Raporty',wydajnosc:'Wydajność','suchy-tmr':'Suchy TMR',zootechnik:'Niedojady'};
 const TI={surowce:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M5 20V8l7-5 7 5v12M9 20v-6h6v6"/></svg>',dawki:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12l4-4 4 4M13 8l4-4 4 4"/></svg>',koszty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.7 0-3 1-3 2.5s1.3 2.5 3 2.5c1.7 0 3 1 3 2.5s-1.3 2.5-3 2.5c-1 0-2-.5-2.5-1.5"/></svg>',paszowoz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="15" height="10" rx="2"/><path d="M16 10h4l3 4v2h-7V10z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',raporty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>',wydajnosc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l3-4 3 2 5-7"/><circle cx="7" cy="15" r="1"/><circle cx="18" cy="6" r="1"/></svg>',zootechnik:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>','suchy-tmr':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l2 6H4l2-6zM4 9v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9M9 13h6"/></svg>'};
 function canPass(){return cR==='tworca'}
 function canEdit(){return cR==='tworca'||cR==='zootechnik'||cR==='zywieniowiec'}
@@ -836,7 +849,7 @@ function prnLand(t,h){
 }
 
 /* ===== RAPORTY ===== */
-function rRap(){rRapDawki();rRapWoz();rRapNied();rRapDR()}
+function rRap(){rRapDawki();rRapWoz();rRapNied();rRapDR();rRapEaten()}
 function rRapDawki(){
   if(!dawkiHistory.length){$('#rap-dawki').innerHTML='<div style="padding:20px;text-align:center;color:var(--c-txt2)">Brak zapisanych zmian receptury.<br>Snapshot tworzy się automatycznie po edycji dawek (1h debounce lub przy wyjściu z zakładki).</div>';return}
   let h='<div style="padding:12px">';
@@ -1246,17 +1259,17 @@ function rWyd(month){
     }else{
       h+='<div class="wyd-tile hf"><div class="wt-lbl">HF — mleko</div><div class="wt-val">—</div><div class="wt-sub">brak danych</div></div>';
     }
-    }catch(eHF){console.error('[v32] HF ERROR:',eHF);h+='<div class="wyd-tile hf" style="border:3px solid red"><div class="wt-val">HF błąd: '+eHF.message+'</div></div>'}
+    }catch(eHF){console.error('[v35] HF ERROR:',eHF);h+='<div class="wyd-tile hf" style="border:3px solid red"><div class="wt-val">HF błąd: '+eHF.message+'</div></div>'}
     // === MO ===
     try{
     const aMO=getGrp('MO');
-    console.log('[v32] MO:',JSON.stringify(aMO?{n:aMO.n,mleko:aMO.mleko}:'NULL'));
+    console.log('[v35] MO:',JSON.stringify(aMO?{n:aMO.n,mleko:aMO.mleko}:'NULL'));
     if(aMO&&aMO.n>0){
       h+='<div class="wyd-tile tmo"><div class="wt-lbl">MO — mleko</div><div class="wt-val">'+r2(aMO.mleko,1)+'</div><div class="wt-sub">ECM '+r2(aMO.ecm||0,1)+' · %bi '+r2(aMO.bi||0,2)+' · n='+aMO.n+(aMO.lksWaz!=null?' · LKS tank '+r2(aMO.lksWaz,0):'')+'</div></div>';
     }else{
       h+='<div class="wyd-tile tmo" style="border:3px solid red;background:#FFEBEE"><div class="wt-lbl" style="color:red;font-size:14px">⚠ MO — BRAK DANYCH</div><div class="wt-val" style="color:red;font-size:28px">⚠</div><div class="wt-sub" style="color:red">aMO='+(aMO===null?'null':typeof aMO)+' — wczytaj plik SOL ponownie</div></div>';
     }
-    }catch(eMO){console.error('[v32] MO ERROR:',eMO);h+='<div class="wyd-tile tmo" style="border:3px solid red"><div class="wt-val" style="color:red">MO błąd: '+eMO.message+'</div></div>'}
+    }catch(eMO){console.error('[v35] MO ERROR:',eMO);h+='<div class="wyd-tile tmo" style="border:3px solid red"><div class="wt-val" style="color:red">MO błąd: '+eMO.message+'</div></div>'}
     // === INNE (opcjonalne) ===
     try{
     const aINNE=getGrp('INNE');
@@ -1536,10 +1549,11 @@ function getNaStole(g){
   const trOut=getTransfersOut(g.id);const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);
   return zadana-trOut+trIn;
 }
+let zooTempNied={};  // tymczasowe niedojady wpisane w formularz (przetrwają re-render)
+let zooTempNote='';
 function rZoo(){
   const dateKey=getZooDate();
   const saved=zooLog[dateKey];
-  const today=new Date().toISOString().slice(0,10);
   let info='<b>Wpis na dzień: '+dateKey+'</b> (niedojady ze stołu — co zostało z poprzedniego dnia)';
   if(saved)info+=' <span style="color:#4CAF50;font-weight:600">✓ zapisane</span>';
   $('#zoo-date-info').innerHTML=info;
@@ -1548,30 +1562,32 @@ function rZoo(){
   gr.forEach((g,gi)=>{
     const naStole=getNaStole(g);
     const perSztZad=g.realSz>0?r2(naStole/g.realSz,1):0;
-    const prevNied=saved?((saved.find(e=>e.gid===g.id)||{}).niedojady||0):0;
-    const pobrano=naStole-prevNied;
+    // Priorytet: tymczasowe > zapisane > 0
+    let nied=0;
+    if(zooTempNied[g.id]!=null)nied=zooTempNied[g.id];
+    else if(saved){const e=saved.find(x=>x.gid===g.id);if(e)nied=e.niedojady||0}
+    const pobrano=naStole-nied;
     const perSztPob=g.realSz>0?r2(pobrano/g.realSz,1):0;
     const pct=naStole>0?r2(pobrano/naStole*100,0):0;
     h+='<tr><td><b>'+g.nazwa+'</b></td><td>'+g.realSz+'</td><td>'+r2(naStole,0)+'</td><td>'+perSztZad+'</td>';
-    h+='<td><input type="number" id="zoo-nied-'+gi+'" value="'+prevNied+'" min="0" style="width:70px" onchange="updateZooRow('+gi+')"></td>';
+    h+='<td><input type="number" id="zoo-nied-'+gi+'" value="'+nied+'" min="0" style="width:70px" onchange="updateZooRow('+gi+')"></td>';
     h+='<td id="zoo-pob-'+gi+'"><b>'+r2(pobrano,0)+'</b></td>';
     h+='<td id="zoo-ps-'+gi+'">'+perSztPob+'</td>';
     h+='<td id="zoo-pct-'+gi+'"><span style="color:'+(pct>=95?'#4CAF50':pct>=85?'var(--c-gold)':'var(--c-red)')+'"><b>'+pct+'%</b></span></td></tr>';
   });
   h+='</tbody></table>';
   $('#zoo-table').innerHTML=h;
-  // Wczytaj zapisaną notatkę
+  // Wczytaj notatkę: tymczasowa > zapisana
   const noteEl=$('#zoo-note');
-  if(noteEl){
-    const savedNote=saved&&saved.length>0&&zooLog[dateKey+'_note']?zooLog[dateKey+'_note']:(saved&&saved._note||'');
-    noteEl.value=zooLog[dateKey+'_note']||'';
-  }
+  if(noteEl)noteEl.value=zooTempNote||(zooLog[dateKey+'_note']||'');
   // Historia
-  renderZooHistory();
+  renderCal();
+  renderEatenInZoo();
 }
 function updateZooRow(gi){
   const g=gr[gi];const naStole=getNaStole(g);
   const nied=pv($('#zoo-nied-'+gi).value)||0;
+  zooTempNied[g.id]=nied;  // zapamiętaj tymczasowo
   const pobrano=naStole-nied;
   const perSzt=g.realSz>0?r2(pobrano/g.realSz,1):0;
   const pct=naStole>0?r2(pobrano/naStole*100,0):0;
@@ -1588,39 +1604,184 @@ function saveZoo(){
   });
   zooLog[dateKey]=entries;
   const noteVal=($('#zoo-note')||{}).value||'';
-  if(noteVal.trim())zooLog[dateKey+'_note']=noteVal.trim();
-  else delete zooLog[dateKey+'_note'];
+  if(noteVal.trim()){zooLog[dateKey+'_note']=noteVal.trim();zooTempNote=noteVal.trim()}
+  else{delete zooLog[dateKey+'_note'];zooTempNote=''}
   // Ogranicz historię do 365 dni
   const keys=Object.keys(zooLog).sort();
   while(keys.length>365){delete zooLog[keys.shift()]}
+  // Wyczyść temp po zapisie (bo teraz dane są w zooLog)
+  zooTempNied={};
   sa(true,'zootechnik');
   toast('Zapisano niedojady za '+dateKey);
   rZoo();
+  renderEatenInZoo();
 }
-function renderZooHistory(){
-  const keys=Object.keys(zooLog).sort().reverse().slice(0,30);
-  if(!keys.length){$('#zoo-history').innerHTML='<div style="padding:14px;color:var(--c-txt2)">Brak zapisanych danych</div>';return}
-  let h='<table class="dt" style="font-size:12px"><thead><tr><th>Data</th>';
-  gr.forEach(g=>{h+='<th colspan="2" style="text-align:center">'+g.nazwa+'</th>'});
-  h+='</tr><tr><th></th>';
-  gr.forEach(()=>{h+='<th>Niedoj.</th><th>Pobr./szt</th>'});
-  h+='</tr></thead><tbody>';
-  keys.forEach(dk=>{
-    const entries=zooLog[dk];
-    const note=zooLog[dk+'_note']||'';
-    h+='<tr><td><b>'+dk+'</b>'+(note?'<br><span style="font-size:10px;color:var(--c-txt2);font-style:italic">📝 '+note+'</span>':'')+'</td>';
-    gr.forEach(g=>{
-      const e=entries.find(x=>x.gid===g.id);
-      if(e){
-        const ps=e.realSz>0?r2(e.pobrano/e.realSz,1):0;
-        h+='<td>'+(e.niedojady>0?'<span style="color:var(--c-red)">'+e.niedojady+'</span>':'—')+'</td>';
-        h+='<td>'+ps+'</td>';
-      }else{h+='<td>—</td><td>—</td>'}
+let calMonth=new Date();calMonth.setDate(1);
+let calSelDay=null;
+function calNav(dir){calMonth.setMonth(calMonth.getMonth()+dir);renderCal()}
+function renderCal(){
+  const y=calMonth.getFullYear(),m=calMonth.getMonth();
+  const names=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+  $('#cal-title').textContent=names[m]+' '+y;
+  const first=new Date(y,m,1).getDay();const startDay=(first===0?6:first-1); // Mon=0
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  let h='<div class="cal-grid">';
+  ['Pn','Wt','Śr','Cz','Pt','So','Nd'].forEach(d=>{h+='<div class="cal-hdr">'+d+'</div>'});
+  for(let i=0;i<startDay;i++)h+='<div class="cal-day empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const dk=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const hasData=zooLog[dk]&&zooLog[dk].length>0;
+    const hasNote=!!zooLog[dk+'_note'];
+    const isSel=calSelDay===dk;
+    let cls='cal-day'+(hasData?' has-data':'')+(hasNote?' has-note':'')+(isSel?' selected':'');
+    h+='<div class="'+cls+'" onclick="calSelectDay(\''+dk+'\')">';
+    h+='<div class="cal-num">'+d+'</div>';
+    if(hasData||hasNote){
+      h+='<div class="cal-dot">';
+      if(hasData)h+='<span style="background:#4CAF50"></span>';
+      if(hasNote)h+='<span style="background:var(--c-gold)"></span>';
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  // Legenda
+  h+='<div style="display:flex;gap:12px;font-size:10px;color:var(--c-txt2);padding:4px 0">';
+  h+='<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4CAF50;vertical-align:middle"></span> niedojady</span>';
+  h+='<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c-gold);vertical-align:middle"></span> notatka</span>';
+  h+='</div>';
+  $('#zoo-cal').innerHTML=h;
+  renderDayDetail();
+}
+function calSelectDay(dk){calSelDay=(calSelDay===dk)?null:dk;renderCal()}
+function renderDayDetail(){
+  const el=$('#zoo-day-detail');
+  if(!calSelDay){el.style.display='none';return}
+  el.style.display='block';
+  const dk=calSelDay;
+  const entry=zooLog[dk];
+  const note=zooLog[dk+'_note']||'';
+  let h='<div style="border-top:2px solid var(--c-pri);padding-top:10px;margin-top:4px">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:14px">'+dk+'</b>';
+  h+='<button class="btn bs bo" style="font-size:10px" onclick="calSelDay=null;renderCal()">✕ Zamknij</button></div>';
+  // Notatka — edytowalna
+  h+='<div style="margin-bottom:10px"><label style="font-size:11px;font-weight:600;color:var(--c-txt2)">📝 Notatka</label>';
+  h+='<textarea id="cal-note" rows="2" style="width:100%;margin-top:3px;padding:5px 7px;border:1px solid #ddd;border-radius:6px;font-size:12px;font-family:var(--font);resize:vertical" placeholder="Dodaj notatkę na ten dzień...">'+note+'</textarea>';
+  h+='<button class="btn bs bp" style="margin-top:4px;font-size:11px;padding:3px 10px" onclick="saveCalNote(\''+dk+'\')">Zapisz notatkę</button></div>';
+  // Podsumowanie niedojadów
+  if(entry&&entry.length){
+    h+='<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:600;color:var(--c-txt2);margin-bottom:4px">Pobranie TMR</div>';
+    h+='<table class="dt" style="font-size:11px"><thead><tr><th>Grupa</th><th>Szt.</th><th>Zadano</th><th>Niedoj.</th><th>Pobrano</th><th>Pobr./szt</th><th>%</th></tr></thead><tbody>';
+    entry.forEach(e=>{
+      const ps=e.realSz>0?r2(e.pobrano/e.realSz,1):0;
+      const pct=e.zadano>0?r2(e.pobrano/e.zadano*100,0):0;
+      h+='<tr><td>'+e.nazwa+'</td><td>'+e.realSz+'</td><td>'+e.zadano+'</td>';
+      h+='<td>'+(e.niedojady>0?'<span style="color:var(--c-red)">'+e.niedojady+'</span>':'—')+'</td>';
+      h+='<td><b>'+e.pobrano+'</b></td><td>'+ps+'</td>';
+      h+='<td><span style="color:'+(pct>=95?'#4CAF50':pct>=85?'var(--c-gold)':'var(--c-red)')+'"><b>'+pct+'%</b></span></td></tr>';
     });
-    h+='</tr>';
+    h+='</tbody></table></div>';
+  }else{
+    h+='<div style="font-size:12px;color:var(--c-txt2);margin-bottom:10px">Brak danych niedojadów na ten dzień</div>';
+  }
+  // Linki do raportów
+  h+='<div style="margin-bottom:6px"><div style="font-size:11px;font-weight:600;color:var(--c-txt2);margin-bottom:4px">Przejdź do raportów</div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:4px">';
+  h+='<button class="btn bs bo" style="font-size:10px" onclick="goToReport(0)">📋 Dawki</button>';
+  h+='<button class="btn bs bo" style="font-size:10px" onclick="goToReport(1)">🚜 Wóz</button>';
+  h+='<button class="btn bs bo" style="font-size:10px" onclick="goToReport(2)">🥣 Niedojady</button>';
+  h+='<button class="btn bs bo" style="font-size:10px" onclick="goToReport(3)">📊 Dawki realne</button>';
+  if(entry&&entry.length)h+='<button class="btn bs bp" style="font-size:10px" onclick="showEatenDetail(\''+dk+'\')">🍽 Dawka zjedzona</button>';
+  h+='</div></div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+function saveCalNote(dk){
+  const val=($('#cal-note')||{}).value||'';
+  if(val.trim())zooLog[dk+'_note']=val.trim();
+  else delete zooLog[dk+'_note'];
+  sa(true,'zootechnik');
+  toast('Notatka zapisana');
+  renderCal();
+}
+function goToReport(subIdx){
+  // Przejdź do zakładki Raporty i otwórz odpowiedni sub-tab
+  switchTab('raporty');
+  setTimeout(()=>subTab('rap',subIdx),100);
+}
+function showEatenDetail(dk){
+  const t=buildEatenTable(dk);
+  if(!t){toast('Brak danych');return}
+  opM('Dawka zjedzona — '+dk,t,'<button class="btn bo" onclick="clM()">Zamknij</button>');
+}
+
+/* ===== DAWKA ZJEDZONA ===== */
+function buildEatenTable(dateKey){
+  const entry=zooLog[dateKey];
+  if(!entry||!entry.length)return'';
+  const used=new Set();gr.forEach(g=>g.sk.forEach(sk=>used.add(sk.s)));const allS=sur.filter(s=>used.has(s.id)).map(s=>s.id);
+  let h='<div style="font-size:12px;color:var(--c-txt2);padding:4px 0">Data: <b>'+dateKey+'</b></div>';
+  h+='<table class="fe" style="font-size:12px"><thead><tr><th style="text-align:left;min-width:140px">Surowiec</th>';
+  gr.forEach(g=>{
+    const e=entry.find(x=>x.gid===g.id);
+    if(!e||!e.zadano)return;
+    h+='<th>'+g.nazwa+'<br><span style="font-weight:400;font-size:9px">'+e.realSz+' szt · '+(e.zadano>0?r2(e.pobrano/e.zadano*100,0):0)+'% pobr.</span></th>';
   });
-  h+='</tbody></table>';
-  $('#zoo-history').innerHTML=h;
+  h+='</tr></thead><tbody>';
+  allS.forEach(sid=>{
+    const s=gS(sid);if(!s)return;
+    let anyVal=false;
+    let row='<tr><td>'+s.nazwa+'</td>';
+    gr.forEach(g=>{
+      const e=entry.find(x=>x.gid===g.id);
+      if(!e||!e.zadano)return;
+      const sk=g.sk.find(x=>x.s===sid);
+      if(!sk||sk.kg<=0){row+='<td></td>';return}
+      // dawka realna per szt (z transferami)
+      const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);
+      const naStole=e.zadano;
+      const ratio=e.zadano>0?e.pobrano/e.zadano:1;
+      // kg realny per szt = (proporcja składnika w recepturze) × (naStole/realSz) × ratio_pobrania
+      const realPerSzt=totRecipe>0&&e.realSz>0?r2(sk.kg*(naStole/(totRecipe*e.realSz))*ratio,2):0;
+      if(realPerSzt>0)anyVal=true;
+      row+='<td>'+(realPerSzt>0?realPerSzt:'')+'</td>';
+    });
+    row+='</tr>';
+    if(anyVal)h+=row;
+  });
+  h+='<tr style="font-weight:700;border-top:2px solid var(--c-pri)"><td>Całość kg/szt zjedz.</td>';
+  gr.forEach(g=>{
+    const e=entry.find(x=>x.gid===g.id);
+    if(!e||!e.zadano)return;
+    const perSzt=e.realSz>0?r2(e.pobrano/e.realSz,1):0;
+    h+='<td><b>'+perSzt+'</b></td>';
+  });
+  h+='</tr></tbody></table>';
+  const note=zooLog[dateKey+'_note'];
+  if(note)h+='<div style="margin-top:6px;padding:6px 10px;background:#FFF8E1;border-radius:6px;font-size:12px">📝 '+note+'</div>';
+  return h;
+}
+function renderEatenInZoo(){
+  const dateKey=getZooDate();
+  const card=$('#zoo-eaten-card');
+  const entry=zooLog[dateKey];
+  if(!entry||!entry.length||!entry.some(e=>e.niedojady>0)){
+    if(card)card.style.display='none';return;
+  }
+  if(card)card.style.display='';
+  $('#zoo-eaten').innerHTML=buildEatenTable(dateKey);
+}
+function rRapEaten(){
+  const keys=Object.keys(zooLog).filter(k=>!k.includes('_note')).sort().reverse().slice(0,30);
+  if(!keys.length){$('#rap-eaten').innerHTML='<div style="padding:20px;text-align:center;color:var(--c-txt2)">Brak danych — wpisz niedojady w zakładce Niedojady</div>';return}
+  let h='';
+  keys.forEach(dk=>{
+    const entry=zooLog[dk];
+    if(!entry||!entry.length)return;
+    h+='<div style="margin-bottom:16px;border:1px solid #eee;border-radius:8px;padding:10px">'+buildEatenTable(dk)+'</div>';
+  });
+  if(!h)h='<div style="padding:20px;text-align:center;color:var(--c-txt2)">Brak zapisanych dawek zjedzonych</div>';
+  $('#rap-eaten').innerHTML=h;
 }
 
 /* ===== SUCHY TMR ===== */

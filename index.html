@@ -131,6 +131,34 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
 @page{size:A4;margin:10mm}}
 @media print{body.landscape #pa{}@page landscape{size:A4 landscape;margin:8mm}}
 @media(max-width:480px){.fr{flex-direction:column;gap:6px}.fg{min-width:0}}
+
+/* ===== STYL A — zielony dopracowany ===== */
+:root{--c-pri:#2F6B3A;--c-pri-d:#1F4D2B;--c-pri-l:#EAF1EA;--c-bg:#F4F6F1;--c-txt:#1E2A20;--c-txt2:#5A6B5D;--c-brd:#D5DCCF;--c-nav:#2F6B3A;--shadow:0 1px 3px rgba(0,0,0,.06)}
+.app-header{background:#1F4D2B;height:54px}.app-header .farm-name{font-size:16px;letter-spacing:.2px}
+.app-nav{background:#2F6B3A}.nav-tab{color:#CFE3D2;font-size:13px}.nav-tab:hover{color:#fff}
+.nav-tab.active{color:#fff;border-bottom-color:#C9A227}
+@media(max-width:768px){.nav-tab.active{border-top-color:#C9A227}}
+.card{border-radius:10px;border-color:#D5DCCF}
+.ch{font-size:14px;color:#1F4D2B;background:#EAF1EA;padding:10px 14px}
+table.dt{font-size:13px}table.dt th{background:#2F6B3A;font-size:11px;padding:8px 6px}
+table.dt td{font-size:13px;padding:6px;border-bottom:1px solid #E3E8DF;color:#1E2A20}
+table.dt tr:nth-child(even){background:#F7F9F5}
+table.dt tfoot td{background:#FBF5DF;color:#5C4A0B}
+table.fe{font-size:12px}table.fe th{font-size:10px;padding:6px 4px}table.fe td{font-size:12px;padding:4px;border-color:#E3E8DF}
+table.fe tfoot td{background:#FBF5DF;color:#5C4A0B;font-size:13px}
+.btn{border-radius:7px}.sub-tab{font-size:13px}.sub-tab.active{background:#2F6B3A}
+/* Zbiorcza karta paszowozu */
+table.zb{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums;background:#fff}
+table.zb th,table.zb td{border:1px solid #C9D2C4;padding:6px 8px;text-align:right;white-space:nowrap}
+table.zb th{background:#2F6B3A;color:#fff;font-weight:600;text-align:center;font-size:13px}
+table.zb th.sub{background:#EAF1EA;color:#1F4D2B;font-weight:600;font-size:12px}
+table.zb td:first-child,table.zb th:first-child{text-align:left;font-weight:600;position:sticky;left:0;background:inherit}
+table.zb tbody tr:nth-child(even){background:#F7F9F5}table.zb tbody tr:nth-child(odd){background:#fff}
+table.zb td.kg{font-weight:700;color:#1E2A20}table.zb td.cum{color:#5A6B5D}
+table.zb td.day{background:#F1F4EE;color:#1F4D2B}
+table.zb tr.sum td{background:#FBF5DF;color:#5C4A0B;font-weight:700;border-top:2px solid #C9A227}
+.zb-note{margin:8px 14px 12px;padding:8px 12px;background:#E3F2FD;border:1px solid #90CAF9;border-radius:8px;color:#0D47A1;font-size:13px}
+.gr-alias{display:block;font-weight:400;font-size:9px;opacity:.85}
 </style>
 </head>
 <body>
@@ -141,7 +169,7 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v35</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v36</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
@@ -153,13 +181,13 @@ table.wyd tfoot td{font-weight:700;background:var(--c-gold-bg);color:var(--c-gol
     <!-- KOSZTY --><div class="tab-panel" id="tab-koszty"><div class="card"><div class="ch"><span>Koszt na sztukę/dzień</span><button class="btn bs bp" style="opacity:.7" onclick="pKoszty()">📄</button></div><div class="tw" id="kos-s1"></div></div><div class="card"><div class="ch">Zużycie wg kategorii</div><div class="tw" id="kos-s2"></div></div><div class="card"><div class="ch">Koszt wg grup</div><div class="tw" id="kos-s3"></div></div></div>
     <!-- PASZOWÓZ --><div class="tab-panel" id="tab-paszowoz">
       <div style="padding:12px 14px 4px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div><span style="font-size:17px;font-weight:700;color:var(--c-pri-d)">Dawki do realizacji</span><br><span style="font-size:12px;color:var(--c-txt2)" id="woz-date"></span></div><button class="btn bp" onclick="printKartaZaladunku()" style="padding:10px 16px;font-size:14px">🖨 Drukuj kartę załadunku</button></div>
+      <div class="card"><div class="ch"><span>Karta załadunku — wszystkie grupy</span><div style="display:flex;gap:6px"><button class="btn bs bo" onclick="exportZbiorczaCSV()">⬇ Eksport CSV</button><button class="btn bs bp" onclick="printKartaZaladunku()">🖨 Drukuj</button></div></div><div class="tw" id="woz-zbiorcza"></div><div id="woz-zb-notes"></div></div>
       <div id="woz-panel"></div>
       <div class="card" style="margin:0 0 12px"><div class="ch"><span>Dzisiejszy dziennik</span></div><div id="woz-log-panel"></div></div>
     </div>
     <!-- RAPORTY --><div class="tab-panel" id="tab-raporty">
-      <div class="sub-tabs"><button class="sub-tab active" onclick="subTab('rap',0)">📋 Dawki</button><button class="sub-tab" onclick="subTab('rap',1)">🚜 Wóz</button><button class="sub-tab" onclick="subTab('rap',2)">🥣 Niedojady</button><button class="sub-tab" onclick="subTab('rap',3)">📊 Dawki realne</button><button class="sub-tab" onclick="subTab('rap',4)">🍽 Zjedzone</button></div>
+      <div class="sub-tabs"><button class="sub-tab active" onclick="subTab('rap',0)">📋 Dawki</button><button class="sub-tab" onclick="subTab('rap',1)">🥣 Niedojady</button><button class="sub-tab" onclick="subTab('rap',2)">📊 Dawki realne</button><button class="sub-tab" onclick="subTab('rap',3)">🍽 Zjedzone</button></div>
       <div class="sub-panel active" id="rap-0"><div class="card"><div class="ch">Historia zmian receptury dawek</div><div id="rap-dawki"></div></div></div>
-      <div class="sub-panel" id="rap-1"><div class="fr"><div class="fg"><label>Od</label><input type="date" id="rap-od" onchange="rRapWoz()"></div><div class="fg"><label>Do</label><input type="date" id="rap-do" onchange="rRapWoz()"></div></div><div class="card"><div class="ch">Dziennik wozu paszowego</div><div id="rap-woz"></div></div></div>
       <div class="sub-panel" id="rap-2"><div class="card"><div class="ch">Raport niedojadów</div><div id="rap-nied"></div></div></div>
       <div class="sub-panel" id="rap-3"><div class="card"><div class="ch">Dzienne snapshoty dawek realnych</div><div id="rap-dr"></div></div></div>
       <div class="sub-panel" id="rap-4"><div class="card"><div class="ch">Dawki zjedzone — co krowy faktycznie pobrały</div><div id="rap-eaten"></div></div></div>
@@ -284,7 +312,8 @@ let dawkiRealne=LD('dawkiRealne',[]);
 let zooLog=LD('zooLog',{}); // [{date,snapshot:[{nazwa,realSz,naStole,sk:[{nazwa,kgReal}]}]}]
 let dawkiChanged=false,dawkiSnapTimer=null,lastSnapTime=0;
 // Migration: add new fields to groups
-gr.forEach(g=>{if(g.realSz==null)g.realSz=g.se.reduce((a,s)=>a+s.sz,0);if(g.zadanaKg==null)g.zadanaKg=0;if(!g.transfery)g.transfery=[]});
+const GR_ALIAS_DEF={'GR HF':'HF','GR MO':'MO','OPAS':'BYKI','Far Off':'DOŁEK','Close Up':'PORODÓWKA','PARK':'PARK'};
+gr.forEach(g=>{if(g.alias==null)g.alias=GR_ALIAS_DEF[g.nazwa]||'';if(g.realSz==null)g.realSz=g.se.reduce((a,s)=>a+s.sz,0);if(g.zadanaKg==null)g.zadanaKg=0;if(!g.transfery)g.transfery=[]});
 
 /* ===== FIREBASE ===== */
 const firebaseConfig={apiKey:"AIzaSyD4hrY8bU6JFNN1nIBvMC3TFY-nLjwjUJA",authDomain:"ferma-stuchowo-po-app.firebaseapp.com",projectId:"ferma-stuchowo-po-app",storageBucket:"ferma-stuchowo-po-app.firebasestorage.app",messagingSenderId:"907039344032",appId:"1:907039344032:web:70e7c00ea4462815c550c5"};
@@ -298,7 +327,7 @@ let fbInitialLoaded=false;      // KRYTYCZNE: blokuje wysyłkę przed pobraniem 
 let fbPendingModules=new Set(); // moduły czekające na wysłanie
 let fbOwnWrites={};             // znaczniki własnych zapisów (żeby nie reagować na własne echo)
 
-function migrateGroups(){gr.forEach(g=>{if(g.realSz==null)g.realSz=g.se.reduce((a,s)=>a+s.sz,0);if(g.zadanaKg==null)g.zadanaKg=0;if(!g.transfery)g.transfery=[]})}
+function migrateGroups(){gr.forEach(g=>{if(g.alias==null)g.alias=GR_ALIAS_DEF[g.nazwa]||'';if(g.realSz==null)g.realSz=g.se.reduce((a,s)=>a+s.sz,0);if(g.zadanaKg==null)g.zadanaKg=0;if(!g.transfery)g.transfery=[]})}
 
 /* Scalanie dzienników — nigdy nie gubimy wpisów od innych użytkowników */
 function mergeWozLog(remote){
@@ -487,14 +516,14 @@ function dailyUse(sid){
   return total;
 }
 function rSur(){
-  let h='<table class="dt"><thead><tr><th>Surowiec</th><th>Kat.</th><th>Cena PLN/t</th><th>Stan (t)</th><th>Zużycie dz.</th><th>Wystarczy do</th><th></th></tr></thead><tbody>';
+  let h='<table class="dt"><thead><tr><th>Surowiec</th><th>Kat.</th><th>Cena PLN/t</th><th>Stan (t)</th><th>Zużycie dz.</th><th>Zużycie roczne (t)</th><th>Zapotrz. 42 dni (t)</th><th>Wystarczy do</th><th></th></tr></thead><tbody>';
   sur.forEach((s,i)=>{
     const du=dailyUse(s.id);const stanKg=s.stan_t*1000;let wyst='—';
     if(du>0){const days=Math.floor(stanKg/du);const dt=new Date();dt.setDate(dt.getDate()+days);wyst='<span class="'+(days<14?'sur-warn':'sur-ok')+'">'+fmtDate(dt)+' ('+days+'d)</span>'}
     h+='<tr><td><span style="display:inline-flex;flex-direction:column;margin-right:3px;line-height:1;vertical-align:middle">'+(i>0?'<button onclick="mvS('+i+',-1)" style="border:none;background:none;cursor:pointer;font-size:9px">▲</button>':'<span style="font-size:9px;opacity:.2">▲</span>')+(i<sur.length-1?'<button onclick="mvS('+i+',1)" style="border:none;background:none;cursor:pointer;font-size:9px">▼</button>':'<span style="font-size:9px;opacity:.2">▼</span>')+'</span>'+s.nazwa+' <button class="btn bs" style="padding:1px 4px;font-size:9px;background:none;color:var(--c-pri);border:1px solid var(--c-brd)" onclick="eSurN('+i+')">✎</button></td>';
     h+='<td><select style="width:85px;font-size:10px;padding:2px" onchange="sur['+i+'].kat=this.value;sa()">';['obj','tres','dod'].forEach(k=>{h+='<option value="'+k+'"'+((s.kat||'obj')===k?' selected':'')+'>'+KAT_LABELS[k]+'</option>'});
     h+='</select></td><td><input step="1" value="'+r2(s.cena_t,0)+'" onchange="sur['+i+'].cena_t=pv(this.value);sa()"></td><td><input step="0.01" value="'+r2(s.stan_t,2)+'" onchange="sur['+i+'].stan_t=pv(this.value);sa();rSur()"></td>';
-    h+='<td>'+r2(du,1)+' kg</td><td style="text-align:left;font-family:var(--font);font-size:11px">'+wyst+'</td>';
+    h+='<td>'+r2(du,1)+' kg</td><td>'+(du*365/1000).toFixed(2)+'</td><td><b>'+(du*42/1000).toFixed(2)+'</b></td><td style="text-align:left;font-family:var(--font);font-size:11px">'+wyst+'</td>';
     h+='<td><button class="btn bs bd" onclick="if(confirm(\'Usunąć?\')){sur.splice('+i+',1);sa(true,\'surowce\');rSur()}">✕</button></td></tr>';
   });
   h+='</tbody></table>';$('#sur-w').innerHTML=h;
@@ -509,7 +538,7 @@ function rDk(){
   const used=new Set();gr.forEach(g=>g.sk.forEach(sk=>used.add(sk.s)));const allS=sur.filter(s=>used.has(s.id)).map(s=>s.id);
   // Table 1: Dawka wyliczona
   let h='<table class="fe"><thead><tr><th rowspan="2" style="text-align:left;min-width:180px">Nazwa</th>';
-  gr.forEach((g,gi)=>{h+='<th class="gh">'+g.nazwa+'<br><span style="font-weight:400;font-size:8px">'+g.realSz+' szt · '+(g.z||1)+'×/d</span> <button style="border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;font-size:8px;padding:0 3px;border-radius:3px;cursor:pointer" onclick="pDkGr('+gi+',\'wyl\')">📄</button></th>'});
+  gr.forEach((g,gi)=>{h+='<th class="gh">'+(canEdit()?'<span style="cursor:pointer;text-decoration:underline dotted" title="Edytuj nazwę" onclick="editGrName('+gi+')">'+g.nazwa+' ✎</span>':g.nazwa)+(g.alias&&g.alias!==g.nazwa?'<span class="gr-alias">('+g.alias+')</span>':'')+'<span style="font-weight:400;font-size:8px">'+g.realSz+' szt · '+(g.z||1)+'×/d</span> <button style="border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;font-size:8px;padding:0 3px;border-radius:3px;cursor:pointer" onclick="pDkGr('+gi+',\'wyl\')">📄</button></th>'});
   h+='</tr></thead><tbody>';
   allS.forEach((sid,ri)=>{const s=gS(sid);if(!s)return;const si=sur.indexOf(s);
     h+='<tr><td title="'+s.nazwa+'">';
@@ -653,6 +682,7 @@ function isGDone(gid){return getTodayLog().some(e=>e.gid===gid)}
 function getGLog(gid){return getTodayLog().find(e=>e.gid===gid)}
 
 function rWoz(){
+  rZbiorcza();
   const d=new Date();$('#woz-date').textContent=fmtDate(d)+' ('+['Nd','Pn','Wt','Śr','Cz','Pt','So'][d.getDay()]+')';
   let h='<div class="woz-grid">';
   gr.forEach((g,gi)=>{
@@ -774,71 +804,81 @@ function printWozCard(gi){
 
 
 /* ---------- ZBIORCZA KARTA ZAŁADUNKU (wszystkie grupy, A4 poziomo) ---------- */
-function printKartaZaladunku(){
-  const today=todayKey();
-  const log=wozLog[today]||[];
-  // Kolejność surowców zgodna z zakładką Surowce
+
+/* ===== ZBIORCZA KARTA ZAŁADUNKU ===== */
+function editGrName(gi){const g=gr[gi];opM('Nazwa grupy','<div class="fg" style="margin-bottom:8px"><label>Nazwa w aplikacji</label><input type="text" id="egn" value="'+g.nazwa+'"></div><div class="fg"><label>Nazwa na karcie paszowozu (np. BYKI)</label><input type="text" id="ega" value="'+(g.alias||'')+'"></div>','<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="saveGrName('+gi+')">Zapisz</button>')}
+function saveGrName(gi){const n=$('#egn').value.trim();if(!n){toast('Podaj nazwę');return}gr[gi].nazwa=n;gr[gi].alias=$('#ega').value.trim();sa(true,'grupy');clM();rDk();toast('Zapisano')}
+function grLabel(g){return(g.alias&&g.alias.trim())||g.nazwa}
+function zbData(){
+  const log=wozLog[todayKey()]||[];
   const used=new Set();gr.forEach(g=>g.sk.forEach(sk=>{if(sk.kg>0)used.add(sk.s)}));
   const surOrder=sur.filter(x=>used.has(x.id));
-  // Dane per grupa: zadana kg, niedojady (z dziennika, jeśli zrealizowano)
   const cols=gr.map(g=>{
     const entry=log.find(e=>e.gid===g.id);
     const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);
-    const tsz=g.realSz;
-    const zadana=entry?entry.zadanaKg:(g.zadanaKg>0?g.zadanaKg:r2(totRecipe*tsz*(g.z||1),0));
-    const nied=entry?(entry.niedojady||0):0;
-    const trOut=getTransfersOut(g.id);
-    const trIn=(g.transfery||[]).reduce((a,t)=>a+t.kg,0);
-    return{g,zadana,nied,trOut,trIn,totRecipe,tsz,done:!!entry};
-  });
-  let h='<table style="width:100%;border-collapse:collapse">';
-  // Nagłówek
-  h+='<thead><tr><th style="text-align:left">Składnik</th>';
-  cols.forEach(c=>{h+='<th>'+c.g.nazwa+'<br><span style="font-size:11pt;font-weight:600">'+c.g.realSz+' szt'+(c.done?' ✓':'')+'</span></th>'});
-  h+='</tr></thead><tbody>';
-  // Wiersz niedojadów (jeśli gdziekolwiek są)
-  const anyNied=cols.some(c=>c.nied>0);
-  const running=cols.map(c=>c.nied>0?c.nied:0);
-  if(anyNied){
-    h+='<tr><td style="text-align:left">🔄 Niedojady</td>';
-    cols.forEach((c,i)=>{h+='<td>'+(c.nied>0?c.nied:'—')+'</td>'});
-    h+='</tr>';
-  }
-  // Surowce — narastająco "w wozie"
+    const zadana=entry?entry.zadanaKg:(g.zadanaKg>0?g.zadanaKg:r2(totRecipe*g.realSz*(g.z||1),0));
+    return{g,zadana,totRecipe,done:!!entry};
+  }).filter(c=>c.zadana>0&&c.totRecipe>0);
+  const running=cols.map(()=>0);
+  const rows=[];
   surOrder.forEach(sv=>{
-    let rowHasValue=false;const cells=[];
-    cols.forEach((c,i)=>{
+    const cells=cols.map((c,i)=>{
       const item=c.g.sk.find(x=>x.s===sv.id);
-      if(!item||item.kg<=0||c.totRecipe<=0){cells.push('');return}
-      const fresh=Math.max(0,c.zadana-c.nied);
-      const naWoz=r2((item.kg/c.totRecipe)*fresh,0);
-      if(naWoz>0){running[i]+=naWoz;rowHasValue=true;cells.push(running[i])}
-      else cells.push('');
+      if(!item||item.kg<=0)return null;
+      const kg=r2(item.kg/c.totRecipe*c.zadana,1);
+      running[i]=r2(running[i]+kg,1);
+      return{kg,cum:running[i]};
     });
-    if(rowHasValue){
-      h+='<tr><td style="text-align:left">'+sv.nazwa+'</td>';
-      cells.forEach(v=>{h+='<td>'+(v===''?'':v)+'</td>'});
-      h+='</tr>';
-    }
+    if(cells.some(x=>x))rows.push({s:sv,cells,day:r2(cells.reduce((a,x)=>a+(x?x.kg:0),0),1)});
   });
-  // Suma
-  h+='<tr class="sumrow"><td style="text-align:left"><b>RAZEM W WOZIE</b></td>';
-  cols.forEach((c,i)=>{h+='<td><b>'+running[i]+' kg</b></td>'});
-  h+='</tr></tbody></table>';
-  // Adnotacje o transferach
-  let notes=[];
-  cols.forEach(c=>{
-    if(c.trOut>0){let det=[];gr.forEach(og=>{(og.transfery||[]).forEach(t=>{if(t.fromGid===c.g.id)det.push(t.kg+' kg → '+og.nazwa)})});
-      notes.push('<b>'+c.g.nazwa+'</b>: zrzuć '+det.join(', '))}
+  const notes=[];
+  cols.forEach(c=>{let det=[];gr.forEach(og=>{(og.transfery||[]).forEach(t=>{if(t.fromGid===c.g.id)det.push(t.kg+' kg → '+grLabel(og))})});
+    if(det.length)notes.push('<b>'+grLabel(c.g)+'</b>: z tego wozu zrzuć '+det.join(', '))});
+  return{cols,rows,running,notes,total:r2(running.reduce((a,b)=>a+b,0),1)};
+}
+function zbTableHTML(d){
+  let h='<table class="zb"><thead><tr><th rowspan="2" style="min-width:150px">'+fmtDate(new Date())+'</th>';
+  d.cols.forEach(c=>{h+='<th colspan="2">'+grLabel(c.g)+(c.done?' ✓':'')+'</th>'});
+  h+='<th rowspan="2">na 1 dzień</th></tr><tr>';
+  d.cols.forEach(c=>{h+='<th class="sub">'+c.g.realSz+' szt</th><th class="sub">w wozie</th>'});
+  h+='</tr></thead><tbody>';
+  d.rows.forEach(r=>{
+    h+='<tr><td>'+r.s.nazwa.toUpperCase()+'</td>';
+    r.cells.forEach(x=>{h+=x?'<td class="kg">'+x.kg+'</td><td class="cum">'+x.cum+'</td>':'<td></td><td></td>'});
+    h+='<td class="day">'+r.day+'</td></tr>';
   });
-  if(notes.length)h+='<div class="tr-note"><b>⚠ TRANSFERY PASZY:</b><br>'+notes.join('<br>')+'</div>';
-  if(anyNied){
-    let nd=cols.filter(c=>c.nied>0).map(c=>c.g.nazwa+': '+c.nied+' kg');
-    h+='<div class="tr-note" style="margin-top:6px"><b>NIEDOJADY WRZUCONE DO WOZU:</b> '+nd.join(' · ')+'</div>';
-  }
+  h+='<tr class="sum"><td>SUMA</td>';
+  d.running.forEach(v=>{h+='<td colspan="2">'+v+'</td>'});
+  h+='<td>'+d.total+'</td></tr></tbody></table>';
+  return h;
+}
+function rZbiorcza(){
+  const el=$('#woz-zbiorcza');if(!el)return;
+  const d=zbData();
+  if(!d.cols.length){el.innerHTML='<div style="padding:14px;color:var(--c-txt2)">Brak dawek do załadunku</div>';$('#woz-zb-notes').innerHTML='';return}
+  el.innerHTML=zbTableHTML(d);
+  $('#woz-zb-notes').innerHTML=d.notes.length?'<div class="zb-note"><b>Uwaga — transfery paszy:</b><br>'+d.notes.join('<br>')+'</div>':'';
+}
+function exportZbiorczaCSV(){
+  const d=zbData();const n=v=>String(v).replace('.',',');
+  let rows=[];
+  let h1=['Data '+todayKey()];d.cols.forEach(c=>{h1.push(grLabel(c.g),'')});h1.push('na 1 dzień');rows.push(h1);
+  let h2=[''];d.cols.forEach(c=>{h2.push(c.g.realSz+' szt','w wozie')});h2.push('');rows.push(h2);
+  d.rows.forEach(r=>{const row=[r.s.nazwa];r.cells.forEach(x=>{row.push(x?n(x.kg):'',x?n(x.cum):'')});row.push(n(r.day));rows.push(row)});
+  const sum=['SUMA'];d.running.forEach(v=>{sum.push(n(v),'')});sum.push(n(d.total));rows.push(sum);
+  if(d.notes.length){rows.push([]);d.notes.forEach(t=>rows.push([t.replace(/<[^>]+>/g,'')]))}
+  const csv='﻿'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='karta-zaladunku-'+todayKey()+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+function printKartaZaladunku(){
+  const d=zbData();
+  let h=zbTableHTML(d).replace('class="zb"','class="zb" style="width:100%;border-collapse:collapse"');
+  if(d.notes.length)h+='<div class="tr-note"><b>⚠ TRANSFERY PASZY:</b><br>'+d.notes.join('<br>')+'</div>';
   h+='<div style="margin-top:14px;font-size:12pt">Podpis operatora: ......................................................</div>';
   prnLand('KARTA ZAŁADUNKU — '+fmtDate(new Date()),h);
 }
+
 function prnLand(t,h){
   const pa=$('#pa');pa.className='land';
   pa.innerHTML='<h2>'+t+'</h2><div class="pm">Ferma Stuchowo</div>'+h;
@@ -849,7 +889,7 @@ function prnLand(t,h){
 }
 
 /* ===== RAPORTY ===== */
-function rRap(){rRapDawki();rRapWoz();rRapNied();rRapDR();rRapEaten()}
+function rRap(){rRapDawki();rRapNied();rRapDR();rRapEaten()}
 function rRapDawki(){
   if(!dawkiHistory.length){$('#rap-dawki').innerHTML='<div style="padding:20px;text-align:center;color:var(--c-txt2)">Brak zapisanych zmian receptury.<br>Snapshot tworzy się automatycznie po edycji dawek (1h debounce lub przy wyjściu z zakładki).</div>';return}
   let h='<div style="padding:12px">';
@@ -1259,17 +1299,17 @@ function rWyd(month){
     }else{
       h+='<div class="wyd-tile hf"><div class="wt-lbl">HF — mleko</div><div class="wt-val">—</div><div class="wt-sub">brak danych</div></div>';
     }
-    }catch(eHF){console.error('[v35] HF ERROR:',eHF);h+='<div class="wyd-tile hf" style="border:3px solid red"><div class="wt-val">HF błąd: '+eHF.message+'</div></div>'}
+    }catch(eHF){console.error('[v36] HF ERROR:',eHF);h+='<div class="wyd-tile hf" style="border:3px solid red"><div class="wt-val">HF błąd: '+eHF.message+'</div></div>'}
     // === MO ===
     try{
     const aMO=getGrp('MO');
-    console.log('[v35] MO:',JSON.stringify(aMO?{n:aMO.n,mleko:aMO.mleko}:'NULL'));
+    console.log('[v36] MO:',JSON.stringify(aMO?{n:aMO.n,mleko:aMO.mleko}:'NULL'));
     if(aMO&&aMO.n>0){
       h+='<div class="wyd-tile tmo"><div class="wt-lbl">MO — mleko</div><div class="wt-val">'+r2(aMO.mleko,1)+'</div><div class="wt-sub">ECM '+r2(aMO.ecm||0,1)+' · %bi '+r2(aMO.bi||0,2)+' · n='+aMO.n+(aMO.lksWaz!=null?' · LKS tank '+r2(aMO.lksWaz,0):'')+'</div></div>';
     }else{
       h+='<div class="wyd-tile tmo" style="border:3px solid red;background:#FFEBEE"><div class="wt-lbl" style="color:red;font-size:14px">⚠ MO — BRAK DANYCH</div><div class="wt-val" style="color:red;font-size:28px">⚠</div><div class="wt-sub" style="color:red">aMO='+(aMO===null?'null':typeof aMO)+' — wczytaj plik SOL ponownie</div></div>';
     }
-    }catch(eMO){console.error('[v35] MO ERROR:',eMO);h+='<div class="wyd-tile tmo" style="border:3px solid red"><div class="wt-val" style="color:red">MO błąd: '+eMO.message+'</div></div>'}
+    }catch(eMO){console.error('[v36] MO ERROR:',eMO);h+='<div class="wyd-tile tmo" style="border:3px solid red"><div class="wt-val" style="color:red">MO błąd: '+eMO.message+'</div></div>'}
     // === INNE (opcjonalne) ===
     try{
     const aINNE=getGrp('INNE');
@@ -1688,9 +1728,9 @@ function renderDayDetail(){
   h+='<div style="margin-bottom:6px"><div style="font-size:11px;font-weight:600;color:var(--c-txt2);margin-bottom:4px">Przejdź do raportów</div>';
   h+='<div style="display:flex;flex-wrap:wrap;gap:4px">';
   h+='<button class="btn bs bo" style="font-size:10px" onclick="goToReport(0)">📋 Dawki</button>';
-  h+='<button class="btn bs bo" style="font-size:10px" onclick="goToReport(1)">🚜 Wóz</button>';
-  h+='<button class="btn bs bo" style="font-size:10px" onclick="goToReport(2)">🥣 Niedojady</button>';
-  h+='<button class="btn bs bo" style="font-size:10px" onclick="goToReport(3)">📊 Dawki realne</button>';
+  h+='';
+  h+='<button class="btn bs bo" style="font-size:10px" onclick="goToReport(1)">🥣 Niedojady</button>';
+  h+='<button class="btn bs bo" style="font-size:10px" onclick="goToReport(2)">📊 Dawki realne</button>';
   if(entry&&entry.length)h+='<button class="btn bs bp" style="font-size:10px" onclick="showEatenDetail(\''+dk+'\')">🍽 Dawka zjedzona</button>';
   h+='</div></div>';
   h+='</div>';

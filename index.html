@@ -159,6 +159,33 @@ table.zb td.day{background:#F1F4EE;color:#1F4D2B}
 table.zb tr.sum td{background:#FBF5DF;color:#5C4A0B;font-weight:700;border-top:2px solid #C9A227}
 .zb-note{margin:8px 14px 12px;padding:8px 12px;background:#E3F2FD;border:1px solid #90CAF9;border-radius:8px;color:#0D47A1;font-size:13px}
 .gr-alias{display:block;font-weight:400;font-size:9px;opacity:.85}
+
+/* Wydajność v2 */
+.wsub{font-weight:400;font-size:11px;color:var(--c-txt2);margin-left:6px}
+.wyd-meta{padding:8px 12px;font-size:11px;color:var(--c-txt2)}
+.wyd-filters{background:#fafbfa;border:1px solid var(--c-brd);border-radius:8px;margin:0 0 10px;gap:4px;align-items:center}
+.wfl-lbl{font-size:11px;font-weight:700;color:var(--c-txt2)}
+.wyd-filters{flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-start!important;align-items:center!important}.wyd-filters>*{flex:0 0 auto!important;width:auto!important}
+.wfl{display:inline-block;color:#fff;font:700 10px var(--font);padding:1px 5px;border-radius:4px;margin-right:2px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.wdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.wnote{font-size:11px;color:var(--c-txt2);padding:6px 12px}
+.wyd-chgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.wyd-chgrid .card{margin-bottom:0}.wyd-chgrid{margin-bottom:12px}
+.wch-box{position:relative;padding:6px 10px 10px}
+@media(max-width:900px){.wyd-chgrid{grid-template-columns:minmax(0,1fr)}}
+table.wmb td{font-family:var(--font);font-size:12px;text-align:left}
+table.wmb td.wmb-c{cursor:pointer}table.wmb td.wmb-c:hover{background:var(--c-pri-l)}
+table.wmb td.ok{background:#E8F5E9}table.wmb td.wmb-f{color:var(--c-txt2);font-size:11px;border-bottom:none}
+table.wlist td{font-size:12px;padding:4px 5px}table.wlist tr:hover td{background:#EAF1EA}
+.wcow{display:inline-block;background:var(--c-pri-l);border-radius:4px;padding:1px 6px;margin:1px;font-size:11px;cursor:pointer}
+.wn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.cow-hd{margin-bottom:6px}
+#pa .wyd-print table th,#pa .wyd-print table td{font-size:8.5pt;padding:2px 4px}
+#pa th{color:#000!important}#pa .wfl{color:#fff}
+#pa .wyd-print .wyd-tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:4px 0}
+#pa .wyd-print .wyd-tile{border:1px solid #999;padding:4px}#pa .wyd-print .wt-val{font-size:13pt}
+#pa .wyd-print .ch{font-weight:700;font-size:11pt;padding:4px 0;border-bottom:2px solid #2F6B3A;margin:6px 0}
+#pa .wyd-print .wyd-flag-h{font-weight:700;padding:3px 0;font-size:10pt}
 </style>
 </head>
 <body>
@@ -169,7 +196,7 @@ table.zb tr.sum td{background:#FBF5DF;color:#5C4A0B;font-weight:700;border-top:2
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v36</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v37</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
@@ -194,10 +221,12 @@ table.zb tr.sum td{background:#FBF5DF;color:#5C4A0B;font-weight:700;border-top:2
     </div>
     <!-- WYDAJNOŚĆ --><div class="tab-panel" id="tab-wydajnosc">
       <div class="card"><div class="ch"><span>Wyniki próbnego doju (SOL / PFHB)</span>
-        <div style="display:flex;gap:4px;align-items:center">
+        <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
           <select id="wyd-month" style="width:auto;padding:4px 6px;font-size:11px" onchange="loadWydSnapshot()"><option value="">— brak danych —</option></select>
           <button class="btn bs bo" onclick="openWydImport()">📂 Wczytaj plik</button>
           <button class="btn bs bo" onclick="openRasMap()">⚙ Rasy</button>
+          <button class="btn bs bo" onclick="openWydNorms()">⚙ Normy</button>
+          <button class="btn bs bp" onclick="wydPrintAll()">🖨 Całość</button>
         </div>
       </div>
       <div id="wyd-content"><div class="empty-state"><h3>Brak wczytanych danych</h3><p>Wczytaj plik .xlsx wyeksportowany z SOLa</p></div></div>
@@ -240,7 +269,7 @@ const pv=v=>{const s=String(v==null?'':v).replace(',','.').trim();const n=parseF
 function LD(k,fb){try{const v=localStorage.getItem('stu_'+k);return v?JSON.parse(v):fb}catch{return fb}}
 function SV(k,v){localStorage.setItem('stu_'+k,JSON.stringify(v))}
 let _tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2e3)}
-function opM(t,b,f){$('#mt').textContent=t;$('#mb').innerHTML=b;$('#mf').innerHTML=f||'';$('#modal').classList.add('open')}
+function opM(t,b,f){const _mb=document.querySelector('#modal .mob');if(_mb)_mb.style.maxWidth='';$('#mt').textContent=t;$('#mb').innerHTML=b;$('#mf').innerHTML=f||'';$('#modal').classList.add('open')}
 function clM(){$('#modal').classList.remove('open')}
 document.addEventListener('click',e=>{if(e.target.id==='modal')clM()});
 function fmtDate(d){return d.getDate().toString().padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()}
@@ -370,7 +399,7 @@ function applyModule(mod,d){
 
 function startFbSync(){
   if(!fbDb){setSyncBadge('offline');fbInitialLoaded=true;return}
-  fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists){const cd=doc.data();if(cd.passes){passes=cd.passes;SV('passes',passes)}if(cd.rasRules&&cd.rasRules.length){rasRules=cd.rasRules;SV('rasRules',rasRules)}if(cd.cenaMleka!=null){cenaMleka=cd.cenaMleka;SV('cenaMleka',cenaMleka)}}}).catch(()=>{});
+  fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists){const cd=doc.data();if(cd.passes){passes=cd.passes;SV('passes',passes)}if(cd.rasRules&&cd.rasRules.length){rasRules=cd.rasRules;SV('rasRules',rasRules)}if(cd.cenaMleka!=null){cenaMleka=cd.cenaMleka;SV('cenaMleka',cenaMleka)}if(cd.wydNorms){wydNorms=Object.assign({},WN_DEF,cd.wydNorms);SV('wydNorms',cd.wydNorms)}if(cd.wydMap){wydMap=cd.wydMap;SV('wydMap',wydMap)}}}).catch(()=>{});
   loadWydIndex();
   // Migration: check if old 'state' doc exists and new modules don't
   fbDb.collection('farm_data').doc('grupy').get().then(doc=>{
@@ -1072,7 +1101,7 @@ function parseSol(aoa){
     for(const n of names){const i=hdr.findIndex(h=>h.includes(n.toLowerCase()));if(i>=0)return i}return -1};
   const C={lp:find('lp'),kol:find('kolczyk'),nrob:find('nr oborowy'),rasa:find('rasa'),lakt:find('nr laktacji'),
     dpw:find('dpw'),status:find('status reprodukcyjny'),mleko:find('mleko'),tl:find('%tł','%tl'),bi:find('%bi'),
-    lks:find('lks'),moc:find('mocznik')};
+    lks:find('lks'),moc:find('mocznik'),grt:find('gr. technolog','grupa technolog','gr technolog'),nrp:find('nr ost. pokr','nr ost pokr'),dnp:find('dni od pokr')};
   const missing=[];
   if(C.kol<0)missing.push('Kolczyk');if(C.rasa<0)missing.push('Rasa');if(C.mleko<0)missing.push('mleko');
   if(missing.length)return{error:'Brak wymaganych kolumn: '+missing.join(', ')+'. Sprawdź czy to właściwy plik z SOLa.'};
@@ -1086,15 +1115,18 @@ function parseSol(aoa){
     rows.push({kol:String(kolv).trim(),nrob:C.nrob>=0?row[C.nrob]:null,rasa:C.rasa>=0?row[C.rasa]:null,
       lakt:num(C.lakt>=0?row[C.lakt]:null),dpw:num(C.dpw>=0?row[C.dpw]:null),status:C.status>=0?row[C.status]:null,
       mleko:num(row[C.mleko]),tl:num(C.tl>=0?row[C.tl]:null),bi:num(C.bi>=0?row[C.bi]:null),
-      lks:num(C.lks>=0?row[C.lks]:null),moc:num(C.moc>=0?row[C.moc]:null)});
+      lks:num(C.lks>=0?row[C.lks]:null),moc:num(C.moc>=0?row[C.moc]:null),
+      grt:C.grt>=0?row[C.grt]:null,nrp:num(C.nrp>=0?row[C.nrp]:null),dnp:num(C.dnp>=0?row[C.dnp]:null)});
   }
   if(!rows.length)return{error:'Nie znaleziono wierszy z danymi.'};
   rows.forEach(r=>{r.g=rasToGroup(r.rasa);r.ecm=ecmOf(r.mleko,r.tl,r.bi);
     r.tlbi=(r.tl!=null&&r.bi)?r.tl/r.bi:null;
     r.kat=(r.mleko!=null&&r.mleko>0)?'DOJONA':(r.dpw!=null?'NIEDOJONA':'NIEDOJONA');
-    r.par=r.lakt==null?'nd':(r.lakt===1?'p1':'p2')});
+    r.par=r.lakt==null?'nd':(r.lakt===1?'p1':'p2');
+    r.h=C.grt>=0?grtToH(r.grt,r.mleko):null;delete r.grt;
+    if(r.nrob===undefined)r.nrob=null;if(r.status===undefined)r.status=null;if(r.rasa===undefined)r.rasa=null});
   const unmapped=[...new Set(rows.filter(r=>r.g==='INNE').map(r=>r.rasa||'(puste)'))];
-  return{rows,reportDate:reportDate||isoDate(new Date()),unmapped};
+  return{rows,reportDate:reportDate||isoDate(new Date()),unmapped,hasGrp:C.grt>=0};
 }
 
 /* ---------- PODGLĄD IMPORTU ---------- */
@@ -1107,10 +1139,10 @@ function showImportPreview(res,fname){
   let h='<div style="font-size:13px"><b>Plik:</b> '+fname+'<br><b>Data raportu:</b> '+res.reportDate+'</div>';
   h+='<div style="margin:10px 0;padding:10px;background:var(--c-pri-l);border-radius:6px;font-size:13px">';
   h+='Wierszy: <b>'+res.rows.length+'</b> · Dojonych: <b>'+dojone.length+'</b> · Niedojonych: <b>'+(res.rows.length-dojone.length)+'</b><br>';
-  const byG={};res.rows.forEach(r=>{byG[r.g]=(byG[r.g]||0)+1});
-  h+='Grupy: '+Object.entries(byG).map(([k,v])=>k+': <b>'+v+'</b>').join(' · ')+'</div>';
+  const byG={};res.rows.forEach(r=>{const k=res.hasGrp?hLbl(r.h):r.g;byG[k]=(byG[k]||0)+1});
+  h+=(res.hasGrp?'Grupy technologiczne: ':'Grupy (wg rasy — plik bez kolumny „Gr. technolog.”, zapis w starym układzie): ')+Object.entries(byG).map(([k,v])=>k+': <b>'+v+'</b>').join(' · ')+'</div>';
   if(res.unmapped.length){
-    h+='<div class="wyd-warn" style="margin:0 0 10px"><b>⚠ Rasy nieprzypisane do grup HF/MO:</b>'
+    h+='<div class="wyd-warn" style="margin:0 0 10px"><b>⚠ Rasy nieprzypisane do HF/MO (filtr rasy):</b>'
       +res.unmapped.map(u=>'<div>• '+u+'</div>').join('')
       +'<div style="margin-top:6px">Trafią do grupy INNE. Możesz poprawić mapowanie (⚙ Rasy) i wczytać plik ponownie.</div></div>';
   }
@@ -1124,6 +1156,15 @@ function confirmWydImport(){
   const month=($('#wyd-month-in').value||'').trim();
   if(!/^\d{4}-\d{2}$/.test(month)){toast('Format miesiąca: RRRR-MM');return}
   const{res,fname}=_pendingImport;
+  if(res.hasGrp){
+    const snap2={meta:{ver:2,month,reportDate:res.reportDate,importedAt:new Date().toISOString(),by:cR||'?',file:fname,rowCount:res.rows.length},sum:buildWydSum(res.rows)};
+    snap2.counts=snap2.sum.counts;
+    wydSnapshots[month]=snap2;if(!wydIndex.includes(month)){wydIndex.push(month);wydIndex.sort()}
+    wydRaw={month,rows:res.rows};wydRawCache[month]=res.rows;
+    SV('wydIndex',wydIndex);SV('wydSnapshots',wydSnapshots);SV('wydRaw',wydRaw);
+    pushWydSnapshot(month,snap2);pushWydRaw(month,res.rows);
+    _pendingImport=null;clM();rWyd(month);toast('Próba '+month+' zapisana');return;
+  }
   const agg=buildWydAggregates(res.rows);
   const flags=buildWydFlags(res.rows);
   const valid=validateWyd(res.rows);
@@ -1245,10 +1286,18 @@ function aggAt(agg,k){
 
 /* ---------- RENDER ---------- */
 function rWyd(month){
+  const sel0=$('#wyd-month');
+  if(sel0){const cur=month||sel0.value||wydIndex[wydIndex.length-1]||'';
+    sel0.innerHTML=wydIndex.length?wydIndex.slice().reverse().map(m=>{const s=wydSnapshots[m];const arch=s&&!(s.meta&&s.meta.ver===2);return '<option value="'+m+'"'+(m===cur?' selected':'')+'>'+m+(arch?' (archiwum)':'')+'</option>'}).join(''):'<option value="">— brak danych —</option>';
+    month=cur}
+  const snap=month&&wydSnapshots[month];
+  if(snap&&snap.meta&&snap.meta.ver===2)return rWyd2(month,snap);
+  return rWydOld(month);
+}
+function rWydOld(month){
   // month selector
   const sel=$('#wyd-month');
   if(sel){const cur=month||sel.value||wydIndex[wydIndex.length-1]||'';
-    sel.innerHTML=wydIndex.length?wydIndex.slice().reverse().map(m=>'<option value="'+m+'"'+(m===cur?' selected':'')+'>'+m+'</option>').join(''):'<option value="">— brak danych —</option>';
     month=cur}
   const cont=$('#wyd-content');
   if(!month||!wydSnapshots[month]){cont.innerHTML='<div class="empty-state"><h3>Brak wczytanych danych</h3><p>Wczytaj plik .xlsx wyeksportowany z SOLa</p></div>';return}
@@ -1258,6 +1307,7 @@ function rWyd(month){
   const agg=hasRaw?buildWydAggregates(wydRaw.rows):snap.agg;   // przelicz z surowych, jeśli są (przełącznik faz)
   const c=snap.counts;
   let h='';
+  h+='<div class="wyd-warn" style="background:#FFF8E1;border-color:#E0C060;color:#6B5200"><b>📦 Archiwum — układ rasowy HF/MO</b>Ta próba była wczytana przed podziałem na grupy technologiczne H1/H2. Nowe analizy (wykresy, rozród, wycielenia) działają dla plików z kolumną „Gr. technolog.”.</div>';
   // Meta
   h+='<div style="padding:10px 12px;font-size:11px;color:var(--c-txt2);border-bottom:1px solid var(--c-brd)">Raport z '+snap.meta.reportDate+' · import: '+snap.meta.by+' · '+snap.meta.file+' · '+c.total+' wierszy</div>';
   // Warnings
@@ -1299,17 +1349,17 @@ function rWyd(month){
     }else{
       h+='<div class="wyd-tile hf"><div class="wt-lbl">HF — mleko</div><div class="wt-val">—</div><div class="wt-sub">brak danych</div></div>';
     }
-    }catch(eHF){console.error('[v36] HF ERROR:',eHF);h+='<div class="wyd-tile hf" style="border:3px solid red"><div class="wt-val">HF błąd: '+eHF.message+'</div></div>'}
+    }catch(eHF){console.error('[v37] HF ERROR:',eHF);h+='<div class="wyd-tile hf" style="border:3px solid red"><div class="wt-val">HF błąd: '+eHF.message+'</div></div>'}
     // === MO ===
     try{
     const aMO=getGrp('MO');
-    console.log('[v36] MO:',JSON.stringify(aMO?{n:aMO.n,mleko:aMO.mleko}:'NULL'));
+    console.log('[v37] MO:',JSON.stringify(aMO?{n:aMO.n,mleko:aMO.mleko}:'NULL'));
     if(aMO&&aMO.n>0){
       h+='<div class="wyd-tile tmo"><div class="wt-lbl">MO — mleko</div><div class="wt-val">'+r2(aMO.mleko,1)+'</div><div class="wt-sub">ECM '+r2(aMO.ecm||0,1)+' · %bi '+r2(aMO.bi||0,2)+' · n='+aMO.n+(aMO.lksWaz!=null?' · LKS tank '+r2(aMO.lksWaz,0):'')+'</div></div>';
     }else{
       h+='<div class="wyd-tile tmo" style="border:3px solid red;background:#FFEBEE"><div class="wt-lbl" style="color:red;font-size:14px">⚠ MO — BRAK DANYCH</div><div class="wt-val" style="color:red;font-size:28px">⚠</div><div class="wt-sub" style="color:red">aMO='+(aMO===null?'null':typeof aMO)+' — wczytaj plik SOL ponownie</div></div>';
     }
-    }catch(eMO){console.error('[v36] MO ERROR:',eMO);h+='<div class="wyd-tile tmo" style="border:3px solid red"><div class="wt-val" style="color:red">MO błąd: '+eMO.message+'</div></div>'}
+    }catch(eMO){console.error('[v37] MO ERROR:',eMO);h+='<div class="wyd-tile tmo" style="border:3px solid red"><div class="wt-val" style="color:red">MO błąd: '+eMO.message+'</div></div>'}
     // === INNE (opcjonalne) ===
     try{
     const aINNE=getGrp('INNE');
@@ -1528,7 +1578,7 @@ function saveRasMap(){
   if(fbDb&&fbInitialLoaded)fbDb.collection('farm_data').doc('config').set({rasRules},{merge:true}).catch(()=>{});
   // recalc current import if raw available
   if(wydRaw&&wydRaw.rows){wydRaw.rows.forEach(r=>{r.g=rasToGroup(r.rasa)});SV('wydRaw',wydRaw);
-    const m=wydRaw.month;if(wydSnapshots[m]){wydSnapshots[m].agg=buildWydAggregates(wydRaw.rows);wydSnapshots[m].counts=wydSnapshots[m].agg.counts;
+    const m=wydRaw.month;if(wydSnapshots[m]&&!(wydSnapshots[m].meta&&wydSnapshots[m].meta.ver===2)){wydSnapshots[m].agg=buildWydAggregates(wydRaw.rows);wydSnapshots[m].counts=wydSnapshots[m].agg.counts;
       wydSnapshots[m].valid=validateWyd(wydRaw.rows);wydFlags={month:m,flags:buildWydFlags(wydRaw.rows)};
       SV('wydSnapshots',wydSnapshots);SV('wydFlags',wydFlags);pushWydSnapshot(m,wydSnapshots[m])}}
   clM();rWyd($('#wyd-month').value);toast('Mapowanie zapisane');
@@ -1576,6 +1626,671 @@ function loadWydIndex(){
     });
     const a=document.querySelector('.nav-tab.active');if(a&&a.dataset.tab==='wydajnosc')rWyd();
   }).catch(()=>{});
+}
+
+/* ============================================================
+   WYDAJNOŚĆ v2 — grupy technologiczne z SOL (H1 / H2 / zasuszone)
+   ============================================================ */
+const WN_DEF={mocMin:180,mocMax:300,mocOptMin:220,mocOptMax:280,biMin:3.20,biMax:3.80,biProg:3.40,ketoza:1.4,ketozaDim:100,sara:1.0,lksMast:400,lksPrzew:1000,spadekPct:60,oop:60,bezIns:81,niecielne:150,ciazaHF:283,ciazaMO:287,zasusz:60,porod:21};
+const WN_LBL=[
+  ['Mocznik i białko',[['mocMin','Mocznik — dolna granica normy (mg/l)'],['mocMax','Mocznik — górna granica normy (mg/l)'],['mocOptMin','Mocznik — optimum od (mg/l)'],['mocOptMax','Mocznik — optimum do (mg/l)'],['biMin','Białko — dolna granica (%)'],['biMax','Białko — górna granica (%)'],['biProg','Białko — próg energetyczny (%)']]],
+  ['Tłuszcz / białko i LKS',[['ketoza','Ketoza — tł/bi powyżej'],['ketozaDim','Ketoza — liczona do DPW'],['sara','SARA — tł/bi poniżej'],['lksMast','LKS — podejrzenie mastitis od (tys./ml)'],['lksPrzew','LKS — mastitis przewlekłe od (tys./ml)'],['spadekPct','Spadek wydajności — poniżej % mediany fazy']]],
+  ['Rozród',[['oop','Okres oczekiwania OOP (dni)'],['bezIns','Bez inseminacji — alarm po DPW'],['niecielne','Niecielne — alarm po DPW']]],
+  ['Wycielenia i zasuszenia',[['ciazaHF','Długość ciąży HF (dni)'],['ciazaMO','Długość ciąży MO (dni)'],['zasusz','Zasuszenie — dni przed porodem'],['porod','Porodówka — dni przed porodem']]]
+];
+let wydNorms=Object.assign({},WN_DEF,LD('wydNorms',{}));
+let wydMap=LD('wydMap',{});
+let wyd2Grp=LD('wyd2Grp','all');
+let wyd2Rasa=LD('wyd2Rasa','all');
+let wydCharts={};
+let wydRawCache={};
+let wydListSort={k:'mleko',d:-1};
+let wydListFilt={q:'',g:'all',flag:false};
+let wydCur=null;
+const H_COL={H1:'#7B5EA7',H2:'#2F6B3A',BEZ:'#8A8A8A',ZAS:'#B08D2A'};
+const P_COL={p1:'#2B6CB0',p2:'#DD6B20'};
+const hLbl=h=>h==='ZAS'?'Zasuszone':h==='BEZ'?'Bez grupy':h;
+const hCol=h=>H_COL[h]||'#4A6B8A';
+const fx=(v,d)=>v==null||isNaN(v)?'—':r2(v,d);
+
+function grtToH(v,mleko){
+  const s=String(v==null?'':v).trim().toUpperCase().replace(/\s+/g,'');
+  if(s)return s;
+  return (mleko!=null&&mleko>0)?'BEZ':'ZAS';
+}
+function wGroups(rows){
+  const s=[...new Set(rows.map(r=>r.h).filter(h=>h&&h!=='ZAS'&&h!=='BEZ'))];
+  return s.sort((a,b)=>a.localeCompare(b,'pl',{numeric:true}));
+}
+function wSel(rows,g,ra){
+  g=g||wyd2Grp;ra=ra||wyd2Rasa;
+  return rows.filter(r=>{
+    if(ra!=='all'&&r.g!==ra)return false;
+    if(g==='all')return r.h!=='ZAS';
+    return r.h===g;
+  });
+}
+const wDoj=rows=>rows.filter(r=>r.kat==='DOJONA'&&r.mleko!=null);
+function medMapOf(rows){const m={};wDoj(rows).forEach(r=>{const k=r.h+'|'+phaseOf(r.dpw);(m[k]=m[k]||[]).push(r.mleko)});Object.keys(m).forEach(k=>m[k]=median(m[k]));return m}
+function cowFlags(r,mm){
+  const N=wydNorms,f=[];if(r.kat!=='DOJONA')return f;
+  if(r.dpw!=null&&r.dpw<N.ketozaDim&&r.tlbi!=null&&r.tlbi>N.ketoza)f.push('ketoza');
+  if(r.tlbi!=null&&r.tlbi<N.sara)f.push('sara');
+  if(r.moc!=null&&r.moc<N.mocMin)f.push('mocN');
+  if(r.moc!=null&&r.moc>N.mocMax)f.push('mocW');
+  if(r.bi!=null&&r.bi<N.biMin)f.push('biN');
+  if(r.lks!=null&&r.lks>N.lksPrzew)f.push('lksP');else if(r.lks!=null&&r.lks>N.lksMast)f.push('lks');
+  if(mm){const m=mm[r.h+'|'+phaseOf(r.dpw)];if(m&&r.mleko<N.spadekPct/100*m)f.push('spadek')}
+  return f;
+}
+const FL2={ketoza:{s:'K',c:'#C62828'},sara:{s:'S',c:'#E65100'},mocN:{s:'M↓',c:'#1565C0'},mocW:{s:'M↑',c:'#6A1B9A'},biN:{s:'B↓',c:'#00838F'},lks:{s:'L',c:'#AD1457'},lksP:{s:'L!',c:'#880E4F'},spadek:{s:'↓kg',c:'#5D4037'}};
+function flagTitle(k){const N=wydNorms;return{
+  ketoza:'Ryzyko ketozy (DPW < '+N.ketozaDim+', tł/bi > '+N.ketoza+')',sara:'Ryzyko SARA (tł/bi < '+N.sara+')',
+  mocN:'Mocznik niski (< '+N.mocMin+' mg/l)',mocW:'Mocznik wysoki (> '+N.mocMax+' mg/l)',biN:'Białko niskie (< '+N.biMin+'%)',
+  lks:'Podejrzenie mastitis (LKS '+N.lksMast+'–'+N.lksPrzew+')',lksP:'Mastitis przewlekłe (LKS > '+N.lksPrzew+')',
+  spadek:'Spadek wydajności (< '+N.spadekPct+'% mediany grupy i fazy)'}[k]}
+const flagBadges=fl=>fl.map(k=>'<span class="wfl" style="background:'+FL2[k].c+'" title="'+flagTitle(k)+'">'+FL2[k].s+'</span>').join('');
+
+/* ---------- daty ---------- */
+function parseYmd(s){const m=String(s||'').match(/(\d{4})-(\d{2})-(\d{2})/);return m?new Date(+m[1],+m[2]-1,+m[3]):new Date()}
+function today0(){const d=new Date();d.setHours(0,0,0,0);return d}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function dayDiff(a,b){return Math.round((a-b)/864e5)}
+function mondayOf(d){const x=new Date(d);x.setHours(0,0,0,0);const wd=(x.getDay()+6)%7;x.setDate(x.getDate()-wd);return x}
+const ddmm=d=>String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0');
+
+/* ---------- podsumowanie zapisywane w snapshocie ---------- */
+function buildWydSum(rows){
+  const sum={groups:{}};
+  wGroups(rows).concat(rows.some(r=>r.h==='BEZ')?['BEZ']:[]).forEach(h=>{sum.groups[h]=aggCell(rows.filter(r=>r.h===h))});
+  sum.STADO=aggCell(rows.filter(r=>r.h!=='ZAS'));
+  const zas=rows.filter(r=>r.h==='ZAS');
+  sum.ZAS={n:zas.length,cielne:zas.filter(r=>r.status==='Cielna').length};
+  sum.counts={total:rows.length,dojone:wDoj(rows).length,zas:zas.length,bez:rows.filter(r=>r.h==='BEZ').length};
+  return sum;
+}
+
+/* ---------- wycielenia ---------- */
+function calvInfo(r,repDate){
+  if(r.status!=='Cielna'||r.dnp==null)return null;
+  const N=wydNorms;const ciaza=r.g==='MO'?N.ciazaMO:N.ciazaHF;
+  const pokr=addDays(repDate,-r.dnp);const plan=addDays(pokr,ciaza);
+  const doRap=dayDiff(plan,repDate);const doDzis=dayDiff(plan,today0());
+  return{pokr,plan,doRap,doDzis,err:doRap<-7};
+}
+
+/* ---------- wtyczka Chart.js: pasy, linie, opisy ---------- */
+const wydPlug={id:'wydAnn',
+  beforeDatasetsDraw(ch){wydAnnDraw(ch,false)},
+  afterDatasetsDraw(ch){wydAnnDraw(ch,true)}};
+function wydAnnDraw(ch,labels){
+  const o=wydAnnMap[ch.canvas&&ch.canvas.id];if(!o)return;
+  const ca=ch.chartArea,x=ch.scales.x,y=ch.scales.y;if(!x||!y||!ca)return;
+  const ctx=ch.ctx;const px=v=>x.getPixelForValue(v),py=v=>y.getPixelForValue(v);
+  const cx=v=>Math.max(ca.left,Math.min(ca.right,v)),cy=v=>Math.max(ca.top,Math.min(ca.bottom,v));
+  ctx.save();
+  (o.rects||[]).forEach(r=>{
+    const x0=cx(r.x0==null?ca.left:px(r.x0)),x1=cx(r.x1==null?ca.right:px(r.x1));
+    const y0=cy(r.y0==null?ca.bottom:py(r.y0)),y1=cy(r.y1==null?ca.top:py(r.y1));
+    if(!labels&&r.fill){ctx.fillStyle=r.fill;ctx.fillRect(Math.min(x0,x1),Math.min(y0,y1),Math.abs(x1-x0),Math.abs(y1-y0))}
+    if(labels&&r.label){ctx.fillStyle=r.lc||'#1E2A20';ctx.font='700 12px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(r.label,(x0+x1)/2,(y0+y1)/2)}
+  });
+  if(!labels)(o.lines||[]).forEach(l=>{
+    ctx.strokeStyle=l.c||'#666';ctx.lineWidth=1;ctx.setLineDash([5,4]);
+    if(l.x!=null){const X=px(l.x);if(X<ca.left||X>ca.right)return;ctx.beginPath();ctx.moveTo(X,ca.top);ctx.lineTo(X,ca.bottom);ctx.stroke();
+      if(l.label){ctx.setLineDash([]);ctx.fillStyle=l.c||'#555';ctx.font='11px system-ui,sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(l.label,X+4,ca.top+3)}}
+    else{const Y=py(l.y);if(Y<ca.top||Y>ca.bottom)return;ctx.beginPath();ctx.moveTo(ca.left,Y);ctx.lineTo(ca.right,Y);ctx.stroke();
+      if(l.label){ctx.setLineDash([]);ctx.fillStyle=l.c||'#555';ctx.font='11px system-ui,sans-serif';ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText(l.label,ca.right-4,Y-2)}}
+    ctx.setLineDash([]);
+  });
+  ctx.restore();
+}
+const wydAnnMap={};
+function wChart(id,cfg){
+  if(typeof Chart==='undefined')return null;
+  const cv=document.getElementById(id);if(!cv)return null;
+  if(wydCharts[id]){try{wydCharts[id].destroy()}catch(e){}}
+  cfg.options=cfg.options||{};
+  wydAnnMap[id]=null;if(cfg.options.plugins&&cfg.options.plugins.wydAnn){wydAnnMap[id]=cfg.options.plugins.wydAnn;delete cfg.options.plugins.wydAnn}
+  Object.assign(cfg.options,{animation:false,responsive:true,maintainAspectRatio:false,devicePixelRatio:2});
+  cfg.plugins=(cfg.plugins||[]).concat([wydPlug]);
+  wydCharts[id]=new Chart(cv,cfg);return wydCharts[id];
+}
+const scPoint=r=>({x:r.x,y:r.y,k:r.k});
+function scTooltip(unitX,unitY){return{callbacks:{label:c=>{const r=c.raw||{};return(r.k?r.k+' · ':'')+unitX+' '+fx(r.x,1)+' · '+unitY+' '+fx(r.y,2)}}}}
+function scClick(e,els,ch){if(els&&els.length){const r=ch.data.datasets[els[0].datasetIndex].data[els[0].index];if(r&&r.k)openCow(r.k)}}
+
+/* ---------- krzywa Wooda ---------- */
+function solve3(A,b){
+  const M=A.map((r,i)=>r.concat([b[i]]));
+  for(let c=0;c<3;c++){let p=c;for(let r=c+1;r<3;r++)if(Math.abs(M[r][c])>Math.abs(M[p][c]))p=r;
+    if(Math.abs(M[p][c])<1e-12)return null;[M[c],M[p]]=[M[p],M[c]];
+    for(let r=0;r<3;r++){if(r===c)continue;const f=M[r][c]/M[c][c];for(let k=c;k<4;k++)M[r][k]-=f*M[c][k]}}
+  return[M[0][3]/M[0][0],M[1][3]/M[1][1],M[2][3]/M[2][2]];
+}
+function woodFit(pts){
+  const P=pts.filter(p=>p.t>=3&&p.y>0);if(P.length<8)return null;
+  const S=[[0,0,0],[0,0,0],[0,0,0]],V=[0,0,0];
+  P.forEach(p=>{const x=[1,Math.log(p.t),p.t],yy=Math.log(p.y);for(let i=0;i<3;i++){V[i]+=x[i]*yy;for(let j=0;j<3;j++)S[i][j]+=x[i]*x[j]}});
+  const s=solve3(S,V);if(!s)return null;
+  const a=Math.exp(s[0]),b=s[1],c=-s[2];if(!(b>0&&c>0))return null;
+  const f=t=>a*Math.pow(t,b)*Math.exp(-c*t);const tp=b/c;
+  return{a,b,c,tp,yp:f(tp),f};
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function wCard(id,title,sub,body,btns,cls){
+  return '<div class="card wyd-sec'+(cls?' '+cls:'')+'" id="'+id+'"><div class="ch"><span>'+title+(sub?' <span class="wsub">'+sub+'</span>':'')+'</span><span class="noprint" style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+(btns||'')+'<button class="btn bs bo" title="Drukuj ten element" onclick="wydPrint([\''+id+'\'],\''+title.replace(/'/g,'')+'\')">🖨</button></span></div>'+body+'</div>';
+}
+function wChip(on,lbl,fn){return '<button class="btn bs '+(on?'bp':'bo')+'" onclick="'+fn+'">'+lbl+'</button>'}
+
+function rWyd2(month,snap){
+  const cont=$('#wyd-content');
+  const hasRaw=wydRaw&&wydRaw.month===month&&wydRaw.rows&&wydRaw.rows.length;
+  if(!hasRaw){
+    loadWydRawFromFb(month);
+    cont.innerHTML='<div class="empty-state"><h3>Ładowanie danych sztuk…</h3><p>Jeśli to trwa długo, sprawdź połączenie albo wczytaj plik ponownie.</p></div>';
+    return;
+  }
+  const all=wydRaw.rows;wydRawCache[month]=all;
+  const repDate=parseYmd(snap.meta.reportDate);
+  const groups=wGroups(all);
+  if(wyd2Grp!=='all'&&!groups.includes(wyd2Grp)&&wyd2Grp!=='BEZ')wyd2Grp='all';
+  const mm=medMapOf(all.filter(r=>r.h!=='ZAS'));
+  all.forEach(r=>{r._fl=cowFlags(r,mm);r._cv=calvInfo(r,repDate)});
+  const sel=wSel(all);
+  wydCur={month,snap,all,sel,groups,repDate};
+  Object.values(wydCharts).forEach(c=>{try{c.destroy()}catch(e){}});wydCharts={};
+
+  let h='';
+  h+='<div class="wyd-meta">Próba z '+snap.meta.reportDate+' · plik '+snap.meta.file+' · import: '+snap.meta.by+' · '+all.length+' sztuk</div>';
+  // filtry
+  h+='<div class="fr wyd-filters noprint">';
+  h+='<span class="wfl-lbl">GRUPA:</span>'+wChip(wyd2Grp==='all','całe stado ('+wDoj(all.filter(r=>r.h!=='ZAS')).length+')',"setWyd2Grp('all')");
+  groups.forEach(g=>{h+=wChip(wyd2Grp===g,g+' ('+wDoj(all.filter(r=>r.h===g)).length+')',"setWyd2Grp('"+g+"')")});
+  h+='<span class="wfl-lbl" style="margin-left:10px">RASA:</span>';
+  [['all','wszystkie'],['HF','HF'],['MO','MO'],['INNE','inne']].forEach(([k,l])=>{h+=wChip(wyd2Rasa===k,l,"setWyd2Rasa('"+k+"')")});
+  h+='</div>';
+  h+=wydWarnings2(all);
+  h+=wydTiles2(all,sel);
+  h+=wydGroupTable(all);
+  h+=wydPhaseTable(sel);
+  h+='<div class="wyd-chgrid">'+wydChartCards(sel)+'</div>';
+  h+=wydListCard(all);
+  h+=wydRozrod(all,sel);
+  h+=wydCalving(all,repDate);
+  h+=wydFlagsCard(sel);
+  h+=wydEko2(all);
+  h+=wydTrend();
+  cont.innerHTML=h;
+  renderWydListBody();
+  wydDrawCharts(sel,all,repDate);
+}
+function setWyd2Grp(g){wyd2Grp=g;SV('wyd2Grp',g);rWyd($('#wyd-month').value)}
+function setWyd2Rasa(r){wyd2Rasa=r;SV('wyd2Rasa',r);rWyd($('#wyd-month').value)}
+function wSelLbl(){return(wyd2Grp==='all'?'całe stado':hLbl(wyd2Grp))+(wyd2Rasa==='all'?'':' · rasa '+wyd2Rasa)}
+
+/* ---------- ostrzeżenia ---------- */
+function wydWarnings2(all){
+  let h='';const w=[];
+  const bez=all.filter(r=>r.h==='BEZ');
+  if(bez.length)w.push(['Sztuki dojone bez przypisanej grupy: '+bez.length,'Mają wynik mleka, ale pole „Gr. technolog.” jest puste: '+bez.map(r=>r.kol+(r.nrob?' ('+r.nrob+')':'')).join(', ')+'. Liczą się do stada, ale nie do H1/H2.']);
+  const noMilk=all.filter(r=>r.h!=='ZAS'&&r.h!=='BEZ'&&r.kat!=='DOJONA');
+  if(noMilk.length)w.push(['W grupach bez wyniku mleka: '+noMilk.length,noMilk.map(r=>r.kol+' ('+r.h+', DPW '+fx(r.dpw,0)+')').join(', ')+'. Nie wchodzą do średnich.']);
+  wGroups(all).forEach(g=>{
+    const dg=wydDawkaFor(g);if(!dg||!dg.realSz)return;
+    const n=all.filter(r=>r.h===g).length;
+    if(Math.abs(n-dg.realSz)>2)w.push(['Grupa '+g+': w SOL '+n+' szt., w dawce '+dg.nazwa+' wpisane '+dg.realSz+' szt.','Różnica '+Math.abs(n-dg.realSz)+' szt. Koszt i ekonomia liczą się na obsadzie z zakładki Dawki — sprawdź pole „Ilość szt.”.']);
+  });
+  w.forEach(x=>{h+='<div class="wyd-warn"><b>⚠ '+x[0]+'</b>'+x[1]+'</div>'});
+  return h;
+}
+
+/* ---------- kafelki ---------- */
+function wTile(cls,lbl,val,sub,st){return '<div class="wyd-tile '+(cls||'')+'"'+(st?' style="'+st+'"':'')+'><div class="wt-lbl">'+lbl+'</div><div class="wt-val">'+val+'</div><div class="wt-sub">'+(sub||'')+'</div></div>'}
+function wydTiles2(all,sel){
+  const a=aggCell(sel);const N=wydNorms;
+  let h='<div class="wyd-sec" id="wyd-tiles"><div class="wyd-tiles">';
+  if(a){
+    h+=wTile('all',wSelLbl()+' — mleko',fx(a.mleko,1)+' kg','ECM '+fx(a.ecm,1)+' · n='+a.n);
+    const dpw=wDoj(sel).filter(r=>r.dpw!=null).map(r=>r.dpw);
+    h+=wTile('all','Śr. dzień laktacji',dpw.length?r2(dpw.reduce((s,x)=>s+x,0)/dpw.length,0):'—','pierwiastki: '+wDoj(sel).filter(r=>r.par==='p1').length+' · wieloródki: '+wDoj(sel).filter(r=>r.par==='p2').length);
+    h+=wTile('all','%tł / %bi',fx(a.tl,2)+' / '+fx(a.bi,2),'tł/bi '+fx(a.tlbi,2)+' · SARA '+fx(a.saraPct,0)+'%');
+    h+=wTile('all','LKS geom. / w tanku',fx(a.lksGeo,0)+' / '+fx(a.lksWaz,0),'mediana '+fx(a.lksMed,0)+' · >'+N.lksMast+': '+fx(a.lksOver400,0)+'%');
+    h+=wTile('all','Mocznik',fx(a.mocznik,0),'mediana '+fx(a.mocznikMed,0)+' mg/l · norma '+N.mocMin+'–'+N.mocMax);
+  }else h+=wTile('','Brak danych','—','dla wybranego filtra');
+  h+='</div><div class="wyd-tiles" style="padding-top:0">';
+  wGroups(all).forEach(g=>{const ag=aggCell(all.filter(r=>r.h===g&&(wyd2Rasa==='all'||r.g===wyd2Rasa)));
+    h+=wTile('','Grupa '+g,ag?fx(ag.mleko,1)+' kg':'—',ag?'n='+ag.n+' · ECM '+fx(ag.ecm,1)+' · %bi '+fx(ag.bi,2)+' · LKS '+fx(ag.lksGeo,0):'brak sztuk','border-left:4px solid '+hCol(g))});
+  const zas=all.filter(r=>r.h==='ZAS');const ciel=zas.filter(r=>r.status==='Cielna');
+  const naPorod=all.filter(r=>r._cv&&!r._cv.err&&r._cv.doDzis>=0&&r._cv.doDzis<=N.porod).length;
+  h+=wTile('','Zasuszone',zas.length,'cielne: '+ciel.length+' · do porodu ≤'+N.porod+' dni: '+naPorod,'border-left:4px solid '+H_COL.ZAS);
+  h+='</div></div>';
+  return h;
+}
+
+/* ---------- tabela grup ---------- */
+function wydGroupTable(all){
+  const ra=wyd2Rasa;const rows=all.filter(r=>ra==='all'||r.g===ra);
+  const gs=wGroups(rows).concat(rows.some(r=>r.h==='BEZ')?['BEZ']:[]);
+  let t='<div class="tw"><table class="dt"><thead><tr><th>Grupa</th><th>W grupie</th><th>Dojone</th><th>% pierw.</th><th>Śr. DPW</th><th>Mleko</th><th>ECM</th><th>%tł</th><th>%bi</th><th>tł/bi</th><th>LKS geo</th><th>LKS tank</th><th>Mocznik</th><th>SARA %</th><th>Ketoza</th><th>LKS &gt;'+wydNorms.lksMast+'</th></tr></thead><tbody>';
+  const line=(lbl,rs,col)=>{const a=aggCell(rs);const d=wDoj(rs);const dp=d.filter(r=>r.dpw!=null);
+    const pp=d.length?100*d.filter(r=>r.par==='p1').length/d.length:null;
+    return '<tr><td><span class="wdot" style="background:'+col+'"></span>'+lbl+'</td><td>'+rs.length+'</td><td>'+d.length+'</td><td>'+fx(pp,0)+'</td><td>'+(dp.length?r2(dp.reduce((s,r)=>s+r.dpw,0)/dp.length,0):'—')+'</td>'
+      +(a?'<td><b>'+fx(a.mleko,1)+'</b></td><td>'+fx(a.ecm,1)+'</td><td>'+fx(a.tl,2)+'</td><td>'+fx(a.bi,2)+'</td><td>'+fx(a.tlbi,2)+'</td><td>'+fx(a.lksGeo,0)+'</td><td>'+fx(a.lksWaz,0)+'</td><td>'+fx(a.mocznik,0)+'</td><td>'+fx(a.saraPct,0)+'</td>':'<td colspan="9"></td>')
+      +'<td>'+d.filter(r=>r._fl.includes('ketoza')).length+'</td><td>'+d.filter(r=>r._fl.includes('lks')||r._fl.includes('lksP')).length+'</td></tr>'};
+  gs.forEach(g=>{t+=line(hLbl(g),rows.filter(r=>r.h===g),hCol(g))});
+  t+='</tbody><tfoot>'+line('STADO (w laktacji)',rows.filter(r=>r.h!=='ZAS'),'#C9A227');
+  const zas=rows.filter(r=>r.h==='ZAS');
+  t+='<tr><td>Zasuszone</td><td>'+zas.length+'</td><td colspan="14" style="text-align:left;font-family:var(--font)">cielne: '+zas.filter(r=>r.status==='Cielna').length+' · nie kryć: '+zas.filter(r=>r.status==='Nie kryć').length+' · inne: '+zas.filter(r=>r.status!=='Cielna'&&r.status!=='Nie kryć').length+'</td></tr>';
+  t+='</tfoot></table></div>';
+  return wCard('wyd-grupy','Grupy — podsumowanie próby',ra==='all'?'':'rasa '+ra,t);
+}
+
+/* ---------- tabela faz ---------- */
+function wydPhaseTable(sel){
+  const phases=getPhases().map(p=>p[2]).concat(['brak DPW']);
+  const cols=[['n','n',0],['mleko','mleko',1],['ecm','ECM',1],['tl','%tł',2],['bi','%bi',2],['tlbi','tł/bi',2],['lksGeo','LKS',0],['mocznik','mocznik',0]];
+  const pars=[['p1','Pierwiastki'],['p2','Wieloródki']];
+  let t='<div class="tw"><table class="wyd"><thead><tr><th rowspan="2" style="text-align:left">Faza (DPW)</th>';
+  pars.forEach(([k,l])=>{t+='<th class="gh" colspan="'+cols.length+'" style="background:'+P_COL[k]+'">'+l+'</th>'});
+  t+='</tr><tr>';pars.forEach(()=>cols.forEach(c=>{t+='<th>'+c[1]+'</th>'}));t+='</tr></thead><tbody>';
+  const cell=(a,c)=>a?(c[0]==='n'?a.n:fx(a[c[0]],c[2])):'';
+  phases.forEach(ph=>{t+='<tr><td>'+ph+'</td>';
+    pars.forEach(([k])=>{const a=aggCell(sel.filter(r=>r.par===k&&phaseOf(r.dpw)===ph));const sm=a&&a.n<3;
+      cols.forEach(c=>{t+='<td'+(sm?' class="small-n"':'')+'>'+cell(a,c)+'</td>'})});t+='</tr>'});
+  t+='</tbody><tfoot><tr><td>RAZEM</td>';
+  pars.forEach(([k])=>{const a=aggCell(sel.filter(r=>r.par===k));cols.forEach(c=>{t+='<td>'+cell(a,c)+'</td>'})});
+  t+='</tr></tfoot></table></div><div class="wnote">Szare wartości = mniej niż 3 sztuki w przedziale. Pierwiastka = 1. laktacja.</div>';
+  const btns=wChip(wydView==='std','fazy standard',"setWydView('std')")+wChip(wydView==='det','co 50 dni',"setWydView('det')");
+  return wCard('wyd-fazy','Pierwiastki i wieloródki wg okresu laktacji',wSelLbl(),t,btns);
+}
+
+/* ---------- karty wykresów ---------- */
+function chCard(id,title,sub,h){return wCard(id,title,'',(sub?'<div class="wnote" style="padding:6px 12px 0">'+sub+'</div>':'')+'<div class="wch-box" style="height:'+(h||320)+'px"><canvas id="cv-'+id+'"></canvas></div>','','wyd-chcard')}
+function wydChartCards(sel){
+  const N=wydNorms;const d=wDoj(sel);
+  const fit=k=>woodFit(d.filter(r=>r.par===k&&r.dpw!=null).map(r=>({t:r.dpw,y:r.mleko})));
+  const f1=fit('p1'),f2=fit('p2');
+  const pk=(f,l)=>f?l+' '+fx(f.yp,1)+' kg ('+r2(f.tp,0)+' d)':'';
+  let h='';
+  h+=chCard('ch-lak','Krzywa laktacji','kg mleka w dniu próby · linie = krzywa Wooda · szczyt: '+[pk(f1,'pierwiastek'),pk(f2,'wieloródek')].filter(Boolean).join(' · '));
+  h+=chCard('ch-tlbi','Tłuszcz / białko a dni laktacji','zielony pas = '+N.sara+'–'+N.ketoza+' · ketoza liczona do '+N.ketozaDim+' DPW');
+  let mb=chCard('ch-mocbi','Mocznik × białko — bilans białka i energii','normy: mocznik '+N.mocMin+'–'+N.mocMax+' mg/l, białko '+N.biMin+'–'+N.biMax+'% · zielone pole = optimum '+N.mocOptMin+'–'+N.mocOptMax,340);
+  mb=mb.replace(/<\/div>$/,wydMocBiTable(d)+'</div>');
+  h+=mb;
+  // białko a wydajność — próg
+  const bins=wydBiBins(d);const low=bins.find(b=>b.y<N.biProg&&b.x>=20);
+  h+=chCard('ch-biml','Białko a wydajność','linia = średnie białko w przedziałach co 5 kg'+(low?' · poniżej '+N.biProg+'% od ok. '+(low.x-2.5)+' kg':''));
+  h+=chCard('ch-rozk','Rozkład wydajności w grupach','liczba sztuk w przedziałach co 5 kg');
+  h+=chCard('ch-lks','Rozkład LKS w grupach','% sztuk dojonych w grupie');
+  return h;
+}
+function wydBiBins(d){const m={};d.filter(r=>r.bi!=null).forEach(r=>{const b=Math.floor(r.mleko/5)*5;(m[b]=m[b]||[]).push(r.bi)});
+  return Object.keys(m).map(Number).sort((a,b)=>a-b).filter(b=>m[b].length>=3).map(b=>({x:b+2.5,y:m[b].reduce((s,v)=>s+v,0)/m[b].length,n:m[b].length}))}
+function mbCell(r){const N=wydNorms;const c=r.moc<N.mocMin?0:(r.moc<=N.mocMax?1:2);const w=r.bi>N.biMax?0:(r.bi>=N.biMin?1:2);return[w,c]}
+const MB_TXT=[['dużo energii, mało białka','energia i białko OK','nadmiar białka przy dobrej energii'],['niedobór białka','bilans prawidłowy','nadmiar białka rozkładalnego'],['niedobór białka i energii','niedobór energii','niedobór energii, nadmiar białka']];
+function wydMocBiCounts(d){const c=[[0,0,0],[0,0,0],[0,0,0]];d.filter(r=>r.moc!=null&&r.bi!=null).forEach(r=>{const[w,k]=mbCell(r);c[w][k]++});return c}
+function wydMocBiTable(d){
+  const c=wydMocBiCounts(d);const rl=['Białko wysokie','Białko w normie','Białko niskie'];
+  let t='<div class="tw" style="padding:0 12px 10px"><table class="dt wmb"><tbody>';
+  rl.forEach((l,w)=>{t+='<tr><td>'+l+'</td>';[0,1,2].forEach(k=>{t+='<td class="wmb-c'+(w===1&&k===1?' ok':'')+'" onclick="wydMbList('+w+','+k+')">'+MB_TXT[w][k]+' <b>('+c[w][k]+')</b></td>'});t+='</tr>'});
+  t+='<tr><td></td><td class="wmb-f">mocznik niski</td><td class="wmb-f">mocznik w normie</td><td class="wmb-f">mocznik wysoki</td></tr></tbody></table><div class="wnote noprint">Kliknij pole, żeby zobaczyć listę sztuk.</div></div>';
+  return t;
+}
+function wydMbList(w,k){
+  if(!wydCur)return;const rs=wDoj(wydCur.sel).filter(r=>r.moc!=null&&r.bi!=null).filter(r=>{const[a,b]=mbCell(r);return a===w&&b===k});
+  opM(MB_TXT[w][k]+' — '+rs.length+' szt.',wydCowTable(rs),'<button class="btn bo" onclick="clM()">Zamknij</button>');
+  const _mb=document.querySelector('#modal .mob');if(_mb)_mb.style.maxWidth='920px';
+}
+
+function wydDrawCharts(sel,all,repDate){
+  if(typeof Chart==='undefined'){document.querySelectorAll('.wch-box').forEach(b=>{b.innerHTML='<div class="wnote">Wykresy niedostępne bez połączenia z internetem.</div>';b.style.height='auto'});return}
+  const N=wydNorms;const d=wDoj(sel);
+  const pts=(rs,fx_,fy)=>rs.filter(r=>fx_(r)!=null&&fy(r)!=null).map(r=>({x:fx_(r),y:fy(r),k:r.kol}));
+  const p1=d.filter(r=>r.par==='p1'),p2=d.filter(r=>r.par==='p2');
+  const scOpt=(xt,yt,ext)=>Object.assign({onClick:scClick,plugins:{legend:{position:'top',labels:{boxWidth:10,usePointStyle:true}},tooltip:scTooltip(xt,yt)},
+    scales:{x:{type:'linear',title:{display:true,text:xt},min:0},y:{title:{display:true,text:yt}}}},ext||{});
+  // 1. krzywa laktacji
+  const maxD=Math.max(100,...d.filter(r=>r.dpw!=null).map(r=>r.dpw));
+  const curve=(rs)=>{const f=woodFit(rs.filter(r=>r.dpw!=null).map(r=>({t:r.dpw,y:r.mleko})));if(!f)return[];const o=[];for(let t=5;t<=Math.min(maxD,600);t+=5)o.push({x:t,y:f.f(t)});return o};
+  wChart('cv-ch-lak',{type:'scatter',data:{datasets:[
+    {label:'pierwiastki',data:pts(p1,r=>r.dpw,r=>r.mleko),backgroundColor:P_COL.p1,pointRadius:3.5},
+    {label:'wieloródki',data:pts(p2,r=>r.dpw,r=>r.mleko),backgroundColor:P_COL.p2,pointRadius:3.5},
+    {label:'krzywa pierwiastek',type:'line',data:curve(p1),borderColor:P_COL.p1,borderWidth:2.5,pointRadius:0,fill:false},
+    {label:'krzywa wieloródek',type:'line',data:curve(p2),borderColor:P_COL.p2,borderWidth:2.5,pointRadius:0,fill:false}]},
+    options:scOpt('dni laktacji (DPW)','kg mleka',{scales:{x:{type:'linear',title:{display:true,text:'dni laktacji (DPW)'},min:0},y:{title:{display:true,text:'kg mleka'},min:0}}})});
+  // 2. tł/bi
+  const tb=d.filter(r=>r.tlbi!=null&&r.dpw!=null);
+  const isK=r=>r.dpw<N.ketozaDim&&r.tlbi>N.ketoza,isS=r=>r.tlbi<N.sara;
+  const maxTb=Math.max(2,...tb.map(r=>r.tlbi))+0.1;
+  wChart('cv-ch-tlbi',{type:'scatter',data:{datasets:[
+    {label:'ryzyko ketozy (> '+N.ketoza+')',data:pts(tb.filter(isK),r=>r.dpw,r=>r.tlbi),backgroundColor:'#C62828',pointStyle:'triangle',pointRadius:5},
+    {label:'ryzyko SARA (< '+N.sara+')',data:pts(tb.filter(isS),r=>r.dpw,r=>r.tlbi),backgroundColor:'#E65100',pointStyle:'triangle',rotation:180,pointRadius:5},
+    {label:'w normie',data:pts(tb.filter(r=>!isK(r)&&!isS(r)),r=>r.dpw,r=>r.tlbi),backgroundColor:'#9AA39C',pointRadius:3.5}]},
+    options:scOpt('dni laktacji (DPW)','tł/bi',{scales:{x:{type:'linear',min:0,title:{display:true,text:'dni laktacji (DPW)'}},y:{min:0.5,max:Math.ceil(maxTb*10)/10,title:{display:true,text:'stosunek tł/bi'}}},
+      plugins:{legend:{position:'top',labels:{boxWidth:10,usePointStyle:true}},tooltip:scTooltip('DPW','tł/bi'),
+        wydAnn:{rects:[{y0:N.sara,y1:N.ketoza,fill:'rgba(76,175,80,.12)'},{x1:N.ketozaDim,y0:N.ketoza,fill:'rgba(198,40,40,.08)'}],
+          lines:[{y:N.ketoza,label:N.ketoza+' – ketoza',c:'#8A3B3B'},{y:N.sara,label:N.sara+' – SARA',c:'#8A5A2B'},{x:N.ketozaDim,label:N.ketozaDim+' DPW',c:'#555'}]}}})});
+  // 3. mocznik × białko
+  const mb=d.filter(r=>r.moc!=null&&r.bi!=null);const cnt=wydMocBiCounts(d);
+  const xs=[null,N.mocMin,N.mocMax,null],ys=[null,N.biMax,N.biMin,null];
+  const rects=[{x0:N.mocOptMin,x1:N.mocOptMax,y0:N.biMin,y1:N.biMax,fill:'rgba(76,175,80,.16)'}];
+  for(let w=0;w<3;w++)for(let k=0;k<3;k++)rects.push({x0:xs[k],x1:xs[k+1],y0:ys[w+1],y1:ys[w],label:cnt[w][k]+' szt',lc:'#1E2A20'});
+  wChart('cv-ch-mocbi',{type:'scatter',data:{datasets:[
+    {label:'pierwiastki',data:pts(mb.filter(r=>r.par==='p1'),r=>r.moc,r=>r.bi),backgroundColor:P_COL.p1,pointRadius:3.5},
+    {label:'wieloródki',data:pts(mb.filter(r=>r.par==='p2'),r=>r.moc,r=>r.bi),backgroundColor:P_COL.p2,pointRadius:3.5}]},
+    options:scOpt('mocznik mg/l','białko %',{scales:{x:{type:'linear',min:0,suggestedMax:450,title:{display:true,text:'mocznik, mg/l'}},y:{suggestedMin:2.6,suggestedMax:4.6,title:{display:true,text:'białko, %'}}},
+      plugins:{legend:{position:'top',labels:{boxWidth:10,usePointStyle:true}},tooltip:scTooltip('mocznik','białko %'),
+        wydAnn:{rects,lines:[{x:N.mocMin,c:'#555'},{x:N.mocMax,c:'#555'},{y:N.biMin,c:'#555'},{y:N.biMax,c:'#555'}]}}})});
+  // 4. białko a wydajność
+  const bm=d.filter(r=>r.bi!=null);
+  wChart('cv-ch-biml',{type:'scatter',data:{datasets:[
+    {label:'krowy',data:pts(bm,r=>r.mleko,r=>r.bi),backgroundColor:'#2B6CB0',pointRadius:3.5},
+    {label:'średnia w przedziale',type:'line',data:wydBiBins(d).map(b=>({x:b.x,y:b.y})),borderColor:'#DD6B20',borderWidth:2.5,pointRadius:2,fill:false}]},
+    options:scOpt('kg mleka','białko %',{scales:{x:{type:'linear',min:0,title:{display:true,text:'kg mleka'}},y:{title:{display:true,text:'białko, %'}}},
+      plugins:{legend:{position:'top',labels:{boxWidth:10,usePointStyle:true}},tooltip:scTooltip('kg','białko %'),wydAnn:{lines:[{y:N.biProg,label:N.biProg+'% – próg energetyczny',c:'#555'}]}}})});
+  // 5. rozkład wydajności
+  const gs=wGroups(all);const allD=wDoj(all.filter(r=>wyd2Rasa==='all'||r.g===wyd2Rasa));
+  const edges=[0,15,20,25,30,35,40,45,50,55];const lbls=edges.map((e,i)=>i===0?'<15':(i===edges.length-1?'≥'+e:e+'–'+(edges[i+1])));
+  const binOf=v=>{let i=edges.length-1;while(i>0&&v<edges[i])i--;return i};
+  wChart('cv-ch-rozk',{type:'bar',data:{labels:lbls,datasets:gs.map(g=>{const c=new Array(edges.length).fill(0);allD.filter(r=>r.h===g).forEach(r=>c[binOf(r.mleko)]++);return{label:g,data:c,backgroundColor:hCol(g)}})},
+    options:{plugins:{legend:{position:'top'}},scales:{x:{title:{display:true,text:'kg mleka'}},y:{beginAtZero:true,title:{display:true,text:'liczba sztuk'}}}}});
+  // 6. LKS
+  const lc=[['≤100',0,100],['101–200',101,200],['201–400',201,400],['401–1000',401,1000],['>1000',1001,1e9]];
+  wChart('cv-ch-lks',{type:'bar',data:{labels:lc.map(x=>x[0]),datasets:gs.map(g=>{const rs=allD.filter(r=>r.h===g&&r.lks!=null);return{label:g,backgroundColor:hCol(g),data:lc.map(([,a,b])=>rs.length?r2(100*rs.filter(r=>r.lks>=a&&r.lks<=b).length/rs.length,1):0)}})},
+    options:{plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw+'%'}}},scales:{x:{title:{display:true,text:'LKS tys./ml'}},y:{beginAtZero:true,title:{display:true,text:'% sztuk'}}}}});
+  // rozród — status w grupach
+  wydDrawRozrodChart(all);
+  wydDrawCalvChart(all);
+}
+
+/* ---------- lista sztuk ---------- */
+const WL_COLS=[['kol','Kolczyk'],['nrob','Nr ob.'],['h','Grupa'],['g','Rasa'],['lakt','Lakt.'],['dpw','DPW'],['mleko','Mleko'],['ecm','ECM'],['tl','%tł'],['bi','%bi'],['tlbi','tł/bi'],['lks','LKS'],['moc','Mocznik'],['status','Status'],['_fl','Flagi']];
+function wydListCard(all){
+  const gs=wGroups(all);
+  let btns='<input type="text" placeholder="szukaj kolczyka / nr ob." value="'+wydListFilt.q+'" oninput="wydListFilt.q=this.value;renderWydListBody()" style="width:170px;padding:4px 6px;font-size:12px">';
+  btns+='<select onchange="wydListFilt.g=this.value;renderWydListBody()" style="width:auto;padding:4px;font-size:12px">'+[['all','wszystkie'],...gs.map(g=>[g,g]),['BEZ','bez grupy'],['ZAS','zasuszone']].map(([k,l])=>'<option value="'+k+'"'+(wydListFilt.g===k?' selected':'')+'>'+l+'</option>').join('')+'</select>';
+  btns+='<label style="font-size:12px;display:flex;align-items:center;gap:3px;color:var(--c-pri-d)"><input type="checkbox" '+(wydListFilt.flag?'checked':'')+' onchange="wydListFilt.flag=this.checked;renderWydListBody()" style="width:auto">tylko z flagą</label>';
+  btns+='<button class="btn bs bo" onclick="wydListCsv()">⬇ CSV</button>';
+  let t='<div class="tw" style="max-height:520px;overflow-y:auto" id="wyd-list-wrap"><table class="dt wlist"><thead><tr>';
+  WL_COLS.forEach(([k,l])=>{t+='<th onclick="wydSortList(\''+k+'\')" style="cursor:pointer">'+l+'<span id="wls-'+k+'"></span></th>'});
+  t+='</tr></thead><tbody id="wyd-list-body"></tbody></table></div><div class="wnote" id="wyd-list-cnt"></div>';
+  t+='<div class="wnote">Flagi: '+Object.keys(FL2).map(k=>'<span class="wfl" style="background:'+FL2[k].c+'">'+FL2[k].s+'</span> '+flagTitle(k)).join(' · ')+'. Kliknij sztukę, żeby otworzyć kartę z historią.</div>';
+  return wCard('wyd-sztuki','Lista sztuk','',t,btns);
+}
+function wydListRows(){
+  if(!wydCur)return[];const q=wydListFilt.q.trim().toLowerCase();
+  let rs=wydCur.all.filter(r=>(wydListFilt.g==='all'||r.h===wydListFilt.g)&&(wyd2Rasa==='all'||r.g===wyd2Rasa));
+  if(q)rs=rs.filter(r=>String(r.kol).toLowerCase().includes(q)||String(r.nrob||'').toLowerCase().includes(q));
+  if(wydListFilt.flag)rs=rs.filter(r=>r._fl&&r._fl.length);
+  const{k,d}=wydListSort;
+  rs.sort((a,b)=>{let x=k==='_fl'?(a._fl||[]).length:a[k],y=k==='_fl'?(b._fl||[]).length:b[k];
+    if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;
+    if(typeof x==='number'&&typeof y==='number')return(x-y)*d;return String(x).localeCompare(String(y),'pl',{numeric:true})*d});
+  return rs;
+}
+function renderWydListBody(){
+  const tb=$('#wyd-list-body');if(!tb)return;const rs=wydListRows();
+  tb.innerHTML=rs.map(r=>'<tr onclick="openCow(\''+r.kol+'\')" style="cursor:pointer"><td>'+r.kol+'</td><td>'+(r.nrob!=null?r.nrob:'')+'</td><td><span class="wdot" style="background:'+hCol(r.h)+'"></span>'+hLbl(r.h)+'</td><td>'+(r.g||'')+'</td><td>'+fx(r.lakt,0)+'</td><td>'+fx(r.dpw,0)+'</td><td><b>'+fx(r.mleko,1)+'</b></td><td>'+fx(r.ecm,1)+'</td><td>'+fx(r.tl,2)+'</td><td>'+fx(r.bi,2)+'</td><td>'+fx(r.tlbi,2)+'</td><td>'+fx(r.lks,0)+'</td><td>'+fx(r.moc,0)+'</td><td style="font-family:var(--font);text-align:left">'+(r.status||'')+'</td><td style="text-align:left">'+flagBadges(r._fl||[])+'</td></tr>').join('');
+  $('#wyd-list-cnt').textContent='Pokazano '+rs.length+' szt.';
+  WL_COLS.forEach(([k])=>{const e=$('#wls-'+k);if(e)e.textContent=wydListSort.k===k?(wydListSort.d>0?' ▲':' ▼'):''});
+}
+function wydSortList(k){if(wydListSort.k===k)wydListSort.d*=-1;else wydListSort={k,d:(k==='kol'||k==='h'||k==='g'||k==='status')?1:-1};renderWydListBody()}
+function wydListCsv(){
+  const rs=wydListRows();const n=v=>v==null?'':String(typeof v==='number'?r2(v,2):v).replace('.',',');
+  const rows=[WL_COLS.map(c=>c[1])].concat(rs.map(r=>WL_COLS.map(([k])=>k==='_fl'?(r._fl||[]).map(f=>FL2[f].s).join(' '):k==='h'?hLbl(r.h):n(r[k]))));
+  const csv='﻿'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='sztuki-'+(wydCur?wydCur.month:'')+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+function wydCowTable(rs){
+  if(!rs.length)return '<div class="wnote">Brak sztuk</div>';
+  return '<div class="tw"><table class="dt"><thead><tr><th>Kolczyk</th><th>Nr ob.</th><th>Grupa</th><th>Lakt.</th><th>DPW</th><th>Mleko</th><th>%tł</th><th>%bi</th><th>tł/bi</th><th>LKS</th><th>Mocznik</th></tr></thead><tbody>'
+    +rs.map(r=>'<tr onclick="openCow(\''+r.kol+'\')" style="cursor:pointer"><td>'+r.kol+'</td><td>'+(r.nrob!=null?r.nrob:'')+'</td><td>'+hLbl(r.h)+'</td><td>'+fx(r.lakt,0)+'</td><td>'+fx(r.dpw,0)+'</td><td><b>'+fx(r.mleko,1)+'</b></td><td>'+fx(r.tl,2)+'</td><td>'+fx(r.bi,2)+'</td><td>'+fx(r.tlbi,2)+'</td><td>'+fx(r.lks,0)+'</td><td>'+fx(r.moc,0)+'</td></tr>').join('')
+    +'</tbody></table></div>';
+}
+
+/* ---------- karta krowy ---------- */
+function openCow(kol){
+  if(!wydCur)return;const r=wydCur.all.find(x=>x.kol===kol);if(!r){toast('Brak sztuki w tej próbie');return}
+  const N=wydNorms;const st=(v,lo,hi)=>v==null?'':(lo!=null&&v<lo)||(hi!=null&&v>hi)?' style="color:var(--c-red);font-weight:700"':'';
+  let h='<div class="cow-hd"><div><b style="font-size:16px">'+r.kol+'</b>'+(r.nrob!=null?' · nr ob. <b>'+r.nrob+'</b>':'')+'</div><div class="wnote" style="padding:0">'+(r.rasa||'')+' · '+fx(r.lakt,0)+'. laktacja · grupa <b>'+hLbl(r.h)+'</b> · '+(r.status||'—')+'</div></div>';
+  h+='<div class="wyd-tiles" style="padding:8px 0">';
+  h+=wTile('','DPW',fx(r.dpw,0),r.par==='p1'?'pierwiastka':'wieloródka');
+  h+=wTile('','Mleko',fx(r.mleko,1),'ECM '+fx(r.ecm,1));
+  h+='<div class="wyd-tile"><div class="wt-lbl">%tł / %bi</div><div class="wt-val"><span'+st(r.tl)+'>'+fx(r.tl,2)+'</span> / <span'+st(r.bi,N.biMin,N.biMax)+'>'+fx(r.bi,2)+'</span></div><div class="wt-sub">tł/bi <span'+st(r.tlbi,N.sara,N.ketoza)+'>'+fx(r.tlbi,2)+'</span></div></div>';
+  h+='<div class="wyd-tile"><div class="wt-lbl">LKS</div><div class="wt-val"'+st(r.lks,null,N.lksMast)+'>'+fx(r.lks,0)+'</div><div class="wt-sub">tys./ml</div></div>';
+  h+='<div class="wyd-tile"><div class="wt-lbl">Mocznik</div><div class="wt-val"'+st(r.moc,N.mocMin,N.mocMax)+'>'+fx(r.moc,0)+'</div><div class="wt-sub">mg/l</div></div>';
+  h+='</div>';
+  if(r._fl&&r._fl.length)h+='<div style="margin-bottom:8px">'+r._fl.map(k=>'<div><span class="wfl" style="background:'+FL2[k].c+'">'+FL2[k].s+'</span> '+flagTitle(k)+'</div>').join('')+'</div>';
+  let rep='Nr ost. pokrycia: <b>'+fx(r.nrp,0)+'</b> · dni od pokrycia: <b>'+fx(r.dnp,0)+'</b>';
+  if(r._cv)rep+='<br>Planowane wycielenie: <b>'+fmtDate(r._cv.plan)+'</b> ('+(r._cv.err?'<span style="color:var(--c-red)">sprawdź dane — termin dawno minął</span>':(r._cv.doDzis>=0?'za '+r._cv.doDzis+' dni':r._cv.doDzis*-1+' dni po terminie'))+')';
+  h+='<div class="wnote" style="padding:0 0 8px">'+rep+'</div>';
+  h+='<div style="font-weight:700;color:var(--c-pri-d);margin:6px 0">Historia z prób</div><div id="cow-hist"><div class="wnote">Wczytywanie historii…</div></div>';
+  h+='<div style="height:200px;margin-top:8px"><canvas id="cv-cow"></canvas></div>';
+  opM('Karta sztuki',h,'<button class="btn bo" onclick="clM()">Zamknij</button>');
+  const _mb=document.querySelector('#modal .mob');if(_mb)_mb.style.maxWidth='920px';
+  wydLoadAllRaw().then(()=>wydCowHistory(kol));
+}
+function wydLoadAllRaw(){
+  if(wydRaw&&wydRaw.rows)wydRawCache[wydRaw.month]=wydRaw.rows;
+  if(!fbDb)return Promise.resolve();
+  const ms=wydIndex.filter(m=>!wydRawCache[m]);
+  return Promise.all(ms.map(m=>fbDb.collection('farm_data').doc('wydajnosc_raw_'+m).get().then(d=>{if(d.exists&&d.data().rows)wydRawCache[m]=d.data().rows;else wydRawCache[m]=[]}).catch(()=>{})));
+}
+function wydCowHistory(kol){
+  const el=$('#cow-hist');if(!el)return;
+  const ms=Object.keys(wydRawCache).sort();const hist=[];
+  ms.forEach(m=>{const r=(wydRawCache[m]||[]).find(x=>x.kol===kol);if(r)hist.push({m,r})});
+  if(!hist.length){el.innerHTML='<div class="wnote">Brak historii</div>';return}
+  let t='<div class="tw"><table class="dt"><thead><tr><th>Miesiąc</th><th>Grupa</th><th>Lakt.</th><th>DPW</th><th>Mleko</th><th>ECM</th><th>%tł</th><th>%bi</th><th>tł/bi</th><th>LKS</th><th>Mocznik</th><th>Status</th></tr></thead><tbody>';
+  hist.forEach(({m,r})=>{t+='<tr><td>'+m+'</td><td>'+(r.h?hLbl(r.h):(r.g||''))+'</td><td>'+fx(r.lakt,0)+'</td><td>'+fx(r.dpw,0)+'</td><td><b>'+fx(r.mleko,1)+'</b></td><td>'+fx(r.ecm,1)+'</td><td>'+fx(r.tl,2)+'</td><td>'+fx(r.bi,2)+'</td><td>'+fx(r.tlbi,2)+'</td><td>'+fx(r.lks,0)+'</td><td>'+fx(r.moc,0)+'</td><td style="font-family:var(--font)">'+(r.status||'')+'</td></tr>'});
+  el.innerHTML=t+'</tbody></table></div>';
+  if(typeof Chart!=='undefined'&&hist.length>1){
+    wChart('cv-cow',{type:'line',data:{labels:hist.map(x=>x.m),datasets:[
+      {label:'mleko kg',data:hist.map(x=>x.r.mleko),borderColor:'#2F6B3A',backgroundColor:'#2F6B3A',yAxisID:'y',spanGaps:true},
+      {label:'LKS',data:hist.map(x=>x.r.lks),borderColor:'#AD1457',backgroundColor:'#AD1457',yAxisID:'y2',spanGaps:true}]},
+      options:{plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,title:{display:true,text:'kg'}},y2:{position:'right',beginAtZero:true,grid:{display:false},title:{display:true,text:'LKS'}}}}});
+  }else{const c=$('#cv-cow');if(c)c.parentNode.style.display='none'}
+}
+
+/* ---------- rozród ---------- */
+function wydRozrod(all,sel){
+  const N=wydNorms;const lac=sel;
+  const po=lac.filter(r=>r.dpw!=null&&r.dpw>N.oop);
+  const ciel=po.filter(r=>r.status==='Cielna');
+  const insC=ciel.filter(r=>r.nrp!=null);
+  const ii=insC.length?insC.reduce((s,r)=>s+r.nrp,0)/insC.length:null;
+  const ou=ciel.filter(r=>r.dnp!=null&&r.dpw!=null&&r.dpw-r.dnp>0);
+  const ouv=ou.length?ou.reduce((s,r)=>s+(r.dpw-r.dnp),0)/ou.length:null;
+  const bezIns=lac.filter(r=>r.dpw!=null&&r.dpw>N.bezIns&&r.nrp==null&&r.status!=='Nie kryć'&&r.status!=='Cielna');
+  const niec=lac.filter(r=>r.dpw!=null&&r.dpw>N.niecielne&&r.status!=='Cielna');
+  let h='<div class="wyd-tiles">';
+  h+=wTile('all','Cielne po OOP',po.length?r2(100*ciel.length/po.length,0)+'%':'—',ciel.length+' z '+po.length+' (DPW > '+N.oop+')');
+  h+=wTile('all','Indeks inseminacyjny',fx(ii,2),'krowy cielne (n = '+insC.length+')');
+  h+=wTile('all','Okres usługowy',ouv!=null?r2(ouv,0)+' dni':'—','wycielenie → skuteczne krycie (n = '+ou.length+')');
+  h+=wTile('all','Bez inseminacji',bezIns.length,'DPW > '+N.bezIns+', brak krycia');
+  h+=wTile('all','Niecielne > '+N.niecielne+' dni',niec.length,'w tym „nie kryć”: '+niec.filter(r=>r.status==='Nie kryć').length);
+  h+='</div>';
+  // rozród a wskaźniki
+  const cats=[['Mocznik > '+N.mocMax+' mg/l',r=>r.moc!=null&&r.moc>N.mocMax],['Białko < '+N.biMin+'%',r=>r.bi!=null&&r.bi<N.biMin],['Tł/bi < '+N.sara+' (SARA)',r=>r.tlbi!=null&&r.tlbi<N.sara],['Pierwiastki',r=>r.par==='p1']];
+  const st=rs=>{const c=rs.filter(r=>r.status==='Cielna');const ic=c.filter(r=>r.nrp!=null);return{n:rs.length,pc:rs.length?r2(100*c.length/rs.length,0)+'%':'—',ii:ic.length?r2(ic.reduce((s,r)=>s+r.nrp,0)/ic.length,2):'—'}};
+  let t='<div style="padding:0 12px 4px;font-weight:700;color:var(--c-pri-d)">Rozród a wskaźniki żywieniowe (krowy po OOP)</div><div class="tw" style="padding:0 12px"><table class="dt"><thead><tr><th>Grupa krów</th><th>n</th><th>% cielnych</th><th>indeks ins.</th><th>pozostałe: n</th><th>% cielnych</th><th>indeks ins.</th></tr></thead><tbody>';
+  cats.forEach(([l,f])=>{const a=st(po.filter(f)),b=st(po.filter(r=>!f(r)));t+='<tr><td>'+l+'</td><td>'+a.n+'</td><td><b>'+a.pc+'</b></td><td>'+a.ii+'</td><td>'+b.n+'</td><td>'+b.pc+'</td><td>'+b.ii+'</td></tr>'});
+  t+='</tbody></table></div>';
+  t+='<div class="wch-box" style="height:200px;padding:0 12px"><canvas id="cv-wyd-rozst"></canvas></div>';
+  t+=wFlagBlock('roz-bez','Bez inseminacji po '+N.bezIns+' dniach',bezIns);
+  t+=wFlagBlock('roz-niec','Niecielne powyżej '+N.niecielne+' dni (przedłużona laktacja)',niec);
+  t+='<div class="wnote">Status z SOL na dzień próby. Jedna próba pokazuje zależności, nie przyczyny. Indeks inseminacyjny = numer ostatniego pokrycia u krów cielnych.</div>';
+  return wCard('wyd-rozrod','Rozród',wSelLbl()+' · OOP '+N.oop+' dni',h+t);
+}
+function wydDrawRozrodChart(all){
+  const ST=[['Cielna','#2F6B3A'],['Pokryta','#7CB342'],['Do krycia','#F9A825'],['Spoczynek','#90A4AE'],['Nie kryć','#C62828'],['Inne','#BDBDBD']];
+  const known=ST.slice(0,5).map(x=>x[0]);
+  const rows=all.filter(r=>wyd2Rasa==='all'||r.g===wyd2Rasa);
+  const gs=wGroups(rows).concat(['ZAS']);
+  wChart('cv-wyd-rozst',{type:'bar',data:{labels:gs.map(hLbl),datasets:ST.map(([s,c])=>({label:s,backgroundColor:c,data:gs.map(g=>{const rs=rows.filter(r=>r.h===g);if(!rs.length)return 0;
+    return r2(100*rs.filter(r=>s==='Inne'?!known.includes(r.status):r.status===s).length/rs.length,1)})}))},
+    options:{indexAxis:'y',plugins:{legend:{position:'top',labels:{boxWidth:10}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw+'%'}}},scales:{x:{stacked:true,max:100,title:{display:true,text:'% sztuk w grupie'}},y:{stacked:true}}}});
+}
+function wFlagBlock(id,lbl,rs){
+  return '<div class="wyd-flag" style="margin:6px 12px"><div class="wyd-flag-h'+(rs.length?'':' zero')+'" onclick="toggleSnapDetail(\'wf-'+id+'\')"><span>'+lbl+'</span><span class="cnt">'+rs.length+'</span></div><div class="wyd-flag-b" id="wf-'+id+'">'+wydCowTable(rs)+'</div></div>';
+}
+
+/* ---------- wycielenia i zasuszenia ---------- */
+function wGrByKey(...keys){keys=keys.map(k=>k.toUpperCase());return gr.find(g=>keys.includes((g.alias||'').toUpperCase())||keys.includes(g.nazwa.toUpperCase()))}
+function wydCalving(all,repDate){
+  const N=wydNorms;const T=today0();
+  const cv=all.filter(r=>r._cv);const ok=cv.filter(r=>!r._cv.err);
+  const err=cv.filter(r=>r._cv.err);
+  const lac=r=>r.h!=='ZAS';
+  const doZas=ok.filter(r=>lac(r)&&r._cv.doDzis<=N.zasusz).sort((a,b)=>a._cv.doDzis-b._cv.doDzis);
+  const doPor=ok.filter(r=>r._cv.doDzis>=0&&r._cv.doDzis<=N.porod).sort((a,b)=>a._cv.doDzis-b._cv.doDzis);
+  const poTerm=ok.filter(r=>r._cv.doDzis<0);
+  const zasNiec=all.filter(r=>r.h==='ZAS'&&r.status!=='Cielna');
+  const pokr=all.filter(r=>r.status==='Pokryta'&&r.dnp!=null);
+  // obsada
+  const expPor=doPor.length;
+  const expDol=all.filter(r=>r.h==='ZAS'&&!(r._cv&&!r._cv.err&&(r._cv.doDzis<=N.porod))).length;
+  const gD=wGrByKey('DOŁEK','FAR OFF'),gP=wGrByKey('PORODÓWKA','CLOSE UP');
+  let h='<div class="wyd-tiles">';
+  h+=wTile('all','Wycielenia w 8 tyg.',ok.filter(r=>r._cv.doDzis>=0&&r._cv.doDzis<56).length,'od dziś, wg dat pokrycia');
+  h+=wTile('all','Do zasuszenia',doZas.length,'dojone, ≤ '+N.zasusz+' dni do porodu');
+  h+=wTile('all','Na porodówkę',doPor.length,'≤ '+N.porod+' dni do porodu');
+  h+=wTile('all','Po terminie',poTerm.length,'mogły się już wycielić');
+  h+=wTile('all','Do sprawdzenia',err.length+zasNiec.length,'błędne daty + zasuszone niecielne');
+  h+='</div>';
+  h+='<div class="wch-box" style="height:220px;padding:0 12px"><canvas id="cv-wyd-calv"></canvas></div>';
+  // obsada
+  h+='<div class="tw" style="padding:6px 12px"><table class="dt"><thead><tr><th>Grupa</th><th>Wg dat z SOL (na dziś)</th><th>W Dawkach (szt. realne)</th><th>Różnica</th></tr></thead><tbody>';
+  [[gD,'DOŁEK (zasuszone)',expDol],[gP,'PORODÓWKA',expPor]].forEach(([g,l,e])=>{const real=g?g.realSz:null;const diff=real!=null?real-e:null;
+    h+='<tr><td>'+l+(g?' <span class="wnote" style="padding:0">('+g.nazwa+')</span>':'')+'</td><td><b>'+e+'</b></td><td>'+(real!=null?real:'—')+'</td><td style="color:'+(diff&&Math.abs(diff)>2?'var(--c-red)':'inherit')+'">'+(diff!=null?(diff>0?'+':'')+diff:'—')+'</td></tr>'});
+  h+='</tbody></table></div>';
+  // tygodnie
+  const m0=mondayOf(T);let wk='<div class="tw" style="padding:0 12px"><table class="dt"><thead><tr><th>Tydzień</th><th>n</th><th style="text-align:left">Sztuki (nr ob. · grupa · dni do porodu)</th></tr></thead><tbody>';
+  for(let i=0;i<8;i++){const a=addDays(m0,7*i),b=addDays(a,7);const rs=ok.filter(r=>r._cv.plan>=a&&r._cv.plan<b).sort((x,y)=>x._cv.plan-y._cv.plan);
+    wk+='<tr><td>'+ddmm(a)+'–'+ddmm(addDays(b,-1))+'</td><td><b>'+rs.length+'</b></td><td style="text-align:left;font-family:var(--font);white-space:normal">'+rs.map(r=>'<span class="wcow" onclick="openCow(\''+r.kol+'\')">'+(r.nrob!=null?r.nrob:r.kol.slice(-5))+' · '+hLbl(r.h)+' · '+r._cv.doDzis+'d</span>').join(' ')+'</td></tr>'}
+  wk+='</tbody></table></div>';
+  h+=wk;
+  const calvTbl=rs=>!rs.length?'<div class="wnote">Brak sztuk</div>':'<div class="tw"><table class="dt"><thead><tr><th>Kolczyk</th><th>Nr ob.</th><th>Grupa</th><th>Rasa</th><th>Mleko</th><th>DPW</th><th>Pokrycie</th><th>Planowany poród</th><th>Dni do porodu</th></tr></thead><tbody>'
+    +rs.map(r=>'<tr onclick="openCow(\''+r.kol+'\')" style="cursor:pointer"><td>'+r.kol+'</td><td>'+(r.nrob!=null?r.nrob:'')+'</td><td>'+hLbl(r.h)+'</td><td>'+(r.g||'')+'</td><td>'+fx(r.mleko,1)+'</td><td>'+fx(r.dpw,0)+'</td><td>'+(r._cv?fmtDate(r._cv.pokr):(r.dnp!=null?fmtDate(addDays(repDate,-r.dnp)):'—'))+'</td><td>'+(r._cv?fmtDate(r._cv.plan):'—')+'</td><td style="color:'+(r._cv&&r._cv.doDzis<0?'var(--c-red)':'inherit')+'"><b>'+(r._cv?(r._cv.err?'błąd':r._cv.doDzis):'—')+'</b></td></tr>').join('')+'</tbody></table></div>';
+  const blk=(id,l,rs)=>'<div class="wyd-flag" style="margin:6px 12px"><div class="wyd-flag-h'+(rs.length?'':' zero')+'" onclick="toggleSnapDetail(\'wc-'+id+'\')"><span>'+l+'</span><span class="cnt">'+rs.length+'</span></div><div class="wyd-flag-b" id="wc-'+id+'">'+calvTbl(rs)+'</div></div>';
+  h+=blk('zas','Do zasuszenia (dojone, ≤ '+N.zasusz+' dni do porodu)',doZas);
+  h+=blk('por','Na porodówkę (≤ '+N.porod+' dni do porodu)',doPor);
+  h+=blk('pot','Po terminie — sprawdź, czy się wycieliły',poTerm);
+  h+=blk('err','Błędne daty (termin minął dawno przed próbą)',err);
+  h+=blk('zn','Zasuszone niecielne',zasNiec);
+  // pokryte — prawdopodobny termin
+  const pk=pokr.map(r=>{const ci=r.g==='MO'?N.ciazaMO:N.ciazaHF;return Object.assign({},r,{_cv:{pokr:addDays(repDate,-r.dnp),plan:addDays(addDays(repDate,-r.dnp),ci),doDzis:dayDiff(addDays(addDays(repDate,-r.dnp),ci),T),err:false}})}).sort((a,b)=>a._cv.plan-b._cv.plan);
+  h+=blk('pk','Pokryte, ciąża niepotwierdzona — termin prawdopodobny',pk);
+  h+='<div class="wnote">Planowany poród = data próby ('+fmtDate(repDate)+') − dni od pokrycia + długość ciąży (HF '+N.ciazaHF+', MO '+N.ciazaMO+' dni). Dni do porodu liczone od dziś. Sztuki, które wycieliły się po próbie, SOL pokaże dopiero w następnym pliku.</div>';
+  return wCard('wyd-wyc','Wycielenia i zasuszenia','stan na '+fmtDate(T),h);
+}
+function wydDrawCalvChart(all){
+  const T=today0();const m0=mondayOf(T);const ok=all.filter(r=>r._cv&&!r._cv.err);
+  const gs=wGroups(all).concat(['BEZ','ZAS']);const labels=[];const data={};gs.forEach(g=>data[g]=[]);
+  for(let i=0;i<8;i++){const a=addDays(m0,7*i),b=addDays(a,7);labels.push(ddmm(a));gs.forEach(g=>data[g].push(ok.filter(r=>r.h===g&&r._cv.plan>=a&&r._cv.plan<b).length))}
+  wChart('cv-wyd-calv',{type:'bar',data:{labels,datasets:gs.filter(g=>data[g].some(v=>v)).map(g=>({label:hLbl(g),data:data[g],backgroundColor:hCol(g)}))},
+    options:{plugins:{legend:{position:'top'},title:{display:true,text:'Planowane wycielenia w kolejnych tygodniach (wg obecnej grupy)'}},scales:{x:{stacked:true,title:{display:true,text:'tydzień od'}},y:{stacked:true,beginAtZero:true,ticks:{precision:0}}}}});
+}
+
+/* ---------- listy interwencyjne ---------- */
+function wydFlagsCard(sel){
+  const d=wDoj(sel);let h='<div style="padding:10px 12px">';
+  Object.keys(FL2).forEach(k=>{const rs=d.filter(r=>r._fl.includes(k)).sort((a,b)=>String(a.h).localeCompare(String(b.h))||(a.dpw||0)-(b.dpw||0));
+    h+='<div class="wyd-flag"><div class="wyd-flag-h'+(rs.length?'':' zero')+'" onclick="toggleSnapDetail(\'flag2-'+k+'\')"><span><span class="wfl" style="background:'+FL2[k].c+'">'+FL2[k].s+'</span> '+flagTitle(k)+'</span><span class="cnt">'+rs.length+'</span></div><div class="wyd-flag-b" id="flag2-'+k+'">'+wydCowTable(rs)+'</div></div>'});
+  const gs=wydCur?wydCur.groups:[];
+  if(gs.length){h+='<div style="margin-top:10px;padding:10px;background:var(--c-pri-l);border-radius:6px;font-size:12px"><b>Wskaźnik strukturalny dawki (% sztuk z tł/bi &lt; '+wydNorms.sara+'):</b> ';
+    h+=gs.map(g=>{const a=aggCell(wydCur.all.filter(r=>r.h===g&&(wyd2Rasa==='all'||r.g===wyd2Rasa)));return g+': <b>'+(a?r2(a.saraPct,0):'—')+'%</b>'}).join(' · ');
+    h+='<br><span style="color:var(--c-txt2)">Wysoki odsetek w całej grupie to sygnał o strukturze fizycznej TMR (sortowanie, za drobna sieczka), a nie o chorobie pojedynczych sztuk. Sprawdź sito Penn State, zanim zmienisz recepturę.</span></div>'}
+  h+='</div>';
+  return wCard('wyd-flagi','Listy interwencyjne',wSelLbl(),h);
+}
+
+/* ---------- ekonomia ---------- */
+function wydDawkaFor(code){
+  const id=wydMap[code];if(id){const g=gr.find(x=>x.id===id);if(g)return g}
+  if(code==='H1')return grupaDlaRasy('MO');
+  if(code==='H2')return grupaDlaRasy('HF');
+  return null;
+}
+function wydEko2(all){
+  let h='<div class="fr noprint" style="justify-content:flex-end"><label style="font-size:11px;font-weight:600;color:var(--c-gold)">Cena mleka zł/l</label>';
+  h+='<input type="number" id="cena-mleka" value="'+(cenaMleka||'')+'" step="0.01" placeholder="0.00" style="width:90px;padding:4px 6px;font-size:13px;text-align:right;border:2px solid var(--c-gold);border-radius:6px" onchange="setCenaMleka(this.value)"></div>';
+  if(!cenaMleka)return wCard('wyd-eko','Ekonomia — przychód minus koszty żywienia','',h+'<div style="padding:20px;text-align:center;color:var(--c-txt2)">Wpisz cenę mleka, aby zobaczyć wynik.</div>');
+  const rows=[];
+  wGroups(all).forEach(code=>{const a=aggCell(all.filter(r=>r.h===code));const g=wydDawkaFor(code);if(!a||!g)return;
+    const koszt=kosztDawkiRealnej(g);if(koszt==null)return;const przych=a.mleko*cenaMleka;
+    rows.push({code,g,a,koszt,przych,wynik:przych-koszt,kl:a.mleko?koszt/a.mleko:null,prog:koszt/cenaMleka,obs:all.filter(r=>r.h===code).length})});
+  if(!rows.length)return wCard('wyd-eko','Ekonomia — przychód minus koszty żywienia','',h+'<div style="padding:20px;text-align:center;color:var(--c-txt2)">Brak przypisania grup do dawek — ustaw je w ⚙ Normy.</div>');
+  let t='<div class="tw"><table class="dt"><thead><tr><th>Grupa</th><th>Dawka</th><th>Sztuk (SOL)</th><th>Mleko kg</th><th>Przychód zł/szt</th><th>Koszt dawki zł/szt</th><th>Koszt zł/litr</th><th>Wynik zł/szt</th><th>Wynik grupa/dzień</th><th>Próg zera kg</th></tr></thead><tbody>';
+  let s=0;rows.forEach(r=>{const gw=r.wynik*r.obs;s+=gw;
+    t+='<tr><td><span class="wdot" style="background:'+hCol(r.code)+'"></span>'+r.code+'</td><td>'+r.g.nazwa+'</td><td>'+r.obs+'</td><td>'+fx(r.a.mleko,1)+'</td><td>'+fx(r.przych,2)+'</td><td>'+fx(r.koszt,2)+'</td><td>'+fx(r.kl,2)+'</td><td style="color:'+(r.wynik>0?'#2E7D32':'var(--c-red)')+'"><b>'+fx(r.wynik,2)+'</b></td><td style="color:'+(gw>0?'#2E7D32':'var(--c-red)')+'"><b>'+fx(gw,0)+'</b></td><td>'+fx(r.prog,1)+'</td></tr>'});
+  t+='</tbody><tfoot><tr><td colspan="8">RAZEM dziennie</td><td><b>'+fx(s,0)+' zł</b></td><td></td></tr><tr><td colspan="8">Miesięcznie (30 dni)</td><td><b>'+fx(s*30,0)+' zł</b></td><td></td></tr></tfoot></table></div>';
+  const lv=[20,25,30,35,40,45,50];
+  t+='<div style="padding:10px 12px 0;font-weight:700;color:var(--c-pri-d)">Wynik przy różnej wydajności (zł/szt/dzień)</div><div class="tw" style="padding:0 12px"><table class="dt"><thead><tr><th>Grupa</th>'+lv.map(l=>'<th>'+l+' kg</th>').join('')+'</tr></thead><tbody>';
+  rows.forEach(r=>{t+='<tr><td>'+r.code+' <span class="wnote" style="padding:0">obecnie '+fx(r.a.mleko,1)+' kg</span></td>'+lv.map(l=>{const v=l*cenaMleka-r.koszt;const near=Math.abs(l-r.a.mleko)<2.5;return '<td style="color:'+(v>0?'#2E7D32':'var(--c-red)')+(near?';background:var(--c-gold-bg);font-weight:700':'')+'">'+fx(v,2)+'</td>'}).join('')+'</tr>'});
+  t+='</tbody></table></div><div class="wnote">Koszt = dawka realna (po transferach) z zakładki Dawki. Przypisanie grup do dawek zmienisz w ⚙ Normy. Wynik grupy liczony na liczbie sztuk z SOL.</div>';
+  return wCard('wyd-eko','Ekonomia — przychód minus koszty żywienia',rows.map(r=>r.code+' → '+r.g.nazwa).join(' · '),h+t);
+}
+
+/* ---------- trend ---------- */
+function wydTrend(){
+  const ms=wydIndex.filter(m=>wydSnapshots[m]).sort();if(ms.length<2)return '';
+  const get=m=>{const s=wydSnapshots[m];if(s.meta&&s.meta.ver===2)return{st:s.sum&&s.sum.STADO,g:(s.sum&&s.sum.groups)||{},v2:true};const c=s.agg&&s.agg.cells;return{st:c&&c['all|STADO|RAZEM'],g:{},v2:false}};
+  const D=ms.map(get);const gs=[...new Set(D.flatMap(d=>Object.keys(d.g)))].filter(g=>g!=='BEZ').sort();
+  const rows=[['Dojone (n)',d=>d.st?d.st.n:null,0],['Mleko kg',d=>d.st&&d.st.mleko,1],['ECM kg',d=>d.st&&d.st.ecm,1],['%tł',d=>d.st&&d.st.tl,2],['%bi',d=>d.st&&d.st.bi,2],['tł/bi',d=>d.st&&d.st.tlbi,2],['LKS geo',d=>d.st&&d.st.lksGeo,0],['Mocznik',d=>d.st&&d.st.mocznik,0]];
+  gs.forEach(g=>{rows.push([g+' — mleko kg',d=>d.g[g]&&d.g[g].mleko,1]);rows.push([g+' — %bi',d=>d.g[g]&&d.g[g].bi,2])});
+  let t='<div class="tw"><table class="dt"><thead><tr><th>Stado w laktacji</th>'+ms.map((m,i)=>'<th>'+m+(D[i].v2?'':' *')+'</th>').join('')+'</tr></thead><tbody>';
+  rows.forEach(([l,f,dd])=>{t+='<tr><td>'+l+'</td>'+D.map(d=>'<td>'+fx(f(d),dd)+'</td>').join('')+'</tr>'});
+  t+='</tbody></table></div><div class="wnote">* miesiąc z archiwum (układ HF/MO, bez podziału na H1/H2).</div>';
+  return wCard('wyd-trend','Trend z kolejnych prób','',t);
+}
+
+/* ---------- normy ---------- */
+function openWydNorms(){
+  const N=wydNorms;let h='';
+  WN_LBL.forEach(([sec,items])=>{h+='<div style="font-weight:700;color:var(--c-pri-d);margin:10px 0 4px">'+sec+'</div><div class="wn-grid">';
+    items.forEach(([k,l])=>{h+='<div class="fg"><label>'+l+'</label><input type="number" step="any" id="wn-'+k+'" value="'+N[k]+'"></div>'});h+='</div>'});
+  const codes=(wydCur&&wydCur.groups.length)?wydCur.groups:['H1','H2'];
+  h+='<div style="font-weight:700;color:var(--c-pri-d);margin:12px 0 4px">Którą dawkę je grupa z SOL (do ekonomii)</div><div class="wn-grid">';
+  codes.forEach(c=>{const cur=wydDawkaFor(c);h+='<div class="fg"><label>Grupa '+c+'</label><select id="wm-'+c+'"><option value="">— brak —</option>'+gr.map(g=>'<option value="'+g.id+'"'+(cur&&cur.id===g.id?' selected':'')+'>'+g.nazwa+(g.alias?' ('+g.alias+')':'')+'</option>').join('')+'</select></div>'});
+  h+='</div>';
+  opM('Normy i ustawienia analizy',h,'<button class="btn bo" onclick="resetWydNorms()">Przywróć domyślne</button><button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="saveWydNorms()">Zapisz</button>');
+}
+function saveWydNorms(){
+  const n={};Object.keys(WN_DEF).forEach(k=>{const e=$('#wn-'+k);if(e){const v=parseFloat(String(e.value).replace(',','.'));n[k]=isNaN(v)?WN_DEF[k]:v}});
+  wydNorms=Object.assign({},WN_DEF,n);SV('wydNorms',n);
+  document.querySelectorAll('[id^="wm-"]').forEach(s=>{const c=s.id.slice(3);if(s.value)wydMap[c]=s.value;else delete wydMap[c]});SV('wydMap',wydMap);
+  if(fbDb&&fbInitialLoaded)fbDb.collection('farm_data').doc('config').set({wydNorms:n,wydMap},{merge:true}).catch(()=>{});
+  clM();rWyd($('#wyd-month').value);toast('Zapisano normy');
+}
+function resetWydNorms(){Object.keys(WN_DEF).forEach(k=>{const e=$('#wn-'+k);if(e)e.value=WN_DEF[k]})}
+
+/* ---------- druk ---------- */
+function wydPrint(ids,title){
+  let h='<div class="wyd-print">';
+  ids.forEach(id=>{const el=document.getElementById(id);if(!el)return;
+    const cl=el.cloneNode(true);
+    const oc=el.querySelectorAll('canvas'),cc=cl.querySelectorAll('canvas');
+    cc.forEach((c,i)=>{const img=document.createElement('img');try{img.src=oc[i].toDataURL('image/png')}catch(e){}img.style.cssText='width:100%;height:auto;max-height:118mm;object-fit:contain';c.parentNode.replaceChild(img,c)});
+    cl.querySelectorAll('.noprint,button,input,select,label').forEach(x=>x.remove());
+    cl.querySelectorAll('.wyd-flag-b').forEach(x=>{x.style.display='block';x.style.maxHeight='none';x.style.overflow='visible'});
+    cl.querySelectorAll('.wch-box').forEach(x=>{x.style.height='auto'});
+    cl.querySelectorAll('[style*="max-height"]').forEach(x=>{x.style.maxHeight='none';x.style.overflow='visible'});
+    const half=el.classList.contains('wyd-chcard')&&ids.length>1;
+    h+='<div style="'+(half?'display:inline-block;width:49%;vertical-align:top;margin-right:1%;':'')+'page-break-inside:avoid;margin-bottom:8px">'+cl.outerHTML.replace(/class="card /,'class="')+'</div>';
+  });
+  h+='</div>';
+  prnLand(title+' · próba '+(wydCur?wydCur.snap.meta.reportDate:($('#wyd-month').value||'')),h);
+}
+function wydPrintAll(){
+  const ids=[...document.querySelectorAll('#wyd-content .wyd-sec')].map(e=>e.id).filter(Boolean);
+  if(!ids.length){toast('Brak danych do druku');return}
+  wydPrint(ids,'Wydajność — raport z próbnego doju');
 }
 
 /* ===== ZOOTECHNIK — pobranie TMR ===== */

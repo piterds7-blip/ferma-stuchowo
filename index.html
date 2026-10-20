@@ -186,6 +186,7 @@ table.wlist td{font-size:12px;padding:4px 5px}table.wlist tr:hover td{background
 #pa .wyd-print .wyd-tile{border:1px solid #999;padding:4px}#pa .wyd-print .wt-val{font-size:13pt}
 #pa .wyd-print .ch{font-weight:700;font-size:11pt;padding:4px 0;border-bottom:2px solid #2F6B3A;margin:6px 0}
 #pa .wyd-print .wyd-flag-h{font-weight:700;padding:3px 0;font-size:10pt}
+.cow-grp{background:#F3F7F1;border:1px solid #D5E3D1;border-radius:8px;padding:8px 10px;margin:0 0 10px;font-size:13px}
 </style>
 </head>
 <body>
@@ -196,7 +197,7 @@ table.wlist td{font-size:12px;padding:4px 5px}table.wlist tr:hover td{background
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v37</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v38</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
@@ -399,7 +400,7 @@ function applyModule(mod,d){
 
 function startFbSync(){
   if(!fbDb){setSyncBadge('offline');fbInitialLoaded=true;return}
-  fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists){const cd=doc.data();if(cd.passes){passes=cd.passes;SV('passes',passes)}if(cd.rasRules&&cd.rasRules.length){rasRules=cd.rasRules;SV('rasRules',rasRules)}if(cd.cenaMleka!=null){cenaMleka=cd.cenaMleka;SV('cenaMleka',cenaMleka)}if(cd.wydNorms){wydNorms=Object.assign({},WN_DEF,cd.wydNorms);SV('wydNorms',cd.wydNorms)}if(cd.wydMap){wydMap=cd.wydMap;SV('wydMap',wydMap)}}}).catch(()=>{});
+  fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists){const cd=doc.data();if(cd.passes){passes=cd.passes;SV('passes',passes)}if(cd.rasRules&&cd.rasRules.length){rasRules=cd.rasRules;SV('rasRules',rasRules)}if(cd.cenaMleka!=null){cenaMleka=cd.cenaMleka;SV('cenaMleka',cenaMleka)}if(cd.wydNorms){wydNorms=Object.assign({},WN_DEF,cd.wydNorms);SV('wydNorms',cd.wydNorms)}if(cd.wydMap){wydMap=cd.wydMap;SV('wydMap',wydMap)}if(cd.wydOvr){wydOvr=cd.wydOvr;SV('wydOvr',wydOvr);if(typeof wydCur!=='undefined'&&wydCur&&$('#wyd-month'))rWyd($('#wyd-month').value)}}}).catch(()=>{});
   loadWydIndex();
   // Migration: check if old 'state' doc exists and new modules don't
   fbDb.collection('farm_data').doc('grupy').get().then(doc=>{
@@ -1640,6 +1641,7 @@ const WN_LBL=[
 ];
 let wydNorms=Object.assign({},WN_DEF,LD('wydNorms',{}));
 let wydMap=LD('wydMap',{});
+let wydOvr=LD('wydOvr',{});   // ręczne przypisanie grup: {kolczyk:'H1'|'H2'|'ZAS'}
 let wyd2Grp=LD('wyd2Grp','all');
 let wyd2Rasa=LD('wyd2Rasa','all');
 let wydCharts={};
@@ -1657,6 +1659,13 @@ function grtToH(v,mleko){
   const s=String(v==null?'':v).trim().toUpperCase().replace(/\s+/g,'');
   if(s)return s;
   return (mleko!=null&&mleko>0)?'BEZ':'ZAS';
+}
+function applyWydOvr(all){all.forEach(r=>{if(r._hf===undefined)r._hf=r.h;const o=wydOvr[r.kol];r.h=o||r._hf;r._ovr=!!o&&o!==r._hf})}
+function setCowGrp(kol,v){
+  if(!v)delete wydOvr[kol];else wydOvr[kol]=v;SV('wydOvr',wydOvr);
+  if(fbDb&&fbInitialLoaded){const ref=fbDb.collection('farm_data').doc('config');ref.update({wydOvr}).catch(()=>ref.set({wydOvr},{merge:true}).catch(()=>{}))}
+  toast(v?'Sztuka '+kol+' → '+hLbl(v):'Przywrócono grupę z pliku');
+  rWyd($('#wyd-month').value);setTimeout(()=>openCow(kol),50);
 }
 function wGroups(rows){
   const s=[...new Set(rows.map(r=>r.h).filter(h=>h&&h!=='ZAS'&&h!=='BEZ'))];
@@ -1795,6 +1804,7 @@ function rWyd2(month,snap){
     return;
   }
   const all=wydRaw.rows;wydRawCache[month]=all;
+  applyWydOvr(all);
   const repDate=parseYmd(snap.meta.reportDate);
   const groups=wGroups(all);
   if(wyd2Grp!=='all'&&!groups.includes(wyd2Grp)&&wyd2Grp!=='BEZ')wyd2Grp='all';
@@ -1810,6 +1820,7 @@ function rWyd2(month,snap){
   h+='<div class="fr wyd-filters noprint">';
   h+='<span class="wfl-lbl">GRUPA:</span>'+wChip(wyd2Grp==='all','całe stado ('+wDoj(all.filter(r=>r.h!=='ZAS')).length+')',"setWyd2Grp('all')");
   groups.forEach(g=>{h+=wChip(wyd2Grp===g,g+' ('+wDoj(all.filter(r=>r.h===g)).length+')',"setWyd2Grp('"+g+"')")});
+  {const nb=all.filter(r=>r.h==='BEZ').length;if(nb||wyd2Grp==='BEZ')h+=wChip(wyd2Grp==='BEZ','bez grupy ('+nb+')',"setWyd2Grp('BEZ')")}
   h+='<span class="wfl-lbl" style="margin-left:10px">RASA:</span>';
   [['all','wszystkie'],['HF','HF'],['MO','MO'],['INNE','inne']].forEach(([k,l])=>{h+=wChip(wyd2Rasa===k,l,"setWyd2Rasa('"+k+"')")});
   h+='</div>';
@@ -1817,6 +1828,7 @@ function rWyd2(month,snap){
   h+=wydTiles2(all,sel);
   h+=wydGroupTable(all);
   h+=wydPhaseTable(sel);
+  h+=wydPhaseTable(wSel(all,'all'),true);
   h+='<div class="wyd-chgrid">'+wydChartCards(sel)+'</div>';
   h+=wydListCard(all);
   h+=wydRozrod(all,sel);
@@ -1836,7 +1848,7 @@ function wSelLbl(){return(wyd2Grp==='all'?'całe stado':hLbl(wyd2Grp))+(wyd2Rasa
 function wydWarnings2(all){
   let h='';const w=[];
   const bez=all.filter(r=>r.h==='BEZ');
-  if(bez.length)w.push(['Sztuki dojone bez przypisanej grupy: '+bez.length,'Mają wynik mleka, ale pole „Gr. technolog.” jest puste: '+bez.map(r=>r.kol+(r.nrob?' ('+r.nrob+')':'')).join(', ')+'. Liczą się do stada, ale nie do H1/H2.']);
+  if(bez.length)w.push(['Sztuki dojone bez przypisanej grupy: '+bez.length,'Mają wynik mleka, ale pole „Gr. technolog.” jest puste: '+bez.map(r=>r.kol+(r.nrob?' ('+r.nrob+')':'')).join(', ')+'. Liczą się do stada, ale nie do H1/H2. Przypisz grupę: kliknij sztukę na liście (filtr „bez grupy”) i wybierz grupę na karcie.']);
   const noMilk=all.filter(r=>r.h!=='ZAS'&&r.h!=='BEZ'&&r.kat!=='DOJONA');
   if(noMilk.length)w.push(['W grupach bez wyniku mleka: '+noMilk.length,noMilk.map(r=>r.kol+' ('+r.h+', DPW '+fx(r.dpw,0)+')').join(', ')+'. Nie wchodzą do średnich.']);
   wGroups(all).forEach(g=>{
@@ -1890,24 +1902,27 @@ function wydGroupTable(all){
 }
 
 /* ---------- tabela faz ---------- */
-function wydPhaseTable(sel){
+function wydPhaseTable(sel,byH){
   const phases=getPhases().map(p=>p[2]).concat(['brak DPW']);
   const cols=[['n','n',0],['mleko','mleko',1],['ecm','ECM',1],['tl','%tł',2],['bi','%bi',2],['tlbi','tł/bi',2],['lksGeo','LKS',0],['mocznik','mocznik',0]];
-  const pars=[['p1','Pierwiastki'],['p2','Wieloródki']];
+  const pars=byH?[['H1','H1'],['H2','H2']]:[['p1','Pierwiastki'],['p2','Wieloródki']];
+  const key=byH?'h':'par';const COL=byH?H_COL:P_COL;
   let t='<div class="tw"><table class="wyd"><thead><tr><th rowspan="2" style="text-align:left">Faza (DPW)</th>';
-  pars.forEach(([k,l])=>{t+='<th class="gh" colspan="'+cols.length+'" style="background:'+P_COL[k]+'">'+l+'</th>'});
+  pars.forEach(([k,l])=>{t+='<th class="gh" colspan="'+cols.length+'" style="background:'+COL[k]+'">'+l+'</th>'});
   t+='</tr><tr>';pars.forEach(()=>cols.forEach(c=>{t+='<th>'+c[1]+'</th>'}));t+='</tr></thead><tbody>';
   const cell=(a,c)=>a?(c[0]==='n'?a.n:fx(a[c[0]],c[2])):'';
   phases.forEach(ph=>{t+='<tr><td>'+ph+'</td>';
-    pars.forEach(([k])=>{const a=aggCell(sel.filter(r=>r.par===k&&phaseOf(r.dpw)===ph));const sm=a&&a.n<3;
+    pars.forEach(([k])=>{const a=aggCell(sel.filter(r=>r[key]===k&&phaseOf(r.dpw)===ph));const sm=a&&a.n<3;
       cols.forEach(c=>{t+='<td'+(sm?' class="small-n"':'')+'>'+cell(a,c)+'</td>'})});t+='</tr>'});
   t+='</tbody><tfoot><tr><td>RAZEM</td>';
-  pars.forEach(([k])=>{const a=aggCell(sel.filter(r=>r.par===k));cols.forEach(c=>{t+='<td>'+cell(a,c)+'</td>'})});
+  pars.forEach(([k])=>{const a=aggCell(sel.filter(r=>r[key]===k));cols.forEach(c=>{t+='<td>'+cell(a,c)+'</td>'})});
   t+='</tr></tfoot></table></div><div class="wnote">Szare wartości = mniej niż 3 sztuki w przedziale. Pierwiastka = 1. laktacja.</div>';
   const btns=wChip(wydView==='std','fazy standard',"setWydView('std')")+wChip(wydView==='det','co 50 dni',"setWydView('det')");
+  if(byH)return wCard('wyd-fazyh','Grupy H1 i H2 wg okresu laktacji',wydRasaLbl(),t.replace('Pierwiastka = 1. laktacja.','Sztuki bez grupy nie są liczone.'),btns);
   return wCard('wyd-fazy','Pierwiastki i wieloródki wg okresu laktacji',wSelLbl(),t,btns);
 }
 
+function wydRasaLbl(){return wyd2Rasa==='all'?'wszystkie rasy':'rasa: '+(wyd2Rasa==='INNE'?'inne':wyd2Rasa)}
 /* ---------- karty wykresów ---------- */
 function chCard(id,title,sub,h){return wCard(id,title,'',(sub?'<div class="wnote" style="padding:6px 12px 0">'+sub+'</div>':'')+'<div class="wch-box" style="height:'+(h||320)+'px"><canvas id="cv-'+id+'"></canvas></div>','','wyd-chcard')}
 function wydChartCards(sel){
@@ -2034,7 +2049,7 @@ function wydListRows(){
 }
 function renderWydListBody(){
   const tb=$('#wyd-list-body');if(!tb)return;const rs=wydListRows();
-  tb.innerHTML=rs.map(r=>'<tr onclick="openCow(\''+r.kol+'\')" style="cursor:pointer"><td>'+r.kol+'</td><td>'+(r.nrob!=null?r.nrob:'')+'</td><td><span class="wdot" style="background:'+hCol(r.h)+'"></span>'+hLbl(r.h)+'</td><td>'+(r.g||'')+'</td><td>'+fx(r.lakt,0)+'</td><td>'+fx(r.dpw,0)+'</td><td><b>'+fx(r.mleko,1)+'</b></td><td>'+fx(r.ecm,1)+'</td><td>'+fx(r.tl,2)+'</td><td>'+fx(r.bi,2)+'</td><td>'+fx(r.tlbi,2)+'</td><td>'+fx(r.lks,0)+'</td><td>'+fx(r.moc,0)+'</td><td style="font-family:var(--font);text-align:left">'+(r.status||'')+'</td><td style="text-align:left">'+flagBadges(r._fl||[])+'</td></tr>').join('');
+  tb.innerHTML=rs.map(r=>'<tr onclick="openCow(\''+r.kol+'\')" style="cursor:pointer"><td>'+r.kol+'</td><td>'+(r.nrob!=null?r.nrob:'')+'</td><td><span class="wdot" style="background:'+hCol(r.h)+'"></span>'+hLbl(r.h)+(r._ovr?' <span title="przypisane ręcznie (w pliku: '+hLbl(r._hf)+')" style="color:var(--c-pri-d)">✎</span>':'')+'</td><td>'+(r.g||'')+'</td><td>'+fx(r.lakt,0)+'</td><td>'+fx(r.dpw,0)+'</td><td><b>'+fx(r.mleko,1)+'</b></td><td>'+fx(r.ecm,1)+'</td><td>'+fx(r.tl,2)+'</td><td>'+fx(r.bi,2)+'</td><td>'+fx(r.tlbi,2)+'</td><td>'+fx(r.lks,0)+'</td><td>'+fx(r.moc,0)+'</td><td style="font-family:var(--font);text-align:left">'+(r.status||'')+'</td><td style="text-align:left">'+flagBadges(r._fl||[])+'</td></tr>').join('');
   $('#wyd-list-cnt').textContent='Pokazano '+rs.length+' szt.';
   WL_COLS.forEach(([k])=>{const e=$('#wls-'+k);if(e)e.textContent=wydListSort.k===k?(wydListSort.d>0?' ▲':' ▼'):''});
 }
@@ -2069,6 +2084,12 @@ function openCow(kol){
   let rep='Nr ost. pokrycia: <b>'+fx(r.nrp,0)+'</b> · dni od pokrycia: <b>'+fx(r.dnp,0)+'</b>';
   if(r._cv)rep+='<br>Planowane wycielenie: <b>'+fmtDate(r._cv.plan)+'</b> ('+(r._cv.err?'<span style="color:var(--c-red)">sprawdź dane — termin dawno minął</span>':(r._cv.doDzis>=0?'za '+r._cv.doDzis+' dni':r._cv.doDzis*-1+' dni po terminie'))+')';
   h+='<div class="wnote" style="padding:0 0 8px">'+rep+'</div>';
+  {const gs=[...new Set(['H1','H2'].concat(wGroups(wydCur.all)))];const cur=wydOvr[r.kol]||'';
+   h+='<div class="cow-grp noprint">Przydział do grupy: <select onchange="setCowGrp(\''+r.kol+'\',this.value)" style="width:auto;padding:4px 6px">'
+    +'<option value=""'+(cur?'':' selected')+'>wg pliku ('+hLbl(r._hf)+')</option>'
+    +gs.concat(['ZAS']).map(g=>'<option value="'+g+'"'+(cur===g?' selected':'')+'>'+hLbl(g)+'</option>').join('')+'</select>'
+    +(r._ovr?' <span style="color:var(--c-pri-d);font-weight:600">✎ przypisane ręcznie</span>':'')
+    +'<div class="wnote" style="padding:2px 0 0">Przydział zostaje zapamiętany i obowiązuje też w kolejnych próbach, dopóki nie wybierzesz „wg pliku”.</div></div>'}
   h+='<div style="font-weight:700;color:var(--c-pri-d);margin:6px 0">Historia z prób</div><div id="cow-hist"><div class="wnote">Wczytywanie historii…</div></div>';
   h+='<div style="height:200px;margin-top:8px"><canvas id="cv-cow"></canvas></div>';
   opM('Karta sztuki',h,'<button class="btn bo" onclick="clM()">Zamknij</button>');

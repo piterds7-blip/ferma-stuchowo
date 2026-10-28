@@ -304,6 +304,48 @@ table.zdni td,table.zdni th{white-space:nowrap}
 #tab-koszty .card,#tab-raporty .card,#tab-suchy-tmr .card{margin-bottom:12px}
 #pa .wyd-print .kos-tiles{grid-template-columns:repeat(6,1fr)}#pa .hbar,#pa .sbar{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 #pa .wyd-print .an-wn li{-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:3px 8px;font-size:9pt}
+
+/* ===== v41 — Notatki ze spotkań ===== */
+.sp-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 10px}.sp-head h2{font-size:18px;color:#1F4D2B;margin:0}.sp-head span{font-size:12.5px;color:#5A6B5D}
+.sp-lay{display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px;align-items:start}
+.sp-lay aside{position:sticky;top:0}
+@media(max-width:900px){.sp-lay{grid-template-columns:1fr}.sp-lay aside{position:static}}
+.sp-list{display:flex;flex-direction:column;gap:6px;background:#fff;border:1px solid var(--c-brd);border-radius:10px;padding:10px}
+.sp-lh{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5A6B5D;margin:8px 2px 0}
+.sp-it{display:flex;align-items:flex-start;gap:9px;text-align:left;border:1px solid #E3E8DF;background:#fff;border-radius:9px;padding:9px 10px;cursor:pointer;font:inherit;color:#14201A;width:100%}
+.sp-it:hover{background:#F3F7F1}.sp-it.akt{border-color:#2F6B3A;background:#EAF1EA;box-shadow:inset 3px 0 0 #2F6B3A}.sp-it.zam{opacity:.65}
+.sp-ico{font-size:18px;line-height:1.1}.sp-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.sp-t b{font-size:13.5px;line-height:1.25}.sp-s{font-size:11.5px;color:#5A6B5D}
+.sp-bar{display:block;height:4px;background:#E3E8DF;border-radius:2px;overflow:hidden;margin-top:3px}.sp-bar i{display:block;height:100%;background:#2F6B3A}
+.sp-cnt{background:#C98A1B;color:#fff;font-weight:800;font-size:12px;border-radius:10px;padding:1px 8px;align-self:center}
+.sp-zoo{background:#FFF8E6;border-color:#EBD9A6}.sp-zoo.akt{background:#FFF1CC;border-color:#C98A1B;box-shadow:inset 3px 0 0 #C98A1B}
+.sp-new{margin-top:6px;width:100%}
+.sp-opis{padding:10px 14px 0;font-size:13px;color:#3D4A40}
+.sp-prog{height:5px;background:#E3E8DF;margin:10px 14px 0;border-radius:3px;overflow:hidden}.sp-prog i{display:block;height:100%;background:#2F6B3A}
+.sp-tabs{display:flex;gap:4px;padding:8px 14px 0;border-bottom:1px solid var(--c-brd);flex-wrap:wrap}
+.sp-tabs button{border:none;background:none;padding:9px 12px 10px;font:700 14px var(--font);color:#5A6B5D;cursor:pointer;border-bottom:3px solid transparent}
+.sp-tabs button span{display:block;font:500 11px var(--mono);margin-top:1px}.sp-tabs button.akt{color:#14201A;border-bottom-color:#2F6B3A}
+.sp-items{padding:4px 14px 8px}
+.sp-grp{font:800 11px var(--font);letter-spacing:.07em;text-transform:uppercase;color:#5A6B5D;margin:16px 0 2px}
+.sp-q{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;padding:12px 0;border-bottom:1px solid #E3E8DF}
+.sp-q.done{box-shadow:inset 3px 0 0 #A3C47F;padding-left:8px;margin-left:-8px}.sp-q.done .sp-qt{color:#5A6B5D}
+.sp-chk{width:24px!important;height:24px;accent-color:#2F6B3A;margin-top:1px;cursor:pointer}
+.sp-qt{font-weight:600;font-size:14.5px;color:#14201A;line-height:1.35}
+.sp-meta{display:inline-block;font:500 11px var(--font);color:#8A968C;margin-left:8px}
+.sp-qb textarea,.sp-notes textarea,.sp-add textarea,.sp-zo textarea{width:100%;margin-top:7px;padding:8px 10px;font:500 14px var(--font);border:1px solid #C9D2C4;border-radius:7px;background:#FBFCFA;resize:vertical;color:#14201A}
+.sp-qb textarea:focus,.sp-notes textarea:focus,.sp-add textarea:focus,.sp-zo textarea:focus{outline:2px solid #2F6B3A;background:#fff}
+.sp-ph{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:6px;margin-top:7px}.sp-ph input{padding:7px 9px;font-size:14px;border:1px solid #C9D2C4;border-radius:7px}
+.sp-phn{font-size:12.5px;color:#5A6B5D;margin-top:6px}
+.sp-notes{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 14px 14px;border-top:1px solid var(--c-brd);background:#F7F9F5}
+@media(max-width:700px){.sp-notes{grid-template-columns:1fr}}
+.sp-notes label,.sp-zo label{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#1F4D2B}
+.sp-add{display:flex;gap:8px;align-items:flex-end;padding:10px 14px}.sp-add textarea{margin:0}.sp-add .btn{white-space:nowrap;padding:9px 14px}
+.sp-z{margin:10px 14px;border:1px solid #EBD9A6;border-left:4px solid #C98A1B;border-radius:9px;padding:10px 12px;background:#FFFCF3}
+.sp-z.om{border-color:#D5E3D1;border-left-color:#2F6B3A;background:#F7FAF5}
+.sp-zh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.sp-zs{font-size:11.5px;font-weight:800;border-radius:10px;padding:2px 9px}
+.sp-zs.do{background:#FFF1CC;color:#8A5A00}.sp-zs.om{background:#E3F1DE;color:#2F6B3A}
+.sp-zt{font-size:15px;font-weight:600;color:#14201A;margin:8px 0 4px;line-height:1.4}
+.sp-zo{margin-top:6px}
+#pa.spd th,#pa.spd td{font-size:10pt;padding:4px 6px;vertical-align:top}#pa.spd h2{font-size:15pt}
 </style>
 </head>
 <body>
@@ -314,7 +356,7 @@ table.zdni td,table.zdni th{white-space:nowrap}
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v40</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v41</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
@@ -345,6 +387,7 @@ table.zdni td,table.zdni th{white-space:nowrap}
       </div>
     </div>
     <!-- SUCHY TMR --><div class="tab-panel" id="tab-suchy-tmr"><div id="stmr-root"></div></div>
+    <!-- NOTATKI ZE SPOTKAŃ --><div class="tab-panel" id="tab-spotkania"><div class="sp-head"><h2>Notatki ze spotkań</h2><span>tematy, ankiety i sprawy do omówienia z zootechniczką · zapis automatyczny</span></div><div id="spot-root"></div></div>
     <!-- ZOOTECHNIK --><div class="tab-panel" id="tab-zootechnik">
       <div class="card"><div class="ch"><span>Pobranie TMR — niedojady i realne pobranie</span></div>
       <div id="zoo-date-info" style="padding:8px 14px;font-size:13px;color:var(--c-txt2)"></div>
@@ -387,9 +430,9 @@ function subTab(pfx,idx){const tabs=document.querySelectorAll('.sub-tab');const 
 /* ===== AUTH ===== */
 const DEF_PASSES={tworca:'admin',zootechnik:'zoo',zywieniowiec:'dawki',paszowoz:'woz'};
 let passes=LD('passes',null),cR=null;
-const RT={tworca:['surowce','dawki','koszty','paszowoz','raporty','wydajnosc','suchy-tmr','zootechnik'],zootechnik:['surowce','dawki','koszty','paszowoz','raporty','wydajnosc','suchy-tmr','zootechnik'],zywieniowiec:['dawki'],paszowoz:['paszowoz']};
-const TL={surowce:'Surowce',dawki:'Dawki',koszty:'Koszty',paszowoz:'Paszowóz',raporty:'Raporty',wydajnosc:'Wydajność','suchy-tmr':'Suchy TMR',zootechnik:'Niedojady'};
-const TI={surowce:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M5 20V8l7-5 7 5v12M9 20v-6h6v6"/></svg>',dawki:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12l4-4 4 4M13 8l4-4 4 4"/></svg>',koszty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.7 0-3 1-3 2.5s1.3 2.5 3 2.5c1.7 0 3 1 3 2.5s-1.3 2.5-3 2.5c-1 0-2-.5-2.5-1.5"/></svg>',paszowoz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="15" height="10" rx="2"/><path d="M16 10h4l3 4v2h-7V10z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',raporty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>',wydajnosc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l3-4 3 2 5-7"/><circle cx="7" cy="15" r="1"/><circle cx="18" cy="6" r="1"/></svg>',zootechnik:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>','suchy-tmr':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l2 6H4l2-6zM4 9v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9M9 13h6"/></svg>'};
+const RT={tworca:['surowce','dawki','koszty','paszowoz','raporty','wydajnosc','suchy-tmr','zootechnik','spotkania'],zootechnik:['surowce','dawki','koszty','paszowoz','raporty','wydajnosc','suchy-tmr','zootechnik','spotkania'],zywieniowiec:['dawki'],paszowoz:['paszowoz']};
+const TL={surowce:'Surowce',dawki:'Dawki',koszty:'Koszty',paszowoz:'Paszowóz',raporty:'Raporty',wydajnosc:'Wydajność','suchy-tmr':'Suchy TMR',zootechnik:'Niedojady',spotkania:'Notatki'};
+const TI={spotkania:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>',surowce:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M5 20V8l7-5 7 5v12M9 20v-6h6v6"/></svg>',dawki:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12l4-4 4 4M13 8l4-4 4 4"/></svg>',koszty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.7 0-3 1-3 2.5s1.3 2.5 3 2.5c1.7 0 3 1 3 2.5s-1.3 2.5-3 2.5c-1 0-2-.5-2.5-1.5"/></svg>',paszowoz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="15" height="10" rx="2"/><path d="M16 10h4l3 4v2h-7V10z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',raporty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>',wydajnosc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l3-4 3 2 5-7"/><circle cx="7" cy="15" r="1"/><circle cx="18" cy="6" r="1"/></svg>',zootechnik:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>','suchy-tmr':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l2 6H4l2-6zM4 9v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9M9 13h6"/></svg>'};
 function canPass(){return cR==='tworca'}
 function canEdit(){return cR==='tworca'||cR==='zootechnik'||cR==='zywieniowiec'}
 function doLogin(){const p=$('#lp').value.trim();if(!p){$('#le').textContent='Wpisz hasło';return}const pw=Object.assign({},DEF_PASSES,passes||{});let role=null;for(const[r,v]of Object.entries(pw))if(v===p){role=r;break}if(!role){$('#le').textContent='Nieprawidłowe hasło';return}cR=role;SV('sess',role);showApp()}
@@ -397,7 +440,7 @@ function doLogout(){maybeSaveDawkiSnapshot();cR=null;localStorage.removeItem('st
 function showApp(){$('#login-screen').classList.add('hidden');$('#app').classList.add('active');let ex='';if(canPass())ex+='<button class="hdr-btn" onclick="switchTab(\'ustawienia\')" title="Ustawienia">⚙</button>';if(canEdit())ex+='<button class="hdr-btn" onclick="exportBackup()" title="Kopia">⬇</button>';$('#hdr-extra').innerHTML=ex;bTabs();startFbSync();setTimeout(()=>{maybeDailySnapshot();maybeDailyDeduction()},3000)}
 function bTabs(){const ts=RT[cR]||[];$('#app-nav').innerHTML=ts.map((t,i)=>'<button class="nav-tab'+(i===0?' active':'')+'" data-tab="'+t+'">'+TI[t]+' '+TL[t]+'</button>').join('');$$('.tab-panel').forEach(p=>p.classList.remove('active'));if(ts[0])$('#tab-'+ts[0]).classList.add('active');$('#app-nav').querySelectorAll('.nav-tab').forEach(bt=>bt.addEventListener('click',()=>{const prev=document.querySelector('.nav-tab.active');if(prev&&prev.dataset.tab==='dawki')maybeSaveDawkiSnapshot();$('#app-nav').querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));$$('.tab-panel').forEach(p=>p.classList.remove('active'));bt.classList.add('active');$('#tab-'+bt.dataset.tab).classList.add('active');oT(bt.dataset.tab)}));if(ts[0])oT(ts[0])}
 function switchTab(tabId){const prev=document.querySelector('.nav-tab.active');if(prev&&prev.dataset.tab==='dawki')maybeSaveDawkiSnapshot();$('#app-nav').querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));$$('.tab-panel').forEach(p=>p.classList.remove('active'));const btn=$('#app-nav').querySelector('[data-tab="'+tabId+'"]');if(btn)btn.classList.add('active');$('#tab-'+tabId).classList.add('active');oT(tabId)}
-function oT(t){const m={surowce:rSur,dawki:rDk,koszty:rKoszty,paszowoz:rWoz,'suchy-tmr':rStmr,zootechnik:rZoo,raporty:rRap,wydajnosc:()=>rWyd(),ustawienia:()=>{renderPwFields();renderContactFields()}};if(m[t])m[t]()}
+function oT(t){const m={surowce:rSur,dawki:rDk,koszty:rKoszty,paszowoz:rWoz,'suchy-tmr':rStmr,zootechnik:rZoo,spotkania:rSpot,raporty:rRap,wydajnosc:()=>rWyd(),ustawienia:()=>{renderPwFields();renderContactFields()}};if(m[t])m[t]()}
 function pT(t){const ti={surowce:'Stany magazynowe surowców',dawki:'Dawki TMR — dawka wyliczona'};prn(ti[t]||t,$('#'+(t==='surowce'?'sur-w':'dk-w')).innerHTML)}
 
 /* ===== CONTACT ===== */
@@ -456,7 +499,7 @@ const firebaseConfig={apiKey:"AIzaSyD4hrY8bU6JFNN1nIBvMC3TFY-nLjwjUJA",authDomai
 let fbDb=null,fbReady=false,fbApplyingRemote=false,fbSaveTimer=null,fbLastPushed='',fbLocalChangeAt=0;
 try{firebase.initializeApp(firebaseConfig);fbDb=firebase.firestore()}catch(e){console.warn('FB init fail',e)}
 function setSyncBadge(s){const b=$('#syncb');if(!b)return;if(s==='ok'){b.textContent='☁️';b.style.background='rgba(255,255,255,.2)'}else if(s==='saving'){b.textContent='💾';b.style.background='rgba(255,193,7,.3)'}else if(s==='offline'){b.textContent='📴';b.style.background='rgba(198,40,40,.35)'}else{b.textContent='⏳';b.style.background='rgba(255,193,7,.3)'}}
-function collectState(){return{sur,gr,contactData,stmrRecipe,stmrHistory,wozLog,dawkiHistory,dawkiRealne,_ts:Date.now()}}
+function collectState(){return{sur,gr,contactData,stmrRecipe,stmrHistory,wozLog,dawkiHistory,dawkiRealne,spot:(typeof spot!=='undefined'?spot:null),_ts:Date.now()}}
 /* Per-module documents — edycja jednego modułu nie nadpisuje pozostałych */
 const FB_DOCS={surowce:'surowce',grupy:'grupy',logi:'logi',historia:'historia',suchytmr:'suchytmr',kontakt:'kontakt',zootechnik:'zootechnik'};
 let fbInitialLoaded=false;      // KRYTYCZNE: blokuje wysyłkę przed pobraniem danych z serwera
@@ -505,6 +548,7 @@ function applyModule(mod,d){
 }
 
 function startFbSync(){
+  try{startSpotSync()}catch(e){console.warn('spot',e)}
   if(!fbDb){setSyncBadge('offline');fbInitialLoaded=true;return}
   fbDb.collection('farm_data').doc('config').get().then(doc=>{if(doc.exists){const cd=doc.data();if(cd.passes){passes=cd.passes;SV('passes',passes)}if(cd.rasRules&&cd.rasRules.length){rasRules=cd.rasRules;SV('rasRules',rasRules)}if(cd.cenaMleka!=null){cenaMleka=cd.cenaMleka;SV('cenaMleka',cenaMleka)}if(cd.wydNorms){wydNorms=Object.assign({},WN_DEF,cd.wydNorms);SV('wydNorms',cd.wydNorms)}if(cd.wydMap){wydMap=cd.wydMap;SV('wydMap',wydMap)}if(cd.wydOvr){wydOvr=cd.wydOvr;SV('wydOvr',wydOvr);if(typeof wydCur!=='undefined'&&wydCur&&$('#wyd-month'))rWyd($('#wyd-month').value)}}}).catch(()=>{});
   loadWydIndex();
@@ -3117,6 +3161,222 @@ function rapWykresy(){if(!rapPrzegladCache||typeof Chart==='undefined')return;co
     options:{maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10}}},scales:{y:{suggestedMin:85,suggestedMax:101,title:{display:true,text:'% pobrania'}}}}});
   wChart('cv-rap-koszt',{data:{labels:lab,datasets:[{type:'bar',label:'Zadane TMR kg',data:Z.dni.map(D=>r2(Object.values(D.z).reduce((a,v)=>a+v,0),0)),backgroundColor:'#A3C47F',yAxisID:'y'},{type:'line',label:'Koszt zł',data:Z.dni.map(D=>r2(Object.keys(D.z).reduce((a,s)=>a+D.z[s]*cenaKg(s),0),0)),borderColor:'#C98A1B',backgroundColor:'#C98A1B',yAxisID:'y2',tension:.25}]},
     options:{maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10}}},scales:{y:{beginAtZero:true,title:{display:true,text:'kg'}},y2:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:'zł'}}}}})}
+
+/* =====================================================================
+   v41 — NOTATKI ZE SPOTKAŃ (tematy, ankiety, tematy od zootechniczki)
+   Osobny dokument farm_data/spotkania; odpowiedzi zapisywane pojedynczo
+   (update ścieżką pola), więc dwie osoby mogą wypełniać naraz.
+   ===================================================================== */
+const ROLE_LBL={tworca:'Twórca',zootechnik:'Zootechniczka',zywieniowiec:'Żywieniowiec',paszowoz:'Paszowóz'};
+const SPOT_SEED={id:'zas2610',typ:'ankieta',tytul:'Zasuszone — Far Off, Close Up, okres okołoporodowy',data:'2026-10-28',status:'otwarty',ord:1,
+  opis:'Ankieta do rozmowy z zootechniczką o grupach zasuszonych (problemy z siarą i okresem okołoporodowym).',
+  sekcje:[
+ {id:'far-off',title:'Far Off',items:[
+  ['fo1','Od kiedy do kiedy Far Off dostawał samą sianokiszonkę i kiedy zmieniono dawkę?'],
+  ['fo2','Która sianokiszonka (pokos, pole) i czy była analizowana?'],
+  ['fo3','Ile krów jest teraz w Far Off, w tym jałówek cielnych?'],
+  ['fo4','Średni czas zasuszenia i ile krów zasuszonych ponad 70 dni?'],
+  ['fo5','BCS przy zasuszeniu: ile chudych (poniżej 3,0), ile tłustych (powyżej 3,75)?'],
+  ['fo6','Czy krowy wyjadają całą paszę, ile zostaje resztek dziennie?'],
+  ['fo7','Miejsca przy stole na ile krów, czy pasza jest podgarniana?'],
+  ['fo8','Gdzie stały zasuszone w lipcu i sierpniu: cień, wentylatory, zraszacze?'],
+  ['fo9','Legowiska: rodzaj, ściółka, czy wszystkie mogą się położyć naraz?'],
+  ['fo10','Woda: ile poideł, czy czyste, czy latem wystarczało?'],
+  ['fo11','Słoma: sucha, bez pleśni, jak cięta?']]},
+ {id:'close-up',title:'Close Up',items:[
+  ['cu1','Ile dni przed porodem krowy przechodzą do Close Up, także pierwiastki?'],
+  ['cu2','Ile krów cieli się bez Close Up lub po mniej niż 10 dniach?'],
+  ['cu3','Czy pierwiastki i wieloródki są w jednej grupie?'],
+  ['cu4','Premiks DCAB 100 g: od kiedy, czy były przerwy w lipcu–wrześniu?'],
+  ['cu5','Jak premiks trafia do paszy (do wozu, z nośnikiem, na stół)?'],
+  ['cu6','Czy „KZ 0,2 kg” w recepturze to premiks DCAB? Nazwa produktu:'],
+  ['cu7','Czy krowy chętnie jedzą, ile resztek, czy pobranie spada przed porodem?'],
+  ['cu8','pH moczu: 4–5 krów, 2–4 h po zadaniu paszy. Wpisz numer krowy i wynik.','ph'],
+  ['cu9','Czy zmieniano dawkę Close Up w lipcu–wrześniu?'],
+  ['cu10','Ile krów w kojcu porodowym naraz i jak długo przed porodem?']]},
+ {id:'wspolne',title:'Wspólne',items:[
+  ['w1','Ile czasu od porodu do pierwszego doju siary?'],
+  ['w2','Siara dojarką czy ręcznie, w jakim miejscu?'],
+  ['w3','Przy małej siarze wymię pełne czy puste?'],
+  ['w4','Czy stosują oksytocynę przy pierwszym doju?'],
+  ['w5','Mleko w 2., 3. i 5. dniu po porodzie:'],
+  ['w6a','Zatrzymanie łożyska','Przypadki od września'],
+  ['w6b','Zaleganie','Przypadki od września'],
+  ['w6c','Ketoza (BHB?)','Przypadki od września'],
+  ['w6d','Przemieszczenie trawieńca','Przypadki od września'],
+  ['w6e','Zapalenie macicy','Przypadki od września'],
+  ['w6f','Mastitis w pierwszych 30 dniach','Przypadki od września'],
+  ['w7','Czy po porodzie dają wapń (bolus, wlew, drench), jaki i kiedy?'],
+  ['w8','Siara mała u pierwiastek, wieloródek, czy obu?'],
+  ['w9','Analiza sianokiszonki Gorzowskiej: czy jest kopia?'],
+  ['w10','Czy od września otwarto nową kiszonkę lub nowy pokos?'],
+  ['w11','Uwagi dodatkowe, zdjęcia zrobione (tablica z dawką, stół, legowiska, kojec):','Na koniec']]}
+  ].map(s=>({id:s.id,title:s.title,items:s.items.map(([id,q,a])=>a==='ph'?{id,q,type:'ph'}:(a?{id,q,group:a}:{id,q}))})),
+  notatka:'',ustalenia:''};
+const SPOT_SEED_ODP={fo1:{done:true,answer:'To dotyczy tylko jałówek, krowy na dawce fa',rows:[],by:'zootechnik',ts:Date.parse('2026-10-28T09:43:02Z')}};
+let spot=LD('spot',{tematy:{},odp:{},zoo:{}});
+let spotSel=LD('spotSel',''),spotSec={},spotPending=false,spotLoaded=false;
+const spotTimers={};
+function spotSave(){SV('spot',spot)}
+function spotRef(){return fbDb?fbDb.collection('farm_data').doc('spotkania'):null}
+function spotWrite(path,val){ // zapis jednego pola (ścieżka z kropkami)
+  spotSave();const ref=spotRef();if(!ref)return;setSyncBadge('saving');
+  ref.update({[path]:val,_ts:Date.now()}).then(()=>setSyncBadge('ok')).catch(()=>{
+    // dokument nie istnieje — utwórz z całym stanem
+    ref.set(Object.assign({},spot,{_ts:Date.now()}),{merge:true}).then(()=>setSyncBadge('ok')).catch(()=>setSyncBadge('offline'))});
+}
+function spotDel(path){spotSave();const ref=spotRef();if(!ref)return;ref.update({[path]:firebase.firestore.FieldValue.delete()}).catch(()=>{})}
+function spotSeed(){
+  if(!spot.tematy)spot.tematy={};if(!spot.odp)spot.odp={};if(!spot.zoo)spot.zoo={};
+  if(!spotLoaded)return; // nigdy nie zasiewaj przed pobraniem danych z serwera
+  if(!spot.tematy[SPOT_SEED.id]&&!spot._seeded){spot.tematy[SPOT_SEED.id]=JSON.parse(JSON.stringify(SPOT_SEED));spot._seeded=true;
+    spotWrite('tematy.'+SPOT_SEED.id,spot.tematy[SPOT_SEED.id]);spotWrite('_seeded',true);
+    spot.odp[SPOT_SEED.id]=spot.odp[SPOT_SEED.id]||{};Object.keys(SPOT_SEED_ODP).forEach(k=>{if(!spot.odp[SPOT_SEED.id][k]){spot.odp[SPOT_SEED.id][k]=SPOT_SEED_ODP[k];spotWrite('odp.'+SPOT_SEED.id+'.'+k,SPOT_SEED_ODP[k])}})}
+}
+function startSpotSync(){
+  const ref=spotRef();if(!ref){spotLoaded=true;spotSeed();return}
+  ref.onSnapshot(doc=>{
+    if(doc.exists){const d=doc.data();spot={tematy:d.tematy||{},odp:d.odp||{},zoo:d.zoo||{},_seeded:!!d._seeded};
+      // lokalne edycje w trakcie pisania wygrywają
+      Object.keys(spotTimers).forEach(k=>{const[t,i]=k.split('|');const loc=spotLocal[k];if(loc){spot.odp[t]=spot.odp[t]||{};spot.odp[t][i]=loc}});
+      spotSave()}
+    if(!spotLoaded){spotLoaded=true;spotSeed()}
+    const a=document.querySelector('.nav-tab.active');
+    if(a&&a.dataset.tab==='spotkania'){const fe=document.activeElement;if(fe&&$('#spot-root')&&$('#spot-root').contains(fe)&&/INPUT|TEXTAREA|SELECT/.test(fe.tagName))spotPending=true;else rSpot()}
+  },()=>{if(!spotLoaded){spotLoaded=true;spotSeed()}});
+  setTimeout(()=>{if(!spotLoaded){spotLoaded=true;spotSeed()}},8000);
+}
+const spotLocal={};
+document.addEventListener('focusout',e=>{if(spotPending&&$('#spot-root')&&$('#spot-root').contains(e.target)){setTimeout(()=>{const fe=document.activeElement;if(!(fe&&$('#spot-root').contains(fe)&&/INPUT|TEXTAREA/.test(fe.tagName))){spotPending=false;rSpot()}},250)}});
+function spotTematy(){return Object.values(spot.tematy||{}).sort((a,b)=>(a.status==='zamkniety')-(b.status==='zamkniety')||(b.data||'').localeCompare(a.data||'')||(a.ord||0)-(b.ord||0))}
+function spotItems(t){return(t.sekcje||[]).flatMap(s=>s.items.map(i=>Object.assign({sec:s.id},i)))}
+function spotPost(t){const it=spotItems(t);const o=spot.odp[t.id]||{};const d=it.filter(i=>o[i.id]&&o[i.id].done).length;return{d,n:it.length}}
+function spotZooOpen(){return Object.values(spot.zoo||{}).filter(z=>z.status!=='omowione').length}
+function esc2(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function kiedy(ts){if(!ts)return '';const d=new Date(ts);return fmtDate(d)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+function rSpot(){
+  const el=$('#spot-root');if(!el)return;spotSeed();
+  if(!spotLoaded&&!Object.keys(spot.tematy||{}).length){el.innerHTML='<div class="card"><div class="pusto">Wczytywanie notatek z serwera…</div></div>';return}
+  const T=spotTematy();if(!spotSel||(spotSel!=='zoo'&&!spot.tematy[spotSel]))spotSel=(T.find(t=>t.status!=='zamkniety')||T[0]||{id:'zoo'}).id;
+  const ed=canEdit()||cR==='zootechnik';
+  // lista
+  let l='<div class="sp-list">';
+  const zo=spotZooOpen();
+  l+='<button class="sp-it sp-zoo'+(spotSel==='zoo'?' akt':'')+'" onclick="spotOpen(\'zoo\')"><span class="sp-ico">💬</span><span class="sp-t"><b>Tematy od zootechniczki</b><span class="sp-s">wolne miejsce na sprawy do omówienia</span></span>'+(zo?'<span class="sp-cnt">'+zo+'</span>':'')+'</button>';
+  l+='<div class="sp-lh">Spotkania i tematy</div>';
+  T.forEach(t=>{const p=t.typ==='ankieta'||(t.sekcje&&t.sekcje.length)?spotPost(t):null;
+    l+='<button class="sp-it'+(spotSel===t.id?' akt':'')+(t.status==='zamkniety'?' zam':'')+'" onclick="spotOpen(\''+t.id+'\')"><span class="sp-ico">'+(p&&p.n?'📋':'📝')+'</span><span class="sp-t"><b>'+esc2(t.tytul)+'</b><span class="sp-s">'+dPL(t.data)+(p&&p.n?' · '+p.d+'/'+p.n+' odp.':'')+(t.status==='zamkniety'?' · zamknięty':'')+'</span>'+(p&&p.n?'<span class="sp-bar"><i style="width:'+(100*p.d/p.n)+'%"></i></span>':'')+'</span></button>'});
+  if(ed)l+='<button class="btn bo sp-new" onclick="spotNowy()">+ Nowy temat / spotkanie</button>';
+  l+='</div>';
+  el.innerHTML='<div class="sp-lay"><aside>'+l+'</aside><div class="sp-main" id="spot-main">'+(spotSel==='zoo'?spotZooView(ed):spotTematView(spot.tematy[spotSel],ed))+'</div></div>';
+}
+function spotOpen(id){spotSel=id;SV('spotSel',id);rSpot();const m=$('#spot-main');if(m&&window.innerWidth<900)m.scrollIntoView({behavior:'smooth'})}
+
+/* ---- widok tematu ---- */
+function spotTematView(t,ed){
+  if(!t)return '<div class="card"><div class="pusto">Wybierz temat z listy</div></div>';
+  const o=spot.odp[t.id]||{};const sek=t.sekcje||[];const p=spotPost(t);
+  let h='<div class="card wyd-sec" id="sp-t-'+t.id+'"><div class="ch"><span>'+esc2(t.tytul)+' <span class="wsub">'+dPL(t.data)+(p.n?' · '+p.d+'/'+p.n+' odpowiedzi':'')+'</span></span><span class="noprint" style="display:flex;gap:4px;flex-wrap:wrap">'
+    +(ed?'<button class="btn bs bo" onclick="spotEdytuj(\''+t.id+'\')">✎ Edytuj</button><button class="btn bs bo" onclick="spotStatus(\''+t.id+'\')">'+(t.status==='zamkniety'?'↺ Otwórz ponownie':'✓ Zamknij temat')+'</button>':'')
+    +'<button class="btn bs bp" onclick="spotDruk(\''+t.id+'\')">🖨 Drukuj</button></span></div>';
+  if(t.opis)h+='<div class="sp-opis">'+esc2(t.opis)+'</div>';
+  if(p.n)h+='<div class="sp-prog"><i style="width:'+(100*p.d/p.n)+'%"></i></div>';
+  if(sek.length){
+    let cur=spotSec[t.id];if(!sek.find(s=>s.id===cur))cur=sek[0].id;
+    if(sek.length>1)h+='<div class="sp-tabs noprint">'+sek.map(s=>{const n=s.items.length,d=s.items.filter(i=>o[i.id]&&o[i.id].done).length;return '<button class="'+(s.id===cur?'akt':'')+'" onclick="spotSec[\''+t.id+'\']=\''+s.id+'\';rSpot()">'+esc2(s.title)+'<span>'+d+'/'+n+'</span></button>'}).join('')+'</div>';
+    const S=sek.find(s=>s.id===cur);let lg=null;
+    h+='<div class="sp-items">';
+    S.items.forEach(i=>{if(i.group&&i.group!==lg)h+='<div class="sp-grp">'+esc2(i.group)+'</div>';lg=i.group||null;h+=spotItemHTML(t,i,o[i.id]||{},ed)});
+    h+='</div>';
+  }
+  h+='<div class="sp-notes"><div><label>Notatki ze spotkania</label><textarea rows="4" placeholder="Co ustalono, kto był, obserwacje…" '+(ed?'':'disabled')+' oninput="spotPole(\''+t.id+'\',\'notatka\',this.value)">'+esc2(t.notatka||'')+'</textarea></div>'
+    +'<div><label>Ustalenia / do zrobienia</label><textarea rows="4" placeholder="np. zmiana dawki Close Up od 1.11, pH moczu za tydzień…" '+(ed?'':'disabled')+' oninput="spotPole(\''+t.id+'\',\'ustalenia\',this.value)">'+esc2(t.ustalenia||'')+'</textarea></div></div>';
+  return h+'</div>';
+}
+function spotItemHTML(t,i,a,ed){
+  const k=t.id+'|'+i.id;const meta=a.ts?'<span class="sp-meta">'+(ROLE_LBL[a.by]||a.by||'')+' · '+kiedy(a.ts)+'</span>':'';
+  let b='';
+  if(i.type==='ph'){const rows=a.rows||[];b='<div class="sp-ph">';for(let r=0;r<5;r++){const x=rows[r]||{};b+='<input placeholder="Krowa '+(r+1)+' (nr kolczyka)" value="'+esc2(x.cow||'')+'" '+(ed?'':'disabled')+' oninput="spotPh(\''+t.id+'\',\''+i.id+'\')" data-ph="'+k+'|'+r+'|cow"><input inputmode="decimal" placeholder="pH" value="'+esc2(x.ph||'')+'" '+(ed?'':'disabled')+' oninput="spotPh(\''+t.id+'\',\''+i.id+'\')" data-ph="'+k+'|'+r+'|ph">'}
+    const v=rows.map(x=>parseFloat(String(x.ph||'').replace(',','.'))).filter(v=>!isNaN(v));const av=v.length?v.reduce((s,x)=>s+x,0)/v.length:null;
+    b+='</div><div class="sp-phn">'+(av!=null?'Średnia z '+v.length+': <b style="color:'+(av>7.5?'var(--c-red)':av<=6.8?'#2E7D32':'#8A5A00')+'">'+av.toFixed(1).replace('.',',')+'</b> · ':'')+'Cel: <b>6,0–6,8</b>. Powyżej <b>7,5</b> sole za słabe.</div>'}
+  else b='<textarea rows="2" placeholder="Odpowiedź" '+(ed?'':'disabled')+' oninput="spotTxt(\''+t.id+'\',\''+i.id+'\',this.value)">'+esc2(a.answer||'')+'</textarea>';
+  return '<div class="sp-q'+(a.done?' done':'')+'" id="spq-'+t.id+'-'+i.id+'"><input type="checkbox" class="sp-chk" '+(a.done?'checked':'')+' '+(ed?'':'disabled')+' onchange="spotChk(\''+t.id+'\',\''+i.id+'\',this.checked)"><div class="sp-qb"><div class="sp-qt">'+esc2(i.q)+meta+'</div>'+b+'</div></div>';
+}
+function spotA(tid,iid){spot.odp[tid]=spot.odp[tid]||{};return spot.odp[tid][iid]||(spot.odp[tid][iid]={done:false,answer:'',rows:[]})}
+function spotQueue(tid,iid){const k=tid+'|'+iid;const a=spotA(tid,iid);a.by=cR||'';a.ts=Date.now();spotLocal[k]=a;spotSave();
+  const row=$('#spq-'+tid+'-'+iid);if(row){row.classList.toggle('done',!!a.done);const c=row.querySelector('.sp-chk');if(c)c.checked=!!a.done}
+  clearTimeout(spotTimers[k]);spotTimers[k]=setTimeout(()=>{delete spotTimers[k];delete spotLocal[k];spotWrite('odp.'+tid+'.'+iid,a)},700)}
+function spotTxt(tid,iid,v){const a=spotA(tid,iid);a.answer=v;if(v.trim()&&!a.done)a.done=true;spotQueue(tid,iid)}
+function spotChk(tid,iid,v){const a=spotA(tid,iid);a.done=v;spotQueue(tid,iid);setTimeout(()=>{if(!spotPending)rSpot()},750)}
+function spotPh(tid,iid){const a=spotA(tid,iid);const rows=[];for(let r=0;r<5;r++){const c=document.querySelector('[data-ph="'+tid+'|'+iid+'|'+r+'|cow"]'),p=document.querySelector('[data-ph="'+tid+'|'+iid+'|'+r+'|ph"]');rows.push({cow:c?c.value.trim():'',ph:p?p.value.trim():''})}
+  a.rows=rows;const f=rows.filter(x=>x.ph!=='');a.answer=f.map(x=>(x.cow||'?')+': '+x.ph).join(' | ');if(f.length&&!a.done)a.done=true;spotQueue(tid,iid)}
+const spotPoleT={};
+function spotPole(tid,k,v){const t=spot.tematy[tid];if(!t)return;t[k]=v;spotSave();clearTimeout(spotPoleT[tid+k]);spotPoleT[tid+k]=setTimeout(()=>spotWrite('tematy.'+tid+'.'+k,v),800)}
+function spotStatus(tid){const t=spot.tematy[tid];if(!t)return;t.status=t.status==='zamkniety'?'otwarty':'zamkniety';spotWrite('tematy.'+tid+'.status',t.status);rSpot()}
+
+/* ---- nowy / edycja tematu ---- */
+function spotPytTxt(t){return(t.sekcje||[]).map(s=>'# '+s.title+'\n'+s.items.map(i=>(i.group?'['+i.group+'] ':'')+i.q+(i.type==='ph'?' {ph}':'')).join('\n')).join('\n\n')}
+function spotForm(t){
+  return '<div class="fg" style="margin-bottom:8px"><label>Tytuł tematu / spotkania</label><input id="sp-ti" value="'+esc2(t?t.tytul:'')+'" placeholder="np. Spotkanie 5.11 — wycielenia i siara"></div>'
+   +'<div style="display:flex;gap:8px;margin-bottom:8px"><div class="fg" style="flex:0 0 170px"><label>Data</label><input type="date" id="sp-da" value="'+(t?t.data:dzisIso())+'"></div><div class="fg" style="flex:1"><label>Krótki opis (opcjonalnie)</label><input id="sp-op" value="'+esc2(t?t.opis||'':'')+'"></div></div>'
+   +'<div class="fg"><label>Pytania / zagadnienia — jedno w linii (opcjonalnie)</label><textarea id="sp-py" rows="10" style="font-family:var(--mono);font-size:12.5px" placeholder="# Sekcja (np. Close Up)\nIle dni przed porodem krowy przechodzą do Close Up?\nCzy pierwiastki są osobno?\n\n# Inna sekcja\n[Podgrupa] Pytanie w podgrupie">'+esc2(t?spotPytTxt(t):'')+'</textarea></div>'
+   +'<div class="wnote" style="padding:4px 0">Linia zaczynająca się od <b>#</b> = nowa sekcja (zakładka). <b>[Nazwa]</b> na początku = podgrupa. Puste pole = sam temat z notatkami. Odpowiedzi na istniejące pytania zostają, gdy zmienisz ich treść.</div>';
+}
+function spotParse(txt,old){
+  const oldIt=old?spotItems(old):[];const used=new Set();let sek=[],cur=null,n=0;
+  const nid=()=>{let id;do{id='q'+(++n)+Math.random().toString(36).slice(2,5)}while(used.has(id));return id};
+  String(txt||'').split('\n').map(x=>x.trim()).filter(Boolean).forEach(line=>{
+    if(line.startsWith('#')){cur={id:'s'+(sek.length+1)+Math.random().toString(36).slice(2,5),title:line.replace(/^#+\s*/,'')||'Sekcja',items:[]};sek.push(cur);return}
+    if(!cur){cur={id:'s1x',title:'Pytania',items:[]};sek.push(cur)}
+    let g=null,q=line,type=null;const m=q.match(/^\[([^\]]+)\]\s*(.*)$/);if(m){g=m[1];q=m[2]}
+    if(/\{ph\}\s*$/i.test(q)){type='ph';q=q.replace(/\{ph\}\s*$/i,'').trim()}
+    const prev=oldIt.find(i=>!used.has(i.id)&&i.q===q);const id=prev?prev.id:nid();used.add(id);
+    const it={id,q};if(g)it.group=g;if(type)it.type=type;cur.items.push(it)});
+  const os=old&&old.sekcje||[];sek.forEach((s,i)=>{const o=os.find(x=>x.title===s.title);if(o)s.id=o.id});
+  return sek}
+function spotNowy(){opM('Nowy temat / spotkanie',spotForm(null),'<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="spotZapisz(\'\')">Utwórz</button>');setTimeout(()=>{const e=$('#sp-ti');if(e)e.focus()},50)}
+function spotEdytuj(tid){const t=spot.tematy[tid];if(!t)return;opM('Edytuj temat',spotForm(t),'<button class="btn bd" onclick="spotUsun(\''+tid+'\')">Usuń temat</button><button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="spotZapisz(\''+tid+'\')">Zapisz</button>');const mb=document.querySelector('#modal .mob');if(mb)mb.style.maxWidth='760px'}
+function spotZapisz(tid){const ti=$('#sp-ti').value.trim();if(!ti){toast('Podaj tytuł');return}
+  const old=tid?spot.tematy[tid]:null;const id=tid||('t'+uid());
+  const t=Object.assign({},old||{id,status:'otwarty',ord:Date.now(),notatka:'',ustalenia:'',autor:cR||''},{tytul:ti,data:$('#sp-da').value||dzisIso(),opis:$('#sp-op').value.trim(),sekcje:spotParse($('#sp-py').value,old)});
+  t.typ=t.sekcje.length?'ankieta':'notatka';spot.tematy[id]=t;spotWrite('tematy.'+id,t);clM();spotSel=id;SV('spotSel',id);rSpot();toast(tid?'Zapisano zmiany':'Dodano temat')}
+function spotUsun(tid){const t=spot.tematy[tid];if(!t)return;if(!confirm('Usunąć temat „'+t.tytul+'” razem z odpowiedziami?'))return;delete spot.tematy[tid];delete spot.odp[tid];spotDel('tematy.'+tid);spotDel('odp.'+tid);clM();spotSel='';rSpot();toast('Usunięto temat')}
+
+/* ---- tematy od zootechniczki ---- */
+function spotZooView(ed){
+  const Z=Object.values(spot.zoo||{}).sort((a,b)=>(a.status==='omowione')-(b.status==='omowione')||(b.ts||0)-(a.ts||0));
+  let h='<div class="card wyd-sec" id="sp-zoo"><div class="ch"><span>💬 Tematy od zootechniczki <span class="wsub">'+spotZooOpen()+' do omówienia</span></span><span class="noprint"><button class="btn bs bp" onclick="spotDrukZoo()">🖨 Drukuj</button></span></div>';
+  h+='<div class="sp-opis">Wolne miejsce: zootechniczka wpisuje tu sprawy, które chce omówić na najbliższym spotkaniu. Po rozmowie wpiszcie odpowiedź i oznaczcie jako omówione.</div>';
+  if(ed)h+='<div class="sp-add noprint"><textarea id="sp-zt" rows="3" placeholder="Napisz temat do omówienia, np. „Krowy z Close Up nie chcą jeść premiksu — co zamiast?”"></textarea><button class="btn bp" onclick="spotZooDodaj()">+ Dodaj temat</button></div>';
+  if(!Z.length)h+='<div class="pusto">Brak tematów — dodaj pierwszy powyżej.</div>';
+  Z.forEach(z=>{const om=z.status==='omowione';
+    h+='<div class="sp-z'+(om?' om':'')+'"><div class="sp-zh"><span class="sp-zs '+(om?'om':'do')+'">'+(om?'✓ omówione':'● do omówienia')+'</span><span class="sp-meta">'+(ROLE_LBL[z.kto]||z.kto||'')+' · '+kiedy(z.ts)+'</span><span style="margin-left:auto;display:flex;gap:4px" class="noprint">'
+      +(ed?'<button class="btn bs bo" onclick="spotZooSt(\''+z.id+'\')">'+(om?'↺ do omówienia':'✓ omówione')+'</button><button class="btn bs bd" onclick="spotZooUsun(\''+z.id+'\')">✕</button>':'')+'</span></div>'
+      +'<div class="sp-zt">'+esc2(z.tekst).replace(/\n/g,'<br>')+'</div>'
+      +'<div class="sp-zo"><label>Odpowiedź / ustalenie</label><textarea rows="2" placeholder="Co ustalono…" '+(ed?'':'disabled')+' oninput="spotZooOdp(\''+z.id+'\',this.value)">'+esc2(z.odp||'')+'</textarea>'+(z.odpTs?'<span class="sp-meta">'+(ROLE_LBL[z.odpKto]||'')+' · '+kiedy(z.odpTs)+'</span>':'')+'</div></div>'});
+  return h+'</div>';
+}
+function spotZooDodaj(){const t=($('#sp-zt').value||'').trim();if(!t){toast('Wpisz temat');return}const id='z'+uid();const z={id,tekst:t,kto:cR||'',ts:Date.now(),status:'do',odp:''};spot.zoo[id]=z;spotWrite('zoo.'+id,z);rSpot();toast('Dodano temat')}
+function spotZooSt(id){const z=spot.zoo[id];if(!z)return;z.status=z.status==='omowione'?'do':'omowione';spotWrite('zoo.'+id+'.status',z.status);rSpot()}
+function spotZooUsun(id){const z=spot.zoo[id];if(!z)return;if(!confirm('Usunąć ten temat?'))return;delete spot.zoo[id];spotDel('zoo.'+id);rSpot()}
+const spotZooT={};
+function spotZooOdp(id,v){const z=spot.zoo[id];if(!z)return;z.odp=v;z.odpKto=cR||'';z.odpTs=Date.now();spotSave();clearTimeout(spotZooT[id]);spotZooT[id]=setTimeout(()=>{spotWrite('zoo.'+id+'.odp',v);spotWrite('zoo.'+id+'.odpKto',z.odpKto);spotWrite('zoo.'+id+'.odpTs',z.odpTs)},800)}
+
+/* ---- druk ---- */
+function spotDruk(tid){const t=spot.tematy[tid];if(!t)return;const o=spot.odp[tid]||{};
+  let h=(t.opis?'<div class="pm">'+esc2(t.opis)+'</div>':'');
+  (t.sekcje||[]).forEach(s=>{h+='<h3 style="margin:10px 0 4px;font-size:12pt;border-bottom:2px solid #2F6B3A">'+esc2(s.title)+'</h3><table style="width:100%;border-collapse:collapse"><tbody>';let lg=null;
+    s.items.forEach(i=>{const a=o[i.id]||{};if(i.group&&i.group!==lg)h+='<tr><td colspan="3" style="font-weight:700;background:#eee;-webkit-print-color-adjust:exact;print-color-adjust:exact">'+esc2(i.group)+'</td></tr>';lg=i.group||null;
+      h+='<tr><td style="width:22px;text-align:center">'+(a.done?'☑':'☐')+'</td><td style="width:45%;text-align:left;font-weight:600">'+esc2(i.q)+'</td><td style="text-align:left;font-weight:400">'+esc2(a.answer||'').replace(/\n/g,'<br>')+'&nbsp;</td></tr>'});
+    h+='</tbody></table>'});
+  if(t.notatka)h+='<h3 style="margin:10px 0 4px;font-size:12pt">Notatki ze spotkania</h3><div style="white-space:pre-wrap;font-size:10.5pt">'+esc2(t.notatka)+'</div>';
+  if(t.ustalenia)h+='<h3 style="margin:10px 0 4px;font-size:12pt">Ustalenia / do zrobienia</h3><div style="white-space:pre-wrap;font-size:10.5pt">'+esc2(t.ustalenia)+'</div>';
+  const pa=$('#pa');pa.className='spd';pa.innerHTML='<h2>'+esc2(t.tytul)+'</h2><div class="pm">Ferma Stuchowo · '+dPL(t.data)+'</div>'+h;setTimeout(()=>window.print(),200)}
+function spotDrukZoo(){const Z=Object.values(spot.zoo||{}).sort((a,b)=>(a.status==='omowione')-(b.status==='omowione')||(a.ts||0)-(b.ts||0));
+  let h='<table style="width:100%;border-collapse:collapse"><thead><tr><th style="width:90px">Data</th><th style="text-align:left">Temat</th><th style="text-align:left">Odpowiedź / ustalenie</th><th style="width:80px">Status</th></tr></thead><tbody>'
+    +Z.map(z=>'<tr><td>'+kiedy(z.ts).slice(0,10)+'</td><td style="text-align:left">'+esc2(z.tekst).replace(/\n/g,'<br>')+'</td><td style="text-align:left;font-weight:400">'+esc2(z.odp||'').replace(/\n/g,'<br>')+'&nbsp;</td><td>'+(z.status==='omowione'?'omówione':'do omówienia')+'</td></tr>').join('')+'</tbody></table>';
+  const pa=$('#pa');pa.className='spd';pa.innerHTML='<h2>Tematy od zootechniczki</h2><div class="pm">Ferma Stuchowo · '+fmtDate(new Date())+'</div>'+h;setTimeout(()=>window.print(),200)}
 
 </script>
 </body>

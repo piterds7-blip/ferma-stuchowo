@@ -346,6 +346,26 @@ table.zdni td,table.zdni th{white-space:nowrap}
 .sp-zt{font-size:15px;font-weight:600;color:#14201A;margin:8px 0 4px;line-height:1.4}
 .sp-zo{margin-top:6px}
 #pa.spd th,#pa.spd td{font-size:10pt;padding:4px 6px;vertical-align:top}#pa.spd h2{font-size:15pt}
+
+/* ===== v42 — Dawki: wczoraj/dziś, niedojady, wspólny wóz; karta załadunku ===== */
+table.dkp th.dkp-y{background:#4E6B57!important}table.dkp th.dkp-t{background:#2F6B3A!important}
+table.dkp th[colspan]{text-align:center!important;font-size:11.5px;letter-spacing:.06em}
+table.dkp td.dkp-yc{background:#F3F6F1}table.dkp tr:nth-child(even) td.dkp-yc{background:#ECF1E9}
+table.dkp td{vertical-align:middle}
+#tab-dawki table.dkp td input.dkp-n{width:88px;font-size:16px;font-weight:800;padding:7px 8px;border:2px solid #2F6B3A;background:#fff;border-radius:7px;text-align:right}
+#tab-dawki table.dkp td input.dkp-n.pusty{border:2px dashed #C98A1B;background:#FFFBEF}
+.dkp-i{font-family:var(--font);font-size:11px;font-weight:600;color:#5A6B5D;margin-top:2px;white-space:normal;line-height:1.25}
+.dkp-foot{padding:10px 14px;font-size:13.5px;color:#1F4D2B;background:#FFF8E6;border-top:1px solid #EBD9A6}
+.gh-tag{display:block;font-size:9.5px;font-weight:700;text-transform:none;background:rgba(255,255,255,.18);border-radius:6px;padding:1px 5px;margin-top:2px}
+tr.dk-baza td{background:#EAF1EA!important;font-weight:700;color:#1F4D2B}.dk-bz-s{font-size:10px;font-weight:600;color:#5A6B5D;font-family:var(--font)}
+.dk-df{font-size:10.5px;color:#B3261E;font-weight:600}
+.seg button:disabled{opacity:.45;cursor:not-allowed}
+table.zb th.zb-byki{background:#8A5A00}table.zb th.zb-combo{background:#1F4D2B}
+table.zb th.sub.zb-dos,table.zb td.zb-dos{background:#FFF6DA!important;color:#8A5A00}
+table.zb tr.zb-nied td{background:#FFF1CC!important;font-weight:800;color:#8A5A00}
+.zb-steps{margin:8px 0 0;padding:8px 12px;background:#F3F7F1;border:1px solid #CFE0CB;border-radius:8px;font-size:13px;line-height:1.5}
+#pa.land .zb-steps{font-size:10pt;border:2px solid #555;background:#fff}
+#pa.zbk table td.zb-dos,#pa.zbk table th.zb-dos{background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 </style>
 </head>
 <body>
@@ -356,14 +376,14 @@ table.zdni td,table.zdni th{white-space:nowrap}
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v41</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v42</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
     <!-- DAWKI --><div class="tab-panel" id="tab-dawki">
       <div class="card"><div class="ch"><span>Dawki TMR — kg świeżej masy / szt. / dobę (dawka wyliczona)</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addDkS()">+ Surowiec</button><button class="btn bs bp" style="opacity:.7" onclick="pT('dawki')">📄</button></div></div><div class="tw" id="dk-w"></div></div>
-      <div class="card"><div class="ch">Dawka realna — korekta do zadawania</div><div class="tw" id="dk-real"></div></div>
-      <div class="card"><div class="ch"><span>Dawki TMR — kg świeżej masy / szt. / dobę (dawka realna)</span></div><div class="tw" id="dk-real-matrix"></div></div>
+      <div class="card"><div class="ch"><span>Niedojady z wczoraj i plan na dziś</span><span class="wsub" style="font-weight:500">wpisz rano niedojady, sprawdź ilość sztuk — reszta liczy się sama</span></div><div class="tw" id="dk-real"></div></div>
+      <div class="card"><div class="ch"><span id="dk-mat-tyt">Dawki TMR — kg świeżej masy / szt. / dobę (dawka realna)</span><span id="dk-mat-btns"></span></div><div class="tw" id="dk-real-matrix"></div></div>
     </div>
     <!-- KOSZTY --><div class="tab-panel" id="tab-koszty"><div id="kos-root"></div></div>
     <!-- PASZOWÓZ --><div class="tab-panel" id="tab-paszowoz">
@@ -3377,6 +3397,179 @@ function spotDrukZoo(){const Z=Object.values(spot.zoo||{}).sort((a,b)=>(a.status
   let h='<table style="width:100%;border-collapse:collapse"><thead><tr><th style="width:90px">Data</th><th style="text-align:left">Temat</th><th style="text-align:left">Odpowiedź / ustalenie</th><th style="width:80px">Status</th></tr></thead><tbody>'
     +Z.map(z=>'<tr><td>'+kiedy(z.ts).slice(0,10)+'</td><td style="text-align:left">'+esc2(z.tekst).replace(/\n/g,'<br>')+'</td><td style="text-align:left;font-weight:400">'+esc2(z.odp||'').replace(/\n/g,'<br>')+'&nbsp;</td><td>'+(z.status==='omowione'?'omówione':'do omówienia')+'</td></tr>').join('')+'</tbody></table>';
   const pa=$('#pa');pa.className='spd';pa.innerHTML='<h2>Tematy od zootechniczki</h2><div class="pm">Ferma Stuchowo · '+fmtDate(new Date())+'</div>'+h;setTimeout(()=>window.print(),200)}
+
+/* =====================================================================
+   v42 — DAWKI (wczoraj/dziś, niedojady → byki, wóz Dołek+Porodówka)
+         + KARTA ZAŁADUNKU (byki pierwsze, wspólny wóz)
+   ===================================================================== */
+/* ---- baza z wozu innej grupy (Close Up = X kg/szt TMR Dołka + dodatki) ---- */
+function grOwn(g){return(g.baza&&g.baza.gid)?(g.skOwn||[]):g.sk}
+function expandBaza(){gr.forEach(g=>{
+  if(!g.baza||!g.baza.gid){if(g.skOwn){g.sk=g.skOwn;delete g.skOwn}if(g.baza&&!g.baza.gid)delete g.baza;return}
+  const src=gr.find(x=>x.id===g.baza.gid);if(!g.skOwn)g.skOwn=g.sk.map(x=>({s:x.s,kg:x.kg}));
+  const m={};g.skOwn.forEach(x=>{m[x.s]=(m[x.s]||0)+(+x.kg||0)});
+  if(src&&!(src.baza&&src.baza.gid)){const st=src.sk.reduce((a,x)=>a+(x.kg>0?x.kg:0),0);if(st>0)src.sk.forEach(x=>{if(x.kg>0)m[x.s]=(m[x.s]||0)+x.kg/st*(+g.baza.kg||0)})}
+  g.sk=Object.keys(m).map(s=>({s,kg:Math.round(m[s]*1000)/1000}))})}
+function bazaDla(g){return gr.find(x=>x.baza&&x.baza.gid===g.id)} // grupa, która bierze TMR z wozu g
+const _migrateGroups=migrateGroups;migrateGroups=function(){_migrateGroups();expandBaza()};
+/* ---- niedojady → byki ---- */
+function grNiedDo(){return gr.find(g=>g.niedDo)||gr.find(g=>/BYKI/i.test(g.alias||''))||gr.find(g=>/OPAS/i.test(g.nazwa))||null}
+function niedWczoraj(){const e=zooLog[getZooDate()];if(!e||!e.length)return null;return e.reduce((a,x)=>a+(+x.niedojady||0),0)}
+function grPlanKg(g){const tot=g.sk.reduce((a,x)=>a+(x.kg>0?x.kg:0),0);return g.zadanaKg>0?g.zadanaKg:Math.round(tot*g.realSz*(g.z||1))}
+function bykiWoz(g){const D=grPlanKg(g);const N=niedWczoraj()||0;return{D,N,fresh:Math.max(0,D-N),razem:Math.max(D,N)}}
+
+/* ---- DAWKI ---- */
+let dkMat=LD('dkMat','zad');const dkNiedT={};
+uDk=function(gi,sid,el){const g=gr[gi];const v=pv(el.value);const arr=(g.baza&&g.baza.gid)?(g.skOwn||(g.skOwn=[])):g.sk;let it=arr.find(x=>x.s===sid);if(!it)arr.push({s:sid,kg:v});else it.kg=v;
+  expandBaza();dawkiChanged=true;clearTimeout(dawkiSnapTimer);dawkiSnapTimer=setTimeout(()=>maybeSaveDawkiSnapshot(),3600000);sa(false,'grupy');rDk();rSur()};
+function uBazaKg(gi,v){const g=gr[gi];if(!g.baza)return;g.baza.kg=pv(v)||0;expandBaza();dawkiChanged=true;sa(false,'grupy');rDk();rSur()}
+rDk=function(){
+  expandBaza();
+  const used=new Set();gr.forEach(g=>grOwn(g).concat(g.sk).forEach(sk=>used.add(sk.s)));const allS=sur.filter(s=>used.has(s.id)).map(s=>s.id);
+  const ce=canEdit();const bazy=gr.filter(g=>g.baza&&g.baza.gid);const nd=grNiedDo();
+  // Tabela 1: receptury
+  let h='<table class="fe"><thead><tr><th rowspan="2" style="text-align:left;min-width:180px">Nazwa</th>';
+  gr.forEach((g,gi)=>{h+='<th class="gh">'+(ce?'<span style="cursor:pointer;text-decoration:underline dotted" title="Edytuj nazwę" onclick="editGrName('+gi+')">'+g.nazwa+' ✎</span>':g.nazwa)+(g.alias&&g.alias!==g.nazwa?'<span class="gr-alias">('+g.alias+')</span>':'')+'<span class="gh-sz">'+g.realSz+' szt · '+(g.z||1)+'×/d</span>'+(nd&&nd.id===g.id?'<span class="gh-tag">♻ niedojady · 1. wóz</span>':'')+(g.baza&&g.baza.gid?'<span class="gh-tag">🔗 z wozu '+((gr.find(x=>x.id===g.baza.gid)||{}).nazwa||'?')+'</span>':'')+' <button style="border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;font-size:8px;padding:0 3px;border-radius:3px;cursor:pointer" onclick="pDkGr('+gi+',\'wyl\')">📄</button></th>'});
+  h+='</tr></thead><tbody>';
+  if(bazy.length){h+='<tr class="dk-baza"><td>🔗 TMR z wozu innej grupy</td>';gr.forEach((g,gi)=>{if(g.baza&&g.baza.gid){const src=gr.find(x=>x.id===g.baza.gid);h+='<td>'+(ce?'<input value="'+(g.baza.kg||0)+'" onchange="uBazaKg('+gi+',this.value)">':r2(g.baza.kg,2))+'<div class="dk-bz-s">TMR '+(src?src.nazwa:'?')+'</div></td>'}else h+='<td></td>'});h+='</tr>'}
+  allS.forEach(sid=>{const s=gS(sid);if(!s)return;const si=sur.indexOf(s);
+    h+='<tr><td title="'+s.nazwa+'">';
+    if(ce){h+='<span style="display:inline-flex;flex-direction:column;margin-right:3px;line-height:1;vertical-align:middle">'+(si>0?'<button onclick="mvS('+si+',-1)" style="border:none;background:none;cursor:pointer;font-size:8px">▲</button>':'<span style="font-size:8px;opacity:.2">▲</span>')+(si<sur.length-1?'<button onclick="mvS('+si+',1)" style="border:none;background:none;cursor:pointer;font-size:8px">▼</button>':'<span style="font-size:8px;opacity:.2">▼</span>')+'</span>'}
+    h+=s.nazwa+'</td>';
+    gr.forEach((g,gi)=>{const item=grOwn(g).find(x=>x.s===sid);const kg=item?item.kg:0;
+      h+=ce?'<td><input'+(kg?'':' class="z0"')+' value="'+kg+'" oninput="this.classList.toggle(\'z0\',!pv(this.value))" onchange="uDk('+gi+',\''+sid+'\',this)"></td>':'<td>'+(kg>0?r2(kg,2):'')+'</td>'});h+='</tr>'});
+  h+='</tbody><tfoot><tr><td style="text-align:left"><b>Całość kg/szt</b></td>';
+  gr.forEach(g=>{h+='<td><b>'+r2(g.sk.reduce((a,x)=>a+x.kg,0),1)+'</b>'+(g.baza&&g.baza.gid?'<div class="dk-bz-s">w tym TMR '+r2(g.baza.kg,1)+' + dosyp '+r2(grOwn(g).reduce((a,x)=>a+(+x.kg||0),0),1)+'</div>':'')+'</td>'});h+='</tr></tfoot></table>';
+  $('#dk-w').innerHTML=h;
+  // Tabela 2: wczoraj / dziś
+  $('#dk-real').innerHTML=dkPlanHTML();
+  // Tabela 3: zadana dziś / zjedzona wczoraj
+  const hd=$('#dk-mat-btns');if(hd){const ok=!!(zooLog[getZooDate()]&&zooLog[getZooDate()].length);
+    hd.innerHTML='<span class="seg sm"><button class="'+(dkMat==='zad'?'akt':'')+'" onclick="dkMat=\'zad\';SV(\'dkMat\',\'zad\');rDk()">Zadana dziś</button><button class="'+(dkMat==='zje'?'akt':'')+'" '+(ok?'':'disabled title="Najpierw wpisz niedojady z wczoraj w tabeli wyżej"')+' onclick="dkMat=\'zje\';SV(\'dkMat\',\'zje\');rDk()">Zjedzona wczoraj '+dPL(getZooDate()).slice(0,5)+'</button></span>'}
+  if(dkMat==='zje'&&zooLog[getZooDate()]&&zooLog[getZooDate()].length)dkZjedzonaHTML(allS);else rDkRealMatrix(allS);
+  const ti=$('#dk-mat-tyt');if(ti)ti.textContent=dkMat==='zje'&&zooLog[getZooDate()]&&zooLog[getZooDate()].length?'Dawka zjedzona wczoraj — kg świeżej masy / szt.':'Dawki TMR — kg świeżej masy / szt. / dobę (dawka realna)';
+};
+function dkPlanHTML(){
+  const yk=getZooDate();const zl=zooLog[yk]||[];const A=dzienAnaliza(yk);const ce=canEdit()||cR==='zootechnik';const nd=grNiedDo();const N=niedWczoraj();
+  let t='<table class="dt dkp"><thead><tr><th rowspan="2">Grupa</th><th colspan="5" class="dkp-y">WCZORAJ '+dPL(yk)+' — rozliczenie</th><th colspan="4" class="dkp-t">DZIŚ '+dPL(dzisIso())+' — plan</th><th rowspan="2"></th></tr>'
+    +'<tr><th class="dkp-y">Szt</th><th class="dkp-y">Zadano<br>kg</th><th class="dkp-y">Niedojady<br>(rano) kg</th><th class="dkp-y">Pobrano<br>kg/szt</th><th class="dkp-y">%<br>pobrania</th><th class="dkp-t">Ilość<br>szt.</th><th class="dkp-t">kg/szt</th><th class="dkp-t">Na wóz<br>kg</th><th class="dkp-t">Na stole<br>kg</th></tr></thead><tbody>';
+  let sZ=0,sN=0,sZn=0;
+  gr.forEach((g,gi)=>{const x=A.find(y=>y.g.id===g.id);const e=zl.find(y=>y.gid===g.id);
+    const yS=e?e.realSz:(x?x.szt:g.realSz);const yZ=e?e.zadano:(x?Math.round(x.naStole):0);const n=e?e.niedojady:null;
+    const pob=n!=null&&yS?(yZ-n)/yS:null;const pc=n!=null&&yZ?(yZ-n)/yZ*100:null;sZ+=yZ;if(n!=null){sN+=n;sZn+=yZ}
+    const R=grReal(g);const kgS=g.sk.reduce((a,y)=>a+(y.kg>0?y.kg:0),0);
+    let woz=nI(R.naWoz),info='';
+    if(nd&&nd.id===g.id){const B=bykiWoz(g);woz='<b>'+nI(B.razem)+'</b>';info='<div class="dkp-i">♻ '+nI(B.N)+' niedojadów + '+nI(B.fresh)+' świeżej'+(B.N>B.D?' (więcej niż dawka)':'')+'</div>'}
+    if(g.baza&&g.baza.gid){const src=gr.find(y=>y.id===g.baza.gid);const bz=(g.baza.kg||0)*g.realSz;info='<div class="dkp-i">🔗 '+nI(bz)+' kg TMR z wozu '+(src?src.nazwa:'?')+' + '+nI(R.naWoz-bz)+' dosypu</div>'}
+    const bd=bazaDla(g);if(bd){const bz=(bd.baza.kg||0)*bd.realSz;info='<div class="dkp-i">🔗 +'+nI(bz)+' kg w wozie dla '+bd.nazwa+' → razem '+nI(R.naWoz+bz)+' kg</div>'}
+    if(g.zadanaKg>0)info+='<div class="dkp-i" style="color:#8A5A00">✎ ręczna korekta „Na wóz”</div>';
+    if(R.trIn||R.trOut)info+='<div class="dkp-i" style="color:#1565C0">⇄ transfer '+(R.trIn?'+'+nI(R.trIn):'')+(R.trOut?' −'+nI(R.trOut):'')+' kg</div>';
+    t+='<tr><td><b>'+g.nazwa+'</b>'+(g.alias&&g.alias!==g.nazwa?' <span class="cichy">('+g.alias+')</span>':'')+'</td>'
+      +'<td class="dkp-yc">'+yS+'</td><td class="dkp-yc">'+nI(yZ)+'</td>'
+      +'<td class="dkp-yc">'+(ce?'<input class="dkp-n'+(n==null?' pusty':'')+'" inputmode="decimal" placeholder="wpisz" value="'+(n!=null?n:'')+'" onchange="dkNied('+gi+',this.value,'+yS+','+yZ+')">':(n!=null?nI(n):'—'))+'</td>'
+      +'<td class="dkp-yc">'+(pob!=null?'<b>'+nF(pob,1)+'</b>':'—')+'</td><td class="dkp-yc">'+(pc!=null?pobChip(pc):'<span class="cichy">czeka</span>')+'</td>'
+      +'<td>'+(ce?'<input value="'+g.realSz+'" style="width:58px" onchange="gr['+gi+'].realSz=pv(this.value);expandBaza();sa(false,\'grupy\');rDk();rSur()">':g.realSz)+'</td>'
+      +'<td>'+nF(kgS,1)+'</td><td>'+woz+info+'</td><td><b>'+nI(nd&&nd.id===g.id?bykiWoz(g).razem:R.naStole)+'</b></td>'
+      +'<td>'+(ce?'<button class="btn bs bo" title="Ustawienia grupy: korekta, transfery, wóz wspólny" onclick="dkGrUst('+gi+')">✎</button>':'')+'</td></tr>'});
+  t+='</tbody><tfoot><tr><td>RAZEM</td><td class="dkp-yc"></td><td class="dkp-yc">'+nI(sZ)+'</td><td class="dkp-yc">'+(N!=null?nI(N):'—')+'</td><td class="dkp-yc"></td><td class="dkp-yc">'+(sZn?pobChip((sZn-sN)/sZn*100):'')+'</td><td>'+gr.reduce((a,g)=>a+(+g.realSz||0),0)+'</td><td></td><td>'+nI(gr.reduce((a,g)=>a+(nd&&nd.id===g.id?bykiWoz(g).razem:grReal(g).naWoz),0))+'</td><td></td><td></td></tr></tfoot></table>';
+  t+='<div class="dkp-foot">'+(N!=null?'♻ <b>Niedojady z wczoraj razem: '+nI(N)+' kg</b> → '+(nd?'pierwszy wóz: <b>'+nd.nazwa+(nd.alias&&nd.alias!==nd.nazwa?' ('+nd.alias+')':'')+'</b>':'<span style="color:var(--c-red)">wybierz grupę, która dostaje niedojady (✎)</span>'):'✍ Rano wpisz niedojady z każdej grupy w kolumnie „Niedojady”. Puste pole = jeszcze nie wpisano; 0 = stół wyjedzony.')+'<span class="cichy"> · te same dane widać w zakładce Niedojady i w Raportach</span></div>';
+  return t;
+}
+function dkNied(gi,v,yS,yZ){const g=gr[gi];const yk=getZooDate();let e=zooLog[yk];if(!Array.isArray(e))e=zooLog[yk]=[];
+  const s=String(v).trim();const i=e.findIndex(x=>x.gid===g.id);
+  if(s===''){if(i>=0)e.splice(i,1);if(!e.length)delete zooLog[yk]}
+  else{const n=Math.max(0,pv(s));const ent={gid:g.id,nazwa:g.nazwa,realSz:yS,zadano:yZ,niedojady:n,pobrano:Math.round(yZ-n)};if(i>=0)e[i]=ent;else e.push(ent)}
+  sa(true,'zootechnik');rDk();toast(s===''?'Usunięto wpis':'Zapisano niedojady '+g.nazwa)}
+function dkZjedzonaHTML(allS){
+  const A=dzienAnaliza(getZooDate());
+  let h='<table class="fe"><thead><tr><th style="text-align:left;min-width:180px">Nazwa</th>'+gr.map(g=>{const x=A.find(y=>y.g.id===g.id);return '<th class="gh">'+g.nazwa+'<span class="gh-sz">'+(x?x.szt:g.realSz)+' szt · '+(x&&x.frac!=null?'zjedzone / różnica':'brak wpisu')+'</span></th>'}).join('')+'</tr></thead><tbody>';
+  allS.forEach(sid=>{const s=gS(sid);if(!s)return;h+='<tr><td>'+s.nazwa+'</td>'+gr.map(g=>{const x=A.find(y=>y.g.id===g.id);if(!x||x.frac==null)return '<td class="z">?</td>';const z=(x.zuz[sid]||0)/x.szt;if(z<0.001)return '<td></td>';const p=z*(1-x.frac);return '<td><b>'+nF(p,2)+'</b> <span class="dk-df">'+nF(p-z,2)+'</span></td>'}).join('')+'</tr>'});
+  const row=(l,f)=>'<tr><td style="text-align:left"><b>'+l+'</b></td>'+gr.map(g=>{const x=A.find(y=>y.g.id===g.id);return '<td>'+(x&&x.frac!=null?f(x):'–')+'</td>'}).join('')+'</tr>';
+  h+='</tbody><tfoot>'+row('Zjedzone kg/szt',x=>'<b>'+nF(x.pob/x.szt,1)+'</b>')+row('Sucha masa zjedzona kg/szt',x=>nF(x.pob/x.szt*x.smFr,1))+row('% pobrania',x=>pobChip(x.pob/x.naStole*100))+'</tfoot></table>'
+    +'<div class="wnote">Zjedzone = zadane wczoraj − niedojady, rozłożone proporcjonalnie na składniki · mała liczba = różnica do zadanej (kg/szt).</div>';
+  $('#dk-real-matrix').innerHTML=h;
+}
+function dkGrUst(gi){const g=gr[gi];const nd=grNiedDo();const R=grReal(g);
+  let h='<div class="fg" style="margin-bottom:10px"><label>Na wóz — ręczna korekta (kg)</label><input id="gu-z" inputmode="decimal" value="'+(g.zadanaKg||'')+'" placeholder="auto: '+nI(g.sk.reduce((a,x)=>a+(x.kg>0?x.kg:0),0)*g.realSz*(g.z||1))+' kg"><div class="wnote" style="padding:2px 0">Zostaw puste — liczy się samo z receptury × ilość sztuk.</div></div>';
+  h+='<div class="fg" style="margin-bottom:10px"><label>Transfery TMR z innych grup</label><div>'+((g.transfery||[]).map(t=>{const s=gr.find(x=>x.id===t.fromGid);return '+'+t.kg+' kg z '+(s?s.nazwa:'?')}).join(', ')||'brak')+' <button class="btn bs bo" onclick="clM();editTransfery('+gi+')">✎ zmień</button></div></div>';
+  h+='<div class="fg" style="margin-bottom:10px"><label>Wspólny wóz: ta grupa dostaje TMR z wozu innej grupy + dosyp</label><div style="display:flex;gap:8px"><select id="gu-bg" style="flex:2"><option value="">— nie (osobny wóz) —</option>'+gr.filter(x=>x.id!==g.id&&!(x.baza&&x.baza.gid)).map(x=>'<option value="'+x.id+'"'+(g.baza&&g.baza.gid===x.id?' selected':'')+'>z wozu '+x.nazwa+(x.alias?' ('+x.alias+')':'')+'</option>').join('')+'</select><input id="gu-bk" inputmode="decimal" style="flex:1" value="'+(g.baza?g.baza.kg||'':'')+'" placeholder="kg/szt TMR"></div><div class="wnote" style="padding:2px 0">Np. PORODÓWKA: 20 kg/szt TMR z wozu DOŁKA, a w recepturze wpisujesz tylko dodatki (dosyp).</div></div>';
+  h+='<label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" id="gu-nd" style="width:auto"'+(nd&&nd.id===g.id?' checked':'')+'> ♻ Ta grupa dostaje niedojady ze wszystkich grup (pierwszy wóz dnia)</label>';
+  opM('Ustawienia grupy — '+g.nazwa,h,'<button class="btn bo" onclick="clM()">Anuluj</button><button class="btn bp" onclick="dkGrZapisz('+gi+')">Zapisz</button>')}
+function dkGrZapisz(gi){const g=gr[gi];g.zadanaKg=pv($('#gu-z').value)||0;const bg=$('#gu-bg').value;
+  if(bg){const was=g.baza&&g.baza.gid;g.baza={gid:bg,kg:pv($('#gu-bk').value)||0};if(!was)g.skOwn=g.sk.map(x=>({s:x.s,kg:0}))}else if(g.baza){delete g.baza}
+  if($('#gu-nd').checked){gr.forEach(x=>{x.niedDo=x.id===g.id})}else if(g.niedDo){g.niedDo=false}
+  expandBaza();sa(true,'grupy');clM();rDk();rSur();toast('Zapisano ustawienia '+g.nazwa)}
+
+/* ---- PASZOWÓZ: kolejność kafelków, byki z niedojadami, porodówka z bazą ---- */
+function grKolejnosc(){const nd=grNiedDo();const out=[];if(nd)out.push(nd);gr.forEach(g=>{if(out.includes(g)||(g.baza&&g.baza.gid))return;out.push(g);const b=bazaDla(g);if(b&&!out.includes(b))out.push(b)});gr.forEach(g=>{if(!out.includes(g))out.push(g)});return out}
+const _showWozDetail=showWozDetail;showWozDetail=function(gi){_showWozDetail(gi);const g=gr[gi];const nd=grNiedDo();
+  if(nd&&nd.id===g.id&&!isGDone(g.id)){const B=bykiWoz(g);const z=$('#woz-zadana'),n=$('#woz-nied');if(z&&n){z.value=B.razem;n.value=B.N;recalcWozTable(gi);
+    const box=document.querySelector('.woz-nied-box');if(box)box.insertAdjacentHTML('afterbegin','<div class="dkp-i" style="margin-bottom:6px">♻ Wpisane rano niedojady ze wszystkich grup: <b>'+nI(B.N)+' kg</b>'+(B.N>=B.D?' — więcej niż dawka, bez świeżej paszy':' — dosyp '+nI(B.fresh)+' kg świeżej')+'</div>')}}
+  const bd=bazaDla(g);if(bd&&!isGDone(g.id)){const inf=$('#woz-info');if(inf)inf.insertAdjacentHTML('beforebegin','<div class="zb-note" style="margin:8px 0">🔗 W tym wozie jest też <b>'+nI((bd.baza.kg||0)*bd.realSz)+' kg TMR dla '+bd.nazwa+'</b> — wpisz powyżej kg tylko dla '+g.nazwa+'; resztę rozliczysz na kafelku '+bd.nazwa+'.</div>')}};
+const _buildWozTable=buildWozTable;buildWozTable=function(gi,zadanaKg,niedKg){const g=gr[gi];if(!(g.baza&&g.baza.gid))return _buildWozTable(gi,zadanaKg,niedKg);
+  const src=gr.find(x=>x.id===g.baza.gid);const tot=g.sk.reduce((a,x)=>a+x.kg,0);const coeff=tot>0?zadanaKg/(tot*g.realSz*(g.z||1)):0;
+  const bz=Math.round((g.baza.kg||0)*g.realSz*coeff);let run=bz;
+  let h='<table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:var(--c-pri);color:#fff"><th style="padding:8px;text-align:left">Składnik</th><th style="padding:8px;text-align:right">kg/szt</th><th style="padding:8px;text-align:right">Na wóz</th><th style="padding:8px;text-align:right">W wozie</th></tr></thead><tbody>';
+  h+='<tr style="background:#EAF1EA"><td style="padding:7px 8px;font-weight:700;color:#1F4D2B">🔗 TMR '+(src?src.nazwa:'?')+' (zostaw w wozie)</td><td style="text-align:right">'+r2(g.baza.kg,2)+'</td><td style="text-align:right;font-weight:700">'+bz+'</td><td style="text-align:right;font-weight:700">'+bz+'</td></tr>';
+  grOwn(g).filter(x=>x.kg>0).sort((a,b)=>sur.findIndex(s=>s.id===a.s)-sur.findIndex(s=>s.id===b.s)).forEach(sk=>{const s=gS(sk.s);if(!s)return;const kg=Math.round(sk.kg*g.realSz*(g.z||1)*coeff);run+=kg;
+    h+='<tr><td style="padding:7px 8px;border-bottom:1px solid var(--c-brd)">+ '+s.nazwa+'</td><td style="text-align:right;border-bottom:1px solid var(--c-brd);font-family:var(--mono)">'+r2(sk.kg,2)+'</td><td style="text-align:right;border-bottom:1px solid var(--c-brd);font-family:var(--mono);font-weight:600">'+kg+'</td><td style="text-align:right;border-bottom:1px solid var(--c-brd);font-family:var(--mono);color:var(--c-pri);font-weight:700">'+run+'</td></tr>'});
+  return h+'<tr style="background:var(--c-gold-bg)"><td style="padding:8px;font-weight:700" colspan="2">RAZEM NA '+g.nazwa.toUpperCase()+'</td><td style="text-align:right;font-weight:700;font-size:16px" colspan="2">'+run+' kg</td></tr></tbody></table>'};
+const _rWoz=rWoz;rWoz=function(){_rWoz();const p=$('#woz-panel');if(!p)return;const cards=[...p.querySelectorAll('.woz-card')];if(cards.length!==gr.length)return;
+  const ord=grKolejnosc();const grid=p.querySelector('.woz-grid');ord.forEach((g,i)=>{const gi=gr.indexOf(g);const c=cards[gi];if(!c)return;grid.appendChild(c);
+    const nd=grNiedDo();if(nd&&nd.id===g.id)c.querySelector('.wc-info').insertAdjacentHTML('afterend','<div class="wc-badge" style="background:#FFF1CC;color:#8A5A00">1. wóz · ♻ '+nI(niedWczoraj()||0)+' kg niedojadów</div>');
+    if(g.baza&&g.baza.gid){const s=gr.find(x=>x.id===g.baza.gid);c.querySelector('.wc-info').insertAdjacentHTML('afterend','<div class="wc-badge" style="background:#EAF1EA;color:#1F4D2B">🔗 z wozu '+(s?s.nazwa:'?')+' + dosyp</div>')}})};
+
+/* ---- ZBIORCZA KARTA ZAŁADUNKU ---- */
+zbData=function(){
+  const log=wozLog[todayKey()]||[];const nd=grNiedDo();const N=niedWczoraj()||0;
+  const used=new Set();gr.forEach(g=>grOwn(g).concat(g.sk).forEach(sk=>{if(sk.kg>0)used.add(sk.s)}));
+  const surOrder=sur.filter(x=>used.has(x.id));
+  const plan=g=>{const e=log.find(x=>x.gid===g.id);return{e,zad:e?e.zadanaKg:grPlanKg(g)}};
+  const cols=[];
+  grKolejnosc().forEach(g=>{if(g.baza&&g.baza.gid)return;const tot=g.sk.reduce((a,x)=>a+(x.kg>0?x.kg:0),0);if(!tot||!g.realSz)return;const P=plan(g);
+    const c={g,totRecipe:tot,zadana:P.zad,done:!!P.e,typ:'norm',items:{}};
+    if(nd&&nd.id===g.id){c.typ='byki';c.nied=P.e?(P.e.niedojady||0):N;c.fresh=Math.max(0,P.zad-(P.e?(P.e.niedojady||0):0));if(!P.e){c.fresh=Math.max(0,P.zad-N)}}
+    const b=bazaDla(g);
+    if(b){c.typ='combo';c.b=b;const Pb=plan(b);const btot=b.sk.reduce((a,x)=>a+(x.kg>0?x.kg:0),0);const sc=btot*b.realSz>0?Pb.zad/(btot*b.realSz*(b.z||1)):1;
+      c.bazaKg=Math.round((b.baza.kg||0)*b.realSz*sc);c.dos={};grOwn(b).forEach(x=>{if(x.kg>0)c.dos[x.s]=Math.round(x.kg*b.realSz*(b.z||1)*sc*10)/10});c.bDone=!!Pb.e;c.bZad=Pb.zad}
+    const load=(c.typ==='byki'?c.fresh:c.zadana)+(c.bazaKg||0);
+    g.sk.forEach(x=>{if(x.kg>0)c.items[x.s]=Math.round(x.kg/tot*load*10)/10});
+    cols.push(c)});
+  const running=cols.map(c=>c.typ==='byki'?c.nied:0),runDos=cols.map(()=>0);const rows=[];
+  surOrder.forEach(sv=>{const cells=cols.map((c,i)=>{const kg=c.items[sv.id];const ds=c.dos?c.dos[sv.id]:null;if(!kg&&!ds)return null;
+      if(kg)running[i]=Math.round((running[i]+kg)*10)/10;if(ds)runDos[i]=Math.round((runDos[i]+ds)*10)/10;return{kg:kg||0,cum:kg?running[i]:null,dos:ds||0}});
+    if(cells.some(x=>x))rows.push({s:sv,cells,day:Math.round(cells.reduce((a,x)=>a+(x?x.kg+x.dos:0),0)*10)/10})});
+  const notes=[],steps=[];
+  cols.forEach(c=>{let det=[];gr.forEach(og=>{(og.transfery||[]).forEach(t=>{if(t.fromGid===c.g.id)det.push(t.kg+' kg → '+grLabel(og))})});if(det.length)notes.push('<b>'+grLabel(c.g)+'</b>: z tego wozu zrzuć '+det.join(', '))});
+  cols.forEach((c,i)=>{if(c.typ==='byki')steps.push('<b>1. wóz — '+grLabel(c.g)+'</b>: najpierw ♻ niedojady '+nI(c.nied)+' kg'+(c.fresh>0?', potem świeża pasza '+nI(c.fresh)+' kg':' — świeżej paszy nie dosypujemy (niedojadów więcej niż dawka)'));
+    if(c.typ==='combo'){const dsum=Object.values(c.dos).reduce((a,v)=>a+v,0);steps.push('<b>Wóz '+grLabel(c.g)+' + '+grLabel(c.b)+'</b>: ① załaduj '+nI(running[i])+' kg → ② wysyp na '+grLabel(c.g)+' <b>'+nI(c.zadana)+' kg</b> (w wozie zostaje '+nI(c.bazaKg)+' kg) → ③ dosyp składniki z kolumny „+ '+grLabel(c.b)+'” ('+nI(dsum)+' kg), wymieszaj → ④ wysyp na '+grLabel(c.b)+' <b>'+nI(c.bazaKg+dsum)+' kg</b>')}});
+  return{cols,rows,running,runDos,notes,steps,N,total:Math.round((running.reduce((a,b)=>a+b,0)+runDos.reduce((a,b)=>a+b,0))*10)/10};
+};
+zbTableHTML=function(d){
+  let h='<table class="zb"><thead><tr><th rowspan="2" style="min-width:150px">'+fmtDate(new Date())+'</th>';
+  d.cols.forEach(c=>{const sp=c.typ==='combo'?3:2;h+='<th colspan="'+sp+'"'+(c.typ==='byki'?' class="zb-byki"':c.typ==='combo'?' class="zb-combo"':'')+'>'+(c.typ==='byki'?'1. ':'')+grLabel(c.g)+(c.typ==='combo'?' + '+grLabel(c.b):'')+(c.done?' ✓':'')+'</th>'});
+  h+='<th rowspan="2">na 1 dzień</th></tr><tr>';
+  d.cols.forEach(c=>{h+='<th class="sub">'+c.g.realSz+' szt</th><th class="sub">w wozie</th>'+(c.typ==='combo'?'<th class="sub zb-dos">+ '+grLabel(c.b)+' '+c.b.realSz+' szt</th>':'')});
+  h+='</tr></thead><tbody>';
+  if(d.cols.some(c=>c.typ==='byki')){h+='<tr class="zb-nied"><td>♻ NIEDOJADY (wszystkie grupy)</td>';d.cols.forEach(c=>{if(c.typ==='byki')h+='<td class="kg">'+nI(c.nied)+'</td><td class="cum">'+nI(c.nied)+'</td>';else h+='<td></td><td></td>'+(c.typ==='combo'?'<td></td>':'')});h+='<td class="day">'+nI(d.N)+'</td></tr>'}
+  d.rows.forEach(r=>{h+='<tr><td>'+r.s.nazwa.toUpperCase()+'</td>';
+    r.cells.forEach((x,i)=>{const c=d.cols[i];h+=x&&x.kg?'<td class="kg">'+x.kg+'</td><td class="cum">'+x.cum+'</td>':'<td></td><td></td>';if(c.typ==='combo')h+='<td class="kg zb-dos">'+(x&&x.dos?x.dos:'')+'</td>'});
+    h+='<td class="day">'+r.day+'</td></tr>'});
+  h+='<tr class="sum"><td>SUMA</td>';d.cols.forEach((c,i)=>{h+='<td colspan="2">'+nI(d.running[i])+(c.typ==='byki'&&c.nied?' <span style="font-weight:500;font-size:11px">(♻ '+nI(c.nied)+')</span>':'')+'</td>'+(c.typ==='combo'?'<td class="zb-dos">'+nI(d.runDos[i])+'</td>':'')});
+  h+='<td>'+nI(d.total)+'</td></tr></tbody></table>';
+  if(d.steps&&d.steps.length)h+='<div class="zb-steps">'+d.steps.map(s=>'<div>'+s+'</div>').join('')+'</div>';
+  return h};
+exportZbiorczaCSV=function(){const d=zbData();const n=v=>String(v).replace('.',',');const rows=[];
+  let h1=['Data '+todayKey()];d.cols.forEach(c=>{h1.push(grLabel(c.g)+(c.typ==='combo'?' + '+grLabel(c.b):''),'');if(c.typ==='combo')h1.push('')});h1.push('na 1 dzień');rows.push(h1);
+  let h2=[''];d.cols.forEach(c=>{h2.push(c.g.realSz+' szt','w wozie');if(c.typ==='combo')h2.push('+ '+grLabel(c.b))});h2.push('');rows.push(h2);
+  if(d.cols.some(c=>c.typ==='byki')){const r=['NIEDOJADY'];d.cols.forEach(c=>{r.push(c.typ==='byki'?n(c.nied):'','');if(c.typ==='combo')r.push('')});r.push(n(d.N));rows.push(r)}
+  d.rows.forEach(r=>{const row=[r.s.nazwa];r.cells.forEach((x,i)=>{row.push(x&&x.kg?n(x.kg):'',x&&x.kg?n(x.cum):'');if(d.cols[i].typ==='combo')row.push(x&&x.dos?n(x.dos):'')});row.push(n(r.day));rows.push(row)});
+  const sum=['SUMA'];d.cols.forEach((c,i)=>{sum.push(n(d.running[i]),'');if(c.typ==='combo')sum.push(n(d.runDos[i]))});sum.push(n(d.total));rows.push(sum);
+  rows.push([]);(d.steps||[]).concat(d.notes).forEach(t=>rows.push([t.replace(/<[^>]+>/g,'')]));
+  const csv='﻿'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='karta-zaladunku-'+todayKey()+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
+/* dzienne zużycie Close Up (porodówka) liczy się z rozwiniętej receptury g.sk — bez zmian w Surowcach/Kosztach/Raportach */
+expandBaza();
 
 </script>
 </body>

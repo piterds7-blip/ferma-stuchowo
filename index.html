@@ -379,6 +379,8 @@ table.zb tr.zb-nied td{background:#FFF1CC!important;font-weight:800;color:#8A5A0
 tr.dk-nied td{background:#FFF6DA!important;color:#8A5A00;font-weight:700}
 table.zb tr.zb-tmr td{background:#EAF1EA!important;font-weight:800;color:#1F4D2B}
 table.zb td.zb-tmrc{background:#DDEBD7!important;color:#1F4D2B!important}
+
+.kzw{font-size:14.5px}.kzw.ok{color:#2E7D32}.kzw.y{color:#8A5A00}.kzw.r{color:#B3261E}
 </style>
 </head>
 <body>
@@ -389,7 +391,7 @@ table.zb td.zb-tmrc{background:#DDEBD7!important;color:#1F4D2B!important}
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v43</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v44</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
@@ -3463,8 +3465,8 @@ rDk=function(){
 };
 function dkPlanHTML(){
   const yk=getZooDate();const zl=zooLog[yk]||[];const A=dzienAnaliza(yk);const ce=canEdit()||cR==='zootechnik';const nd=grNiedDo();const N=niedWczoraj();
-  let t='<table class="dt dkp"><thead><tr><th rowspan="2">Grupa</th><th colspan="5" class="dkp-y">WCZORAJ '+dPL(yk)+' — rozliczenie</th><th colspan="4" class="dkp-t">DZIŚ '+dPL(dzisIso())+' — plan</th><th rowspan="2"></th></tr>'
-    +'<tr><th class="dkp-y">Szt</th><th class="dkp-y">Zadano<br>kg</th><th class="dkp-y">Niedojady<br>(rano) kg</th><th class="dkp-y">Pobrano<br>kg/szt</th><th class="dkp-y">%<br>pobrania</th><th class="dkp-t">Ilość<br>szt.</th><th class="dkp-t">kg/szt</th><th class="dkp-t">Na wóz<br>kg</th><th class="dkp-t">Na stole<br>kg</th></tr></thead><tbody>';
+  let t='<table class="dt dkp"><thead><tr><th rowspan="2">Grupa</th><th colspan="5" class="dkp-y">WCZORAJ '+dPL(yk)+' — rozliczenie</th><th colspan="5" class="dkp-t">DZIŚ '+dPL(dzisIso())+' — plan</th><th rowspan="2"></th></tr>'
+    +'<tr><th class="dkp-y">Szt</th><th class="dkp-y">Zadano<br>kg</th><th class="dkp-y">Niedojady<br>(rano) kg</th><th class="dkp-y">Pobrano<br>kg/szt</th><th class="dkp-y">%<br>pobrania</th><th class="dkp-t">Ilość<br>szt.</th><th class="dkp-t">Dawka<br>kg/szt</th><th class="dkp-t">kg z wozu<br>kg/szt</th><th class="dkp-t">Na wóz<br>kg</th><th class="dkp-t">Na stole<br>kg</th></tr></thead><tbody>';
   let sZ=0,sN=0,sZn=0;
   gr.forEach((g,gi)=>{const x=A.find(y=>y.g.id===g.id);const e=zl.find(y=>y.gid===g.id);
     const yS=e?e.realSz:(x?x.szt:g.realSz);const yZ=e?e.zadano:(x?Math.round(x.naStole):0);const n=e?e.niedojady:null;
@@ -3481,9 +3483,9 @@ function dkPlanHTML(){
       +'<td class="dkp-yc">'+(ce?'<input class="dkp-n'+(n==null?' pusty':'')+'" inputmode="decimal" placeholder="wpisz" value="'+(n!=null?n:'')+'" onchange="dkNied('+gi+',this.value,'+yS+','+yZ+')">':(n!=null?nI(n):'—'))+'</td>'
       +'<td class="dkp-yc">'+(pob!=null?'<b>'+nF(pob,1)+'</b>':'—')+'</td><td class="dkp-yc">'+(pc!=null?pobChip(pc):'<span class="cichy">czeka</span>')+'</td>'
       +'<td>'+(ce?'<input value="'+g.realSz+'" style="width:58px" onchange="gr['+gi+'].realSz=pv(this.value);expandBaza();sa(false,\'grupy\');rDk();rSur()">':g.realSz)+'</td>'
-      +'<td>'+nF(kgS,1)+'</td><td>'+woz+info+'</td><td><b>'+nI(nd&&nd.id===g.id?bykiWoz(g).razem:R.naStole)+'</b></td>'
+      +'<td>'+nF(kgS,1)+'</td><td>'+(()=>{const ns=nd&&nd.id===g.id?bykiWoz(g).razem:R.naStole;const v=g.realSz?ns/g.realSz:0;const df=kgS?v/kgS*100:0;return '<b class="kzw '+(Math.abs(df-100)<=3?'ok':Math.abs(df-100)<=10?'y':'r')+'">'+nF(v,1)+'</b>'+(kgS&&Math.abs(df-100)>3?'<div class="dkp-i">'+(df>100?'+':'')+nF(df-100,0)+'% vs dawka</div>':'')})()+'</td><td>'+woz+info+'</td><td><b>'+nI(nd&&nd.id===g.id?bykiWoz(g).razem:R.naStole)+'</b></td>'
       +'<td>'+(ce?'<button class="btn bs bo" title="Ustawienia grupy: korekta, transfery, wóz wspólny" onclick="dkGrUst('+gi+')">✎</button>':'')+'</td></tr>'});
-  t+='</tbody><tfoot><tr><td>RAZEM</td><td class="dkp-yc"></td><td class="dkp-yc">'+nI(sZ)+'</td><td class="dkp-yc">'+(N!=null?nI(N):'—')+'</td><td class="dkp-yc"></td><td class="dkp-yc">'+(sZn?pobChip((sZn-sN)/sZn*100):'')+'</td><td>'+gr.reduce((a,g)=>a+(+g.realSz||0),0)+'</td><td></td><td>'+nI(gr.reduce((a,g)=>a+(nd&&nd.id===g.id?bykiWoz(g).razem:grReal(g).naWoz),0))+'</td><td></td><td></td></tr></tfoot></table>';
+  t+='</tbody><tfoot><tr><td>RAZEM</td><td class="dkp-yc"></td><td class="dkp-yc">'+nI(sZ)+'</td><td class="dkp-yc">'+(N!=null?nI(N):'—')+'</td><td class="dkp-yc"></td><td class="dkp-yc">'+(sZn?pobChip((sZn-sN)/sZn*100):'')+'</td><td>'+gr.reduce((a,g)=>a+(+g.realSz||0),0)+'</td><td></td><td></td><td>'+nI(gr.reduce((a,g)=>a+(nd&&nd.id===g.id?bykiWoz(g).razem:grReal(g).naWoz),0))+'</td><td></td><td></td></tr></tfoot></table>';
   t+='<div class="dkp-foot">'+(N!=null?'♻ <b>Niedojady z wczoraj razem: '+nI(N)+' kg</b> → '+(nd?'pierwszy wóz: <b>'+nd.nazwa+(nd.alias&&nd.alias!==nd.nazwa?' ('+nd.alias+')':'')+'</b>':'<span style="color:var(--c-red)">wybierz grupę, która dostaje niedojady (✎)</span>'):'✍ Rano wpisz niedojady z każdej grupy w kolumnie „Niedojady”. Puste pole = jeszcze nie wpisano; 0 = stół wyjedzony.')+'<span class="cichy"> · te same dane widać w zakładce Niedojady i w Raportach</span></div>';
   return t;
 }

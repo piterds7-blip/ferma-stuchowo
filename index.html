@@ -366,6 +366,19 @@ table.zb tr.zb-nied td{background:#FFF1CC!important;font-weight:800;color:#8A5A0
 .zb-steps{margin:8px 0 0;padding:8px 12px;background:#F3F7F1;border:1px solid #CFE0CB;border-radius:8px;font-size:13px;line-height:1.5}
 #pa.land .zb-steps{font-size:10pt;border:2px solid #555;background:#fff}
 #pa.zbk table td.zb-dos,#pa.zbk table th.zb-dos{background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+/* v43 — równe kolumny w Dawkach, niedojady w dawce byków, TMR Dołek na karcie */
+#tab-dawki table.fe{table-layout:fixed;width:100%}
+#tab-dawki table.fe thead tr:first-child th:first-child{width:250px}
+#tab-dawki table.fe th.gh{white-space:normal;vertical-align:bottom}
+#tab-dawki table.fe td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tab-dawki table.fe td input{width:72px!important;max-width:100%}
+#tab-dawki table.fe .gh-tag{font-size:9px;line-height:1.2;white-space:normal}
+@media(max-width:900px){#tab-dawki table.fe{table-layout:auto}}
+.dk-nd{display:block;font-size:10px;font-weight:700;color:#8A5A00;line-height:1.1}
+tr.dk-nied td{background:#FFF6DA!important;color:#8A5A00;font-weight:700}
+table.zb tr.zb-tmr td{background:#EAF1EA!important;font-weight:800;color:#1F4D2B}
+table.zb td.zb-tmrc{background:#DDEBD7!important;color:#1F4D2B!important}
 </style>
 </head>
 <body>
@@ -376,7 +389,7 @@ table.zb tr.zb-nied td{background:#FFF1CC!important;font-weight:800;color:#8A5A0
   <button class="login-info-btn" onclick="showContact()" title="Kontakt">ℹ</button>
 </div>
 <div id="app">
-  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v42</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
+  <header class="app-header"><span class="farm-name">Ferma Stuchowo</span><span style="font-size:9px;color:rgba(255,255,255,.4);margin-left:-4px">v43</span><span class="sync-badge" id="syncb">⏳</span><button class="hdr-btn" onclick="manualRefresh()" title="Odśwież dane z serwera" style="font-size:16px">⟳</button><span id="hdr-extra"></span><button class="hdr-btn" onclick="showContact()" title="Kontakt">ℹ</button><button class="hdr-btn" onclick="doLogout()">Wyloguj</button></header>
   <nav class="app-nav" id="app-nav"></nav>
   <div class="tab-content-area">
     <!-- SUROWCE --><div class="tab-panel" id="tab-surowce"><div class="card"><div class="ch"><span>Surowce — stany magazynowe</span><div style="display:flex;gap:4px"><button class="btn bs bo" onclick="addSur()">+ Dodaj</button><button class="btn bs bp" style="opacity:.7" onclick="pT('surowce')">📄</button></div></div><div class="tw" id="sur-w"></div></div></div>
@@ -710,8 +723,9 @@ function dailyUse(sid){
     const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);const item=g.sk.find(x=>x.s===sid);
     if(!item||item.kg<=0||totRecipe<=0)return;
     const prop=item.kg/totRecipe;
-    if(g.zadanaKg>0){total+=prop*g.zadanaKg*(g.z||1)}
-    else{const tsz=g.realSz;total+=item.kg*tsz*(g.z||1)}
+    let base=g.zadanaKg>0?g.zadanaKg*(g.z||1):totRecipe*g.realSz*(g.z||1);
+    const nd=(typeof grNiedDo==='function')?grNiedDo():null;if(nd&&nd.id===g.id){const N=niedWczoraj()||0;base=Math.max(0,base-N)}
+    total+=prop*base;
   });
   return total;
 }
@@ -806,38 +820,22 @@ function getTransfersOut(gid){let out=0;gr.forEach(g=>{if(g.id===gid)return;(g.t
 
 /* Dawka realna matrix — per-head amounts after zadana + transfers corrections */
 function rDkRealMatrix(allS){
-  let h='<table class="fe"><thead><tr><th style="text-align:left;min-width:180px">Nazwa</th>';
-  gr.forEach((g,gi)=>{h+='<th class="gh">'+g.nazwa+'<br><span style="font-weight:400;font-size:8px">'+g.realSz+' szt real</span> <button style="border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;font-size:8px;padding:0 3px;border-radius:3px;cursor:pointer" onclick="pDkGr('+gi+',\'real\')">📄</button></th>'});
+  const RR=gr.map(g=>grReal(g));
+  let h='<table class="fe"><thead><tr><th style="text-align:left">Nazwa</th>';
+  gr.forEach((g,gi)=>{h+='<th class="gh">'+g.nazwa+'<span class="gh-sz">'+g.realSz+' szt real</span> <button style="border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;font-size:8px;padding:0 3px;border-radius:3px;cursor:pointer" onclick="pDkGr('+gi+',\'real\')">📄</button></th>'});
   h+='</tr></thead><tbody>';
+  if(RR.some(R=>R.nied>0)){h+='<tr class="dk-nied"><td>♻ w tym niedojady z wczoraj</td>'+RR.map(R=>'<td>'+(R.nied>0?'<b>'+r2(R.nied/R.szt,2)+'</b>':'')+'</td>').join('')+'</tr>'}
   allS.forEach(sid=>{const s=gS(sid);if(!s)return;
     h+='<tr><td>'+s.nazwa+'</td>';
-    gr.forEach(g=>{
-      const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);const item=g.sk.find(x=>x.s===sid);const kgWyl=item?item.kg:0;
-      const tsz=g.realSz;const trOut=getTransfersOut(g.id);
-      const zadana=g.zadanaKg>0?g.zadanaKg:r2(totRecipe*tsz*(g.z||1),0);
-      const effectiveZadana=zadana-trOut; // what stays on THIS group's table from own wóz
-      // own recipe portion on table
-      const propOwn=totRecipe>0?kgWyl/totRecipe:0;
-      let realKgOnTable=propOwn*effectiveZadana;
-      // add transfers IN from other groups
-      (g.transfery||[]).forEach(tr=>{const src=gr.find(x=>x.id===tr.fromGid);if(!src)return;
-        const srcTot=src.sk.reduce((a,x)=>a+x.kg,0);const srcItem=src.sk.find(x=>x.s===sid);
-        if(srcItem&&srcTot>0)realKgOnTable+=(srcItem.kg/srcTot)*tr.kg});
-      const perCow=g.realSz>0?r2(realKgOnTable/g.realSz,2):0;
-      const diff=kgWyl>0?r2(perCow-kgWyl,2):0;
-      const color=diff<-0.05?'var(--c-red)':diff>0.05?'#4CAF50':'inherit';
-      h+='<td style="color:'+color+'">'+(perCow>0?perCow:'')+'</td>'});
+    gr.forEach((g,gi)=>{const R=RR[gi];const perCow=R.szt?r2((R.kg[sid]||0)/R.szt,2):0;const item=g.sk.find(x=>x.s===sid);const kgWyl=item?item.kg:0;
+      const nd=R.nied>0&&R.niedKg[sid]?R.niedKg[sid]/R.szt:0;
+      const diff=r2(perCow-kgWyl,2);const color=nd?'inherit':diff<-0.05?'var(--c-red)':diff>0.05?'#4CAF50':'inherit';
+      h+='<td style="color:'+color+'">'+(perCow>0?perCow:'')+(nd>0.005?'<span class="dk-nd">♻ '+r2(nd,2)+'</span>':'')+'</td>'});
     h+='</tr>'});
-  // Totals row
   h+='</tbody><tfoot><tr><td style="text-align:left"><b>Całość kg/szt real</b></td>';
-  gr.forEach(g=>{
-    const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);const tsz=g.realSz;const trOut=getTransfersOut(g.id);
-    const zadana=g.zadanaKg>0?g.zadanaKg:r2(totRecipe*tsz*(g.z||1),0);
-    const trIn=g.transfery.reduce((a,t)=>a+t.kg,0);
-    const naStole=(zadana-trOut)+trIn;const perCow=g.realSz>0?r2(naStole/g.realSz,1):0;
-    const pct=totRecipe>0&&g.realSz>0?r2(perCow/totRecipe*100,0):0;
+  gr.forEach((g,gi)=>{const R=RR[gi];const totRecipe=g.sk.reduce((a,x)=>a+x.kg,0);const perCow=R.szt?r2(R.naStole/R.szt,1):0;const pct=totRecipe>0?r2(perCow/totRecipe*100,0):0;
     h+='<td><b>'+perCow+'</b><br><span style="font-size:9px;color:'+(pct>=90?'#4CAF50':pct>=70?'var(--c-gold)':'var(--c-red)')+'">'+pct+'%</span></td>'});
-  h+='</tr></tfoot></table>';
+  h+='</tr></tfoot></table>'+(RR.some(R=>R.nied>0)?'<div class="wnote">♻ mała liczba = ile z tego pochodzi z niedojadów (skład wg grup, z których zebrano niedojady).</div>':'');
   $('#dk-real-matrix').innerHTML=h;
 }
 
@@ -2830,12 +2828,23 @@ function sortSur(ids){const ord=sur.map(s=>s.id);const ko=['obj','tres','dod'];r
 /* ---------- dawka grupy: wyliczona / realna ---------- */
 function grWyl(g){const per={};g.sk.forEach(x=>{if(x.kg>0)per[x.s]=(per[x.s]||0)+x.kg});const tot=Object.values(per).reduce((a,v)=>a+v,0);
   const szt=g.realSz||0;const kg={};Object.keys(per).forEach(s=>kg[s]=per[s]*szt*(g.z||1));return{per,kg,szt,kgSzt:tot,naStole:tot*szt*(g.z||1),naWoz:tot*szt*(g.z||1),trIn:0,trOut:0}}
-function grReal(g){const tot=g.sk.reduce((a,x)=>a+(x.kg>0?x.kg:0),0);const szt=g.realSz||0;
+function grRealBase(g){const tot=g.sk.reduce((a,x)=>a+(x.kg>0?x.kg:0),0);const szt=g.realSz||0;
   const naWoz=g.zadanaKg>0?g.zadanaKg:tot*szt*(g.z||1);const out=getTransfersOut(g.id);let tin=0;const kg={};
   if(tot>0)g.sk.forEach(x=>{if(x.kg>0)kg[x.s]=(kg[x.s]||0)+x.kg/tot*Math.max(0,naWoz-out)});
   (g.transfery||[]).forEach(t=>{const src=gr.find(y=>y.id===t.fromGid);if(!src)return;const st=src.sk.reduce((a,x)=>a+(x.kg>0?x.kg:0),0);tin+=t.kg;if(st>0)src.sk.forEach(x=>{if(x.kg>0)kg[x.s]=(kg[x.s]||0)+x.kg/st*t.kg})});
   const per={};Object.keys(kg).forEach(s=>per[s]=szt?kg[s]/szt:0);const naStole=naWoz-out+tin;
   return{per,kg,szt,kgSzt:szt?naStole/szt:0,naStole,naWoz,trIn:tin,trOut:out}}
+/* skład niedojadów z wczoraj (kg surowca) — wg tego, z których grup pochodzą */
+function niedSklad(){const e=zooLog[getZooDate()];const m={};let N=0;if(!e||!e.length)return{m,N};
+  e.forEach(x=>{const n=+x.niedojady||0;if(!n)return;const src=gr.find(g=>g.id===x.gid);if(!src)return;const B=grRealBase(src);const t=Object.values(B.kg).reduce((a,v)=>a+v,0);if(!t)return;N+=n;Object.keys(B.kg).forEach(sid=>{m[sid]=(m[sid]||0)+B.kg[sid]/t*n})});return{m,N}}
+function grReal(g){const B=grRealBase(g);B.kgKoszt=B.kg;B.nied=0;B.niedKg={};
+  const nd=(typeof grNiedDo==='function')?grNiedDo():null;if(!nd||nd.id!==g.id)return B;
+  const S=niedSklad();if(!S.N)return B;
+  const D=B.naWoz;const fresh=Math.max(0,D-S.N);const f=D>0?fresh/D:0;const kg={},kgK={};
+  Object.keys(B.kg).forEach(sid=>{kgK[sid]=B.kg[sid]*f;kg[sid]=kgK[sid]});
+  Object.keys(S.m).forEach(sid=>{kg[sid]=(kg[sid]||0)+S.m[sid]});
+  const naWoz=Math.max(D,S.N);const naStole=naWoz-B.trOut+B.trIn;const per={};Object.keys(kg).forEach(sid=>per[sid]=B.szt?kg[sid]/B.szt:0);
+  return Object.assign(B,{kg,per,kgKoszt:kgK,naWoz,naStole,kgSzt:B.szt?naStole/B.szt:0,nied:S.N,niedKg:S.m,fresh})}
 function grDawka(g,baza){return baza==='wyl'?grWyl(g):grReal(g)}
 function kosztOf(kgMap){let z=0,k={obj:0,tres:0,dod:0},sm=0,kgT=0;Object.keys(kgMap).forEach(s=>{const v=kgMap[s];const c=v*cenaKg(s);z+=c;k[katOf(s)]+=c;sm+=v*smOf(s);kgT+=v});return{z,k,sm,kg:kgT}}
 function grDojne(){const ids=new Set();['H1','H2'].forEach(c=>{const g=wydDawkaFor(c);if(g)ids.add(g.id)});if(!ids.size)gr.forEach(g=>{const n=g.nazwa.toUpperCase();if(n.includes('HF')||n.includes('MO'))ids.add(g.id)});return ids}
@@ -2847,8 +2856,8 @@ function lastProba(){const ms=(typeof wydIndex!=='undefined'?wydIndex:[]).filter
 let kosBaza=LD('kosBaza','real');
 function setKosBaza(b){kosBaza=b;SV('kosBaza',b);rKoszty()}
 function kosData(baza){
-  const G=gr.filter(g=>(g.realSz||0)>0).map(g=>{const D=grDawka(g,baza);const K=kosztOf(D.kg);return{g,D,K,szt:D.szt}});
-  const zuz={};G.forEach(x=>Object.keys(x.D.kg).forEach(s=>{zuz[s]=(zuz[s]||0)+x.D.kg[s]}));
+  const G=gr.filter(g=>(g.realSz||0)>0).map(g=>{const D=grDawka(g,baza);const K=kosztOf(D.kgKoszt||D.kg);K.sm=kosztOf(D.kg).sm;return{g,D,K,szt:D.szt}});
+  const zuz={};G.forEach(x=>{const m=x.D.kgKoszt||x.D.kg;Object.keys(m).forEach(s=>{zuz[s]=(zuz[s]||0)+m[s]})});
   const surs=sortSur(Object.keys(zuz).filter(s=>zuz[s]>0.0001));
   const tot=kosztOf(zuz);const dojIds=grDojne();
   const doj=G.filter(x=>dojIds.has(x.g.id));const dojSzt=doj.reduce((a,x)=>a+x.szt,0);
@@ -2932,6 +2941,7 @@ function rKoszty(){
   else uw.push('Dawka wyliczona = receptura kg/szt × ilość sztuk, bez korekt i transferów.');
   gr.filter(g=>g.transfery&&g.transfery.length).forEach(g=>g.transfery.forEach(t=>{const s=gr.find(x=>x.id===t.fromGid);uw.push('Transfer: '+t.kg+' kg z '+(s?s.nazwa:'?')+' → '+g.nazwa)}));
   if(brakCen.length)uw.push('Surowce bez ceny liczone jako 0 zł: '+brakCen.map(s=>gS(s).nazwa).join(', ')+'.');
+  {const T2=kosData('real');const bx=T2.G.find(x=>x.D.nied>0);if(bx&&kosBaza==='real')uw.push('♻ '+bx.g.nazwa+': w dawce '+nI(bx.D.nied)+' kg niedojadów z wczoraj ('+nF(bx.D.nied/bx.szt,1)+' kg/szt) — wliczone w kg i suchą masę, ale bez kosztu (pasza już policzona grupom, z których pochodzi). Koszt i zużycie surowców tej grupy = tylko świeża pasza.')}
   uw.push('Sucha masa wg % SM wpisanego przy surowcu (✎ w Surowcach).');
   h+=kCard('kos-uw','Uwagi i źródła','','<ul class="kos-uw">'+uw.map(x=>'<li>'+x+'</li>').join('')+'</ul>');
   el.innerHTML=h;
@@ -3033,11 +3043,13 @@ function dzienAnaliza(d){
     const naStole=ze?ze.zadano:(se?se.naStole:naWoz-R.trOut+R.trIn);
     const nied=ze?(ze.niedojady||0):null;const pob=ze?naStole-nied:null;
     // skład załadunku (kg surowca z wozu tej grupy) — proporcje receptury
-    const tot=g.sk.reduce((a,x)=>a+(x.kg>0?x.kg:0),0);const zuz={};if(tot>0)g.sk.forEach(x=>{if(x.kg>0)zuz[x.s]=x.kg/tot*naWoz});
+    let niedW=we.length?we.reduce((a,x)=>a+(+x.niedojady||0),0):0;
+    if(!we.length){const nd=(typeof grNiedDo==='function')?grNiedDo():null;if(nd&&nd.id===g.id){const pz=zooLog[dPlus(d,-1)];if(pz&&pz.length)niedW=Math.min(naWoz,pz.reduce((a,x)=>a+(+x.niedojady||0),0))}}
+    const tot=g.sk.reduce((a,x)=>a+(x.kg>0?x.kg:0),0);const zuz={};if(tot>0)g.sk.forEach(x=>{if(x.kg>0)zuz[x.s]=x.kg/tot*Math.max(0,naWoz-niedW)});
     const frac=ze&&naStole>0?Math.max(0,Math.min(1,nied/naStole)):null;const pobS={};if(frac!=null)Object.keys(zuz).forEach(s=>pobS[s]=zuz[s]*(1-frac));
     // SM na stole/szt (proporcje dawki realnej)
     const smKg=Object.keys(R.kg).reduce((a,s)=>a+R.kg[s]*smOf(s),0);const smFr=R.naStole?smKg/R.naStole:0;
-    return{g,szt,wyl:W.kgSzt,naWoz,naStole,nied,pob,zrodlo,zuz,pobS,frac,smFr,maWpis:!!ze};
+    return{g,szt,wyl:W.kgSzt,naWoz,naStole,nied,pob,zrodlo,zuz,pobS,frac,smFr,niedW,maWpis:!!ze};
   }).filter(x=>x.szt>0);
 }
 function okresAnaliza(od,doD){const dni=[];for(let d=od,n=0;d<=doD&&n<400;d=dPlus(d,1),n++)dni.push({d,A:dzienAnaliza(d)});return dni}
@@ -3483,6 +3495,7 @@ function dkNied(gi,v,yS,yZ){const g=gr[gi];const yk=getZooDate();let e=zooLog[yk
 function dkZjedzonaHTML(allS){
   const A=dzienAnaliza(getZooDate());
   let h='<table class="fe"><thead><tr><th style="text-align:left;min-width:180px">Nazwa</th>'+gr.map(g=>{const x=A.find(y=>y.g.id===g.id);return '<th class="gh">'+g.nazwa+'<span class="gh-sz">'+(x?x.szt:g.realSz)+' szt · '+(x&&x.frac!=null?'zjedzone / różnica':'brak wpisu')+'</span></th>'}).join('')+'</tr></thead><tbody>';
+  if(A.some(x=>x.niedW>0))h+='<tr class="dk-nied"><td>♻ niedojady w wozie (kg/szt)</td>'+gr.map(g=>{const x=A.find(y=>y.g.id===g.id);return '<td>'+(x&&x.niedW>0?'<b>'+nF(x.niedW/x.szt,2)+'</b>':'')+'</td>'}).join('')+'</tr>';
   allS.forEach(sid=>{const s=gS(sid);if(!s)return;h+='<tr><td>'+s.nazwa+'</td>'+gr.map(g=>{const x=A.find(y=>y.g.id===g.id);if(!x||x.frac==null)return '<td class="z">?</td>';const z=(x.zuz[sid]||0)/x.szt;if(z<0.001)return '<td></td>';const p=z*(1-x.frac);return '<td><b>'+nF(p,2)+'</b> <span class="dk-df">'+nF(p-z,2)+'</span></td>'}).join('')+'</tr>'});
   const row=(l,f)=>'<tr><td style="text-align:left"><b>'+l+'</b></td>'+gr.map(g=>{const x=A.find(y=>y.g.id===g.id);return '<td>'+(x&&x.frac!=null?f(x):'–')+'</td>'}).join('')+'</tr>';
   h+='</tbody><tfoot>'+row('Zjedzone kg/szt',x=>'<b>'+nF(x.pob/x.szt,1)+'</b>')+row('Sucha masa zjedzona kg/szt',x=>nF(x.pob/x.szt*x.smFr,1))+row('% pobrania',x=>pobChip(x.pob/x.naStole*100))+'</tfoot></table>'
@@ -3552,19 +3565,21 @@ zbTableHTML=function(d){
   d.cols.forEach(c=>{h+='<th class="sub">'+c.g.realSz+' szt</th><th class="sub">w wozie</th>'+(c.typ==='combo'?'<th class="sub zb-dos">+ '+grLabel(c.b)+' '+c.b.realSz+' szt</th>':'')});
   h+='</tr></thead><tbody>';
   if(d.cols.some(c=>c.typ==='byki')){h+='<tr class="zb-nied"><td>♻ NIEDOJADY (wszystkie grupy)</td>';d.cols.forEach(c=>{if(c.typ==='byki')h+='<td class="kg">'+nI(c.nied)+'</td><td class="cum">'+nI(c.nied)+'</td>';else h+='<td></td><td></td>'+(c.typ==='combo'?'<td></td>':'')});h+='<td class="day">'+nI(d.N)+'</td></tr>'}
+  if(d.cols.some(c=>c.typ==='combo')){h+='<tr class="zb-tmr"><td>🔗 TMR '+grLabel(d.cols.find(c=>c.typ==='combo').g).toUpperCase()+' (zostaje w wozie)</td>';d.cols.forEach(c=>{h+='<td></td><td></td>'+(c.typ==='combo'?'<td class="kg zb-dos zb-tmrc">'+nI(c.bazaKg)+'</td>':'')});h+='<td class="day" title="już w składnikach Dołka">—</td></tr>'}
   d.rows.forEach(r=>{h+='<tr><td>'+r.s.nazwa.toUpperCase()+'</td>';
     r.cells.forEach((x,i)=>{const c=d.cols[i];h+=x&&x.kg?'<td class="kg">'+x.kg+'</td><td class="cum">'+x.cum+'</td>':'<td></td><td></td>';if(c.typ==='combo')h+='<td class="kg zb-dos">'+(x&&x.dos?x.dos:'')+'</td>'});
     h+='<td class="day">'+r.day+'</td></tr>'});
-  h+='<tr class="sum"><td>SUMA</td>';d.cols.forEach((c,i)=>{h+='<td colspan="2">'+nI(d.running[i])+(c.typ==='byki'&&c.nied?' <span style="font-weight:500;font-size:11px">(♻ '+nI(c.nied)+')</span>':'')+'</td>'+(c.typ==='combo'?'<td class="zb-dos">'+nI(d.runDos[i])+'</td>':'')});
+  h+='<tr class="sum"><td>SUMA</td>';d.cols.forEach((c,i)=>{h+='<td colspan="2">'+nI(d.running[i])+(c.typ==='byki'&&c.nied?' <span style="font-weight:500;font-size:11px">(♻ '+nI(c.nied)+')</span>':'')+'</td>'+(c.typ==='combo'?'<td class="zb-dos">'+nI(c.bazaKg+d.runDos[i])+'<div style="font-size:10.5px;font-weight:600">'+nI(c.bazaKg)+' TMR + '+nI(d.runDos[i])+' dosyp</div></td>':'')});
   h+='<td>'+nI(d.total)+'</td></tr></tbody></table>';
   if(d.steps&&d.steps.length)h+='<div class="zb-steps">'+d.steps.map(s=>'<div>'+s+'</div>').join('')+'</div>';
   return h};
 exportZbiorczaCSV=function(){const d=zbData();const n=v=>String(v).replace('.',',');const rows=[];
   let h1=['Data '+todayKey()];d.cols.forEach(c=>{h1.push(grLabel(c.g)+(c.typ==='combo'?' + '+grLabel(c.b):''),'');if(c.typ==='combo')h1.push('')});h1.push('na 1 dzień');rows.push(h1);
   let h2=[''];d.cols.forEach(c=>{h2.push(c.g.realSz+' szt','w wozie');if(c.typ==='combo')h2.push('+ '+grLabel(c.b))});h2.push('');rows.push(h2);
+  if(d.cols.some(c=>c.typ==='combo')){const r=['TMR DOŁEK (zostaje w wozie)'];d.cols.forEach(c=>{r.push('','');if(c.typ==='combo')r.push(n(c.bazaKg))});r.push('');rows.push(r)}
   if(d.cols.some(c=>c.typ==='byki')){const r=['NIEDOJADY'];d.cols.forEach(c=>{r.push(c.typ==='byki'?n(c.nied):'','');if(c.typ==='combo')r.push('')});r.push(n(d.N));rows.push(r)}
   d.rows.forEach(r=>{const row=[r.s.nazwa];r.cells.forEach((x,i)=>{row.push(x&&x.kg?n(x.kg):'',x&&x.kg?n(x.cum):'');if(d.cols[i].typ==='combo')row.push(x&&x.dos?n(x.dos):'')});row.push(n(r.day));rows.push(row)});
-  const sum=['SUMA'];d.cols.forEach((c,i)=>{sum.push(n(d.running[i]),'');if(c.typ==='combo')sum.push(n(d.runDos[i]))});sum.push(n(d.total));rows.push(sum);
+  const sum=['SUMA'];d.cols.forEach((c,i)=>{sum.push(n(d.running[i]),'');if(c.typ==='combo')sum.push(n(c.bazaKg+d.runDos[i]))});sum.push(n(d.total));rows.push(sum);
   rows.push([]);(d.steps||[]).concat(d.notes).forEach(t=>rows.push([t.replace(/<[^>]+>/g,'')]));
   const csv='﻿'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\r\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='karta-zaladunku-'+todayKey()+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};

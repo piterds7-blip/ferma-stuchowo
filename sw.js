@@ -1,4 +1,4 @@
-const CACHE_NAME='stuchowo-v46';
+const CACHE_NAME='stuchowo-v47';
 const ASSETS=['./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 const CDN=[
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',

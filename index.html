@@ -227,6 +227,7 @@ table.dt th.th-l,table.dt td.td-l{text-align:left!important}
 #pa.zbk h2{font-size:calc(var(--zf)*1.3);margin:0 0 3px;line-height:1.15}#pa.zbk .pm{display:none}
 #pa.zbk table th,#pa.zbk table td{font-size:var(--zf);font-weight:700;padding:.02em .2em;border:1.5px solid #000;line-height:1.05;white-space:nowrap;color:#000!important}
 #pa.zbk table td:first-child,#pa.zbk table th{white-space:normal}
+#pa.zbk table td:first-child,#pa.zbk table th:first-child{position:static!important;text-align:left} /* „przyklejona” kolumna z ekranu gubi linie przy druku */
 #pa.zbk table thead tr:first-child>th:last-child,#pa.zbk table tbody tr>td:last-child{display:none} /* bez kolumny „na 1 dzień” na wydruku */
 #pa.zbk table th{font-size:calc(var(--zf)*.92);background:#ccc}
 #pa.zbk table td.cum{font-weight:600;background:#f0f0f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -1123,7 +1124,7 @@ function prnLand(t,h,fit){
   const mg=fit==='zbk'?5:8; // margines strony w mm (karta załadunku: węższy)
   if(fit==='zbk'){ // dopasuj do 1 strony A4 poziomo (287×200 mm): największa czcionka, która się mieści
     const mm=96/25.4,W=287*mm,H=196*mm;
-    pa.style.cssText='display:flex;flex-wrap:wrap;align-items:stretch;column-gap:6px;position:absolute;left:-10000px;top:0;width:'+W+'px;box-sizing:border-box;padding:0';
+    pa.style.cssText='display:flex;flex-wrap:wrap;align-items:stretch;column-gap:6px;position:absolute;left:0;top:0;visibility:hidden;z-index:-1;width:'+W+'px;box-sizing:border-box;padding:0';
     let fs=20;for(;fs>8;fs-=0.25){pa.style.setProperty('--zf',fs+'pt');if(pa.scrollHeight<=H&&pa.scrollWidth<=W+1)break}
     const hgt=pa.scrollHeight,wid=pa.scrollWidth;pa.style.cssText='';pa.style.setProperty('--zf',fs+'pt');
     const z=Math.min(1,H/hgt,W/wid);if(z<1)pa.style.zoom=z.toFixed(3);

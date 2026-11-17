@@ -227,6 +227,7 @@ table.dt th.th-l,table.dt td.td-l{text-align:left!important}
 #pa.zbk h2{font-size:calc(var(--zf)*1.3);margin:0 0 3px;line-height:1.15}#pa.zbk .pm{display:none}
 #pa.zbk table th,#pa.zbk table td{font-size:var(--zf);font-weight:700;padding:.02em .2em;border:1.5px solid #000;line-height:1.05;white-space:nowrap;color:#000!important}
 #pa.zbk table td:first-child,#pa.zbk table th{white-space:normal}
+#pa.zbk table thead tr:first-child>th:last-child,#pa.zbk table tbody tr>td:last-child{display:none} /* bez kolumny „na 1 dzień” na wydruku */
 #pa.zbk table th{font-size:calc(var(--zf)*.92);background:#ccc}
 #pa.zbk table td.cum{font-weight:600;background:#f0f0f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 #pa.zbk table td span,#pa.zbk table td div{font-size:.8em!important;color:#000}#pa.zbk table td div{white-space:normal}
@@ -1098,9 +1099,19 @@ function exportZbiorczaCSV(){
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download='karta-zaladunku-'+todayKey()+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
 }
+// skrót nazwy na wydruk: skraca najdłuższe słowa (np. GORZOWSKA → GORZ.), aż nazwa ma ≤ max znaków
+function skrotNazwy(n,max){
+  max=max||20;const V=/[AĄEĘIOÓUYaąeęioóuy]/;const w=n.trim().split(/\s+/);
+  const ab=s=>{if(s.length<=5||!/^[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]+$/.test(s))return null;let k=4;while(k<s.length-1&&!(!V.test(s[k-1])&&V.test(s[k])))k++;return k<s.length-1?s.slice(0,k)+'.':null};
+  const done=new Set();
+  while(w.join(' ').length>max){let bi=-1;w.forEach((s,i)=>{if(!done.has(i)&&ab(s)&&(bi<0||s.length>w[bi].length))bi=i});if(bi<0)break;w[bi]=ab(w[bi]);done.add(bi)}
+  return w.join(' ');
+}
 function printKartaZaladunku(){
-  const d=zbData();
-  let h=zbTableHTML(d).replace('class="zb"','class="zb" style="width:100%;border-collapse:collapse"');
+  const d0=zbData();
+  const d=Object.assign({},d0,{rows:d0.rows.map(r=>Object.assign({},r,{s:Object.assign({},r.s,{nazwa:skrotNazwy(r.s.nazwa)})}))});
+  let h=zbTableHTML(d).replace('class="zb"','class="zb" style="width:100%;border-collapse:collapse"')
+    .replace('NIEDOJADY (wszystkie grupy)','NIEDOJADY').replace('(zostaje w wozie)','(w wozie)');
   if(d.notes.length)h+='<div class="tr-note"><b>⚠ TRANSFERY PASZY:</b><br>'+d.notes.join('<br>')+'</div>';
   prnLand('KARTA ZAŁADUNKU — '+fmtDate(new Date()),h,'zbk');
 }
